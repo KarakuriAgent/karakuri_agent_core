@@ -1,0 +1,9 @@
+services:
+  flutter-dev:
+    build: .
+    container_name: "flutter-dev"
+    tty: true
+    command: sleep infinity
+    network_mode: "host"
+    volumes:
+      - ./:/home/ubuntu/workspace/karakuri_agent

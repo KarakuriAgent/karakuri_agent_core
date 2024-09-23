@@ -1,0 +1,64 @@
+{
+  "appName": "からくりエージェント",
+  "home": {
+    "title": "からくりエージェント"
+  },
+  "settings": {
+    "serviceSettings": {
+      "title": "サービス設定",
+      "name": "名前:${name}",
+      "serviceType": "サービスタイプ:${serviceType}",
+      "addService": "+ サービスを追加",
+      "editService": "サービスを編集する",
+      "serviceConfig": {
+        "serviceAdd": "サービスを追加",
+        "serviceEdit": "サービスを編集",
+        "save": "保存",
+        "name": "名前",
+        "baseUrl": "URL",
+        "apiKey": "APIキー",
+        "serviceType": "サービスタイプ",
+        "configDelete": "${configType}を削除",
+        "configAdd": "${configType}を追加",
+        "textConfig": {
+          "configType": "TEXT",
+          "title": "TEXT設定",
+          "models": "モデル",
+          "id": "ID",
+          "name": "名前",
+          "addModel": "モデルを追加"
+        },
+        "sttConfig": {
+          "configType": "SPEECH TO TEXT",
+          "title": "SPEECH TO TEXT設定",
+          "models": "モデル",
+          "id": "ID",
+          "name": "名前",
+          "addModel": "モデルを追加"
+        },
+        "ttsConfig": {
+          "configType": "TEXT TO SPEECH",
+          "title": "TEXT TO SPEECH",
+          "voices": "ボイス",
+          "id": "ID",
+          "name": "名前",
+          "addVoice": "ボイスを追加"
+        },
+        "error": {
+          "nameIsRequired": "名前は必須です",
+          "baseUrlIsRequired": "URlは必須です",
+          "apiKeyIsRequired": "APIキーは必須です",
+          "textModelKeyIsRequired": "TEXTモデルのIDは必須です",
+          "textModelValueIsRequired": "TEXTモデルの名前は必須です",
+          "duplicateTextModelkey": "重複するTEXTモデルのIDが見つかりました: ${key}",
+          "sttModelKeyIsRequired": "SPEECH TO TEXTモデルのIDは必須です",
+          "sttModelValueIsRequired": "SPEECH TO TEXTモデルの名前は必須です",
+          "duplicateSttModelkey": "重複するSPEECH TO TEXTモデルのIDが見つかりました: ${key}",
+          "ttsVoiceKeyIsRequired": "TEXT TO SPEECHボイスのIDは必須です",
+          "ttsVoiceValueIsRequired": "TEXT TO SPEECHボイスの名前は必須です",
+          "duplicateTtsVoicekey": "重複するTEXT TO SPEECHボイスのIDが見つかりました: ${key}"
+        }
+      }
+    }
+  }
+}

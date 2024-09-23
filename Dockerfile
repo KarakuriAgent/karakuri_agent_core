@@ -35,7 +35,7 @@ RUN cd ~ \
 RUN ~/flutter/bin/flutter precache
 
 # add Flutter PATH
-RUN echo 'export PATH="$PATH:~/flutter/bin"' >> ~/.bashrc
+ENV PATH="/home/ubuntu/flutter/bin:${PATH}"
 RUN chmod -R 755 ~/flutter/bin
 
 # Install AndroidSDK
@@ -48,5 +48,4 @@ RUN yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses
 RUN ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "tools" "platform-tools" "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" "platforms;${ANDROID_PLATFORMS_VERSION}"
 
 # add Android PATH
-RUN echo 'export PATH=~/android-sdk/cmdline-tools/latest/bin:~/android-sdk/tools:~/android-sdk/platform-tools:~/android-sdk:$PATH' >>~/.bashrc
-RUN echo 'export ANDROID_HOME=~/android-sdk' >>~/.bashrc
+ENV PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}:${PATH}"

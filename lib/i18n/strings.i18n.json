@@ -1,0 +1,64 @@
+{
+  "appName": "Karakuri Agent",
+  "home": {
+    "title": "Karakuri Agent"
+  },
+  "settings": {
+    "serviceSettings": {
+      "title": "Service Settings",
+      "name": "Name:${name}",
+      "serviceType": "Service Type:${serviceType}",
+      "addService": "+ Add Service",
+      "editService": "Edit Service",
+      "serviceConfig": {
+        "serviceAdd": "Add Service",
+        "serviceEdit": "Edit Service",
+        "save": "Save",
+        "name": "Name",
+        "baseUrl": "URL",
+        "apiKey": "API Key",
+        "serviceType": "Service Type",
+        "configDelete": "Delete ${configType}",
+        "configAdd": "Add ${configType}",
+        "textConfig": {
+          "configType": "TEXT",
+          "title": "TEXT Settings",
+          "models": "Models",
+          "id": "ID",
+          "name": "Name",
+          "addModel": "Add Model"
+        },
+        "sttConfig": {
+          "configType": "SPEECH TO TEXT",
+          "title": "SPEECH TO TEXT Settings",
+          "models": "Models",
+          "id": "ID",
+          "name": "Name",
+          "addModel": "Add Model"
+        },
+        "ttsConfig": {
+          "configType": "TEXT TO SPEECH",
+          "title": "TEXT TO SPEECH Settings",
+          "voices": "Voices",
+          "id": "ID",
+          "name": "Name",
+          "addVoice": "Add Voice"
+        },
+        "error": {
+          "nameIsRequired": "Name is required",
+          "baseUrlIsRequired": "Base URL is required",
+          "apiKeyIsRequired": "API key is required",
+          "textModelKeyIsRequired": "Text model id is required",
+          "textModelValueIsRequired": "Text model name is required",
+          "duplicateTextModelkey": "Duplicate text model id found: ${key}",
+          "sttModelKeyIsRequired": "Speech to text model id is required",
+          "sttModelValueIsRequired": "Speech to text model name is required",
+          "duplicateSttModelkey": "Duplicate speech to text model id found: ${key}",
+          "ttsVoiceKeyIsRequired": "Text to speech voice id is required",
+          "ttsVoiceValueIsRequired": "Text to speech voice name is required",
+          "duplicateTtsVoicekey": "Duplicate text to speech voice id found: ${key}"
+        }
+      }
+    }
+  }
+}

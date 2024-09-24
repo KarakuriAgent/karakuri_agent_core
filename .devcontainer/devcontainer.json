@@ -1,0 +1,9 @@
+{
+    "name": "Flutter Android",
+    "image": "ghcr.io/0235-jp/karkuri-agent-dev:latest",
+    "customizations": {
+      "vscode": {
+        "extensions": ["dart-code.flutter", "dart-code.dart-code"]
+      }
+    }
+  }

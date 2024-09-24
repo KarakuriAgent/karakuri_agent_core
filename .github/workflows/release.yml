@@ -1,0 +1,77 @@
+name: release
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_PATH: /home/ubuntu/flutter/bin
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/0235-jp/karkuri-agent-dev:latest
+      options: --user root
+    env:
+      KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
+      KEYSTORE_ALIAS_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_ALIAS_PASSWORD }}
+      KEYSTORE_STORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_STORE_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: echo '${{ secrets.ENCODED_RELEASE_KEYSTORE }}' | base64 --decode > android/playstore.keystore
+      - run: git config --global --add safe.directory /home/ubuntu/flutter
+      - run: $FLUTTER_PATH/flutter pub get
+      - run: $FLUTTER_PATH/flutter pub run build_runner build --delete-conflicting-outputs
+      - run: $FLUTTER_PATH/flutter build apk --obfuscate --split-debug-info=obfuscate/android
+      - run: $FLUTTER_PATH/flutter build web
+      - run: zip build/web.zip build/web
+      - run: zip build/mapping.zip build/app/outputs/mapping/release
+      - run: zip build/debugSymbols.zip build/app/intermediates/merged_native_libs/release/out/lib
+      - run: zip build/dartDebugSymbols.zip obfuscate/android
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: build/app/outputs/apk/release/app-release.apk
+          asset_name: app-release.apk
+          asset_content_type: application/apk
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: build/web.zip
+          asset_name: web.zip
+          asset_content_type: application/zip
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: build/mapping.zip
+          asset_name: mapping.zip
+          asset_content_type: application/zip
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: build/debugSymbols.zip
+          asset_name: debugSymbols.zip
+          asset_content_type: application/zip
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: build/dartDebugSymbols.zip
+          asset_name: dartDebugSymbols.zip
+          asset_content_type: application/zip

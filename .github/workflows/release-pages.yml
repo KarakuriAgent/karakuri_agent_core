@@ -1,0 +1,42 @@
+name: release-pages
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_PATH: /home/ubuntu/flutter/bin
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/0235-jp/karkuri-agent-dev:latest
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: git config --global --add safe.directory /home/ubuntu/flutter
+      - run: $FLUTTER_PATH/flutter pub get
+      - run: $FLUTTER_PATH/flutter pub run build_runner build --delete-conflicting-outputs
+      - run: $FLUTTER_PATH/flutter build web --base-href "/karakuri_agent/"
+      - uses: actions/upload-pages-artifact@v1
+        with:
+          path: build/web
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest 
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/deploy-pages@v1
+        id: deployment

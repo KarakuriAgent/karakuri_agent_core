@@ -31,10 +31,10 @@ jobs:
       - run: $FLUTTER_PATH/flutter pub run build_runner build --delete-conflicting-outputs
       - run: $FLUTTER_PATH/flutter build apk --obfuscate --split-debug-info=obfuscate/android
       - run: $FLUTTER_PATH/flutter build web
-      - run: zip build/web.zip build/web
-      - run: zip build/mapping.zip build/app/outputs/mapping/release
-      - run: zip build/debugSymbols.zip build/app/intermediates/merged_native_libs/release/out/lib
-      - run: zip build/dartDebugSymbols.zip obfuscate/android
+      - run: zip -r build/web.zip build/web
+      - run: zip -r build/mapping.zip build/app/outputs/mapping/release
+      - run: zip -r build/debugSymbols.zip build/app/intermediates/merged_native_libs/release/out/lib
+      - run: zip -r build/dartDebugSymbols.zip obfuscate/android
       - uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

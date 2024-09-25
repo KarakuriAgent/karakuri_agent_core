@@ -19,6 +19,7 @@ dependencies:
   shared_preferences: ^2.3.2
   slang: ^3.31.2
   slang_flutter: ^3.31.0
+  js: ^0.7.1
 
 dev_dependencies:
   flutter_test:

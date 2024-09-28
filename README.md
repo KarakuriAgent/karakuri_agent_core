@@ -49,7 +49,7 @@ sudo reboot
 
 ### 次のコマンドでイメージを立ち上げることができ、Visual Studio Codeの開発コンテナ等でアクセスするとローカル環境と同様に開発ができます。
 ```
-docker compose -d
+docker compose -f compose-dev.yml up -d
 ```
 ## コマンド例
 ここでは例としてWebのビルド及びサーバーの起動の方法をきしします。各プラットフォームのビルド等は各自コマンドを変更して実行してください。
@@ -79,5 +79,5 @@ flutter build web
 ### Docker Composeの使用
 以下のコマンドを使用して、Docker環境でWebサーバーを起動できます。
 ```
-docker compose run --rm flutter-dev bash -c "cd ~/workspace/karakuri_agent && flutter clean && flutter pub get && flutter pub run build_runner build --delete-conflicting-outputs && flutter run --release -d web-server --web-hostname=0.0.0.0 --web-port=50505"
+docker compose -f compose-server.yml up -d
 ```

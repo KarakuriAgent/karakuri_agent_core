@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/service_config.dart';
@@ -58,7 +59,7 @@ class _ServiceSettingsContent extends HookConsumerWidget {
                 onPressed: () async {
                   final serviceConfig = await Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    CupertinoPageRoute(
                       builder: (context) => const ServiceConfigScreen(),
                     ),
                   ) as ServiceConfig?;
@@ -108,7 +109,7 @@ class ServiceCard extends HookConsumerWidget {
               onPressed: () async {
                 final serviceConfig = await Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  CupertinoPageRoute(
                     builder: (context) =>
                         ServiceConfigScreen(initialConfig: config),
                   ),

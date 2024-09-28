@@ -20,12 +20,11 @@ external void pauseVad();
 @JS('destroyVad')
 external void destroyVad();
 
-class VoiceActivityDetection {
-  Future<void> init(Function(List<int>) end) async {
-    if (isVadCreated()) return;
-    await promiseToFuture(
-        createVad(allowInterop((audio) => end(audio))));
-  }
+class SileroVadServce {
+  Future<void> create(Function(List<int>) end) async =>
+      await promiseToFuture(createVad(allowInterop((audio) => end(audio))));
+
+  bool isCreated() => isVadCreated();
 
   void start() => startVad();
 

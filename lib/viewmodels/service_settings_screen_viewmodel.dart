@@ -1,10 +1,10 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:karakuri_agent/utils/config_storage.dart';
+import 'package:karakuri_agent/repositories/config_storage_repository.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 
 class ServiceSettingsScreenViewmodel {
   final Ref _ref;
-  final ConfigStorage _configStorage;
+  final ConfigStorageRepository _configStorage;
   final serviceConfigsProvider =
       StateProvider<List<ServiceConfig>?>((ref) => null);
 

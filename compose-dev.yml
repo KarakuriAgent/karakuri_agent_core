@@ -1,7 +1,7 @@
 services:
-  flutter-dev:
+  krakuri-dev:
     build: .
-    container_name: "flutter-dev"
+    container_name: "krakuri-dev"
     tty: true
     command: sleep infinity
     network_mode: "host"

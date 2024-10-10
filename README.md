@@ -1,5 +1,8 @@
 # Karakuri Agent
 
+日本語版はこちら [README_JP.md](README_JP.md).
+
+
 Karakuri Agent is a cross-platform application that enables interactive communication with AI using 2D images.
 
 ## Supported Platforms

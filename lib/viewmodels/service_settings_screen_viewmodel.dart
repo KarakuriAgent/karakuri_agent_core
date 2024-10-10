@@ -29,14 +29,11 @@ class ServiceSettingsScreenViewmodel {
       updatedConfigs = List.from(currentConfigs);
       updatedConfigs[index] = config;
     } else {
-      updatedConfigs = [
-        ...currentConfigs,
-        config.copyWith(id: DateTime.now().millisecondsSinceEpoch.toString())
-      ];
+      updatedConfigs = [...currentConfigs, config];
     }
 
     serviceConfigNotifer.state = updatedConfigs;
-    await _configStorage.saveConfigs(updatedConfigs);
+    await _configStorage.saveServiceConfigs(updatedConfigs);
   }
 
   Future<void> deleteServiceConfig(String configId) async {
@@ -45,14 +42,14 @@ class ServiceSettingsScreenViewmodel {
     final updatedConfigs =
         currentConfigs.where((config) => config.id != configId).toList();
     serviceConfigNotifer.state = updatedConfigs;
-    await _configStorage.saveConfigs(updatedConfigs);
+    await _configStorage.saveServiceConfigs(updatedConfigs);
   }
 
   List<String> getConfigTypes(ServiceConfig config) {
     List<String> types = [];
     if (config.textConfig != null) types.add("TEXT");
-    if (config.ttsConfig != null) types.add("TEXT TO SPEECH");
-    if (config.sttConfig != null) types.add("SPEECH TO TEXT");
+    if (config.textToSpeechConfig != null) types.add("TEXT TO SPEECH");
+    if (config.speechToTextConfig != null) types.add("SPEECH TO TEXT");
     return types;
   }
 }

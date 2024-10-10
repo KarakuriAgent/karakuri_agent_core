@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/service_config.dart';
+import 'package:karakuri_agent/models/service_type.dart';
 import 'package:karakuri_agent/providers/service_settings_screen_viewmodel_provider.dart';
 import 'package:karakuri_agent/viewmodels/service_settings_screen_viewmodel.dart';
 import 'package:karakuri_agent/views/service_config_screen.dart';
@@ -95,7 +96,7 @@ class ServiceCard extends HookConsumerWidget {
             ),
             Text(
               t.settings.serviceSettings
-                  .serviceType(serviceType: config.type.name),
+                  .serviceType(serviceType: config.type.displayName),
             ),
             Wrap(
               spacing: 8.0,

@@ -8,9 +8,9 @@ extension ConfigTypeExtension on ConfigType {
       case ConfigType.text:
         return t.settings.serviceSettings.serviceConfig.textConfig.configType;
       case ConfigType.tts:
-        return t.settings.serviceSettings.serviceConfig.ttsConfig.configType;
+        return t.settings.serviceSettings.serviceConfig.textToSpeechConfig.configType;
       case ConfigType.stt:
-        return t.settings.serviceSettings.serviceConfig.sttConfig.configType;
+        return t.settings.serviceSettings.serviceConfig.speechToTextConfig.configType;
     }
   }
 
@@ -19,9 +19,9 @@ extension ConfigTypeExtension on ConfigType {
       case ConfigType.text:
         return t.settings.serviceSettings.serviceConfig.textConfig.title;
       case ConfigType.tts:
-        return t.settings.serviceSettings.serviceConfig.ttsConfig.title;
+        return t.settings.serviceSettings.serviceConfig.textToSpeechConfig.title;
       case ConfigType.stt:
-        return t.settings.serviceSettings.serviceConfig.sttConfig.title;
+        return t.settings.serviceSettings.serviceConfig.speechToTextConfig.title;
     }
   }
 }

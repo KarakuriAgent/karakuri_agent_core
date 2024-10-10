@@ -1,12 +1,16 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/repositories/config_storage_repository.dart';
-import 'package:karakuri_agent/services/shared_preference_service.dart';
+import 'package:karakuri_agent/services/database/local_datasource.dart';
 
-final _sharedPreferencesServiceProvider = Provider.autoDispose((ref) {
-  return SharedPreferencesService();
+final _localStolageProvider = Provider.autoDispose((ref) {
+  final datasource = LocalDatasource();
+ ref.onDispose(() {
+    datasource.close();
+  });
+  return datasource;
 });
 
 final configStorageProvider = Provider.autoDispose((ref) {
-  final prefsService = ref.watch(_sharedPreferencesServiceProvider);
-  return ConfigStorageRepository(prefsService);
+  final stolage = ref.watch(_localStolageProvider);
+  return ConfigStorageRepository(stolage);
 });

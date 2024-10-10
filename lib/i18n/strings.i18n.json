@@ -28,7 +28,7 @@
           "name": "Name",
           "addModel": "Add Model"
         },
-        "sttConfig": {
+        "speechToTextConfig": {
           "configType": "SPEECH TO TEXT",
           "title": "SPEECH TO TEXT Settings",
           "models": "Models",
@@ -36,7 +36,7 @@
           "name": "Name",
           "addModel": "Add Model"
         },
-        "ttsConfig": {
+        "textToSpeechConfig": {
           "configType": "TEXT TO SPEECH",
           "title": "TEXT TO SPEECH Settings",
           "voices": "Voices",

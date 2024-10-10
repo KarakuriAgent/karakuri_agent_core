@@ -16,6 +16,17 @@ extension ServiceTypeExtension on ServiceType {
   String get name {
     switch (this) {
       case ServiceType.openAI:
+        return 'openAI';
+      case ServiceType.voiceVox:
+        return 'voiceVox';
+      case ServiceType.styleBertVITS2:
+        return 'styleBertVITS2';
+    }
+  }
+  
+  String get displayName {
+    switch (this) {
+      case ServiceType.openAI:
         return 'OpenAI';
       case ServiceType.voiceVox:
         return 'VoiceVox';
@@ -41,5 +52,11 @@ extension ServiceTypeExtension on ServiceType {
           supportsTextToSpeech: true,
         );
     }
+  }
+
+   static ServiceType fromString(String value) {
+    return ServiceType.values.firstWhere(
+      (type) => type.name == value,
+    );
   }
 }

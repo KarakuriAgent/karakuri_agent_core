@@ -151,22 +151,22 @@ class SqfliteHelper {
     }
 
     if (serviceConfig.textToSpeechConfig != null) {
-      final int ttsConfigId = await txn.insert(TableName.textToSpeechConfig,
+      final int textToSpeechConfigId = await txn.insert(TableName.textToSpeechConfig,
           serviceConfig.textToSpeechConfig!.toDatabaseMap(serviceConfigId));
 
       for (var voice in serviceConfig.textToSpeechConfig!.voices) {
         await txn.insert(
-            TableName.textToSpeechVoice, voice.toDatabaseMap(ttsConfigId));
+            TableName.textToSpeechVoice, voice.toDatabaseMap(textToSpeechConfigId));
       }
     }
 
     if (serviceConfig.speechToTextConfig != null) {
-      final int sttConfigId = await txn.insert(TableName.speechToTextConfig,
+      final int speechToTextConfigId = await txn.insert(TableName.speechToTextConfig,
           serviceConfig.speechToTextConfig!.toDatabaseMap(serviceConfigId));
 
       for (var model in serviceConfig.speechToTextConfig!.models) {
         await txn.insert(
-            TableName.speechToTextModel, model.toDatabaseMap(sttConfigId));
+            TableName.speechToTextModel, model.toDatabaseMap(speechToTextConfigId));
       }
     }
 
@@ -233,29 +233,29 @@ class SqfliteHelper {
   Future<void> _updateTextToSpeechConfig(Transaction txn, int serviceConfigId,
       TextToSpeechConfig? textToSpeechConfig) async {
     if (textToSpeechConfig != null) {
-      final List<Map<String, dynamic>> existingTTSConfig = await txn.query(
+      final List<Map<String, dynamic>> existingTextToSpeechConfig = await txn.query(
         TableName.textToSpeechConfig,
         where: '${ColumnName.serviceConfigId} = ?',
         whereArgs: [serviceConfigId],
       );
 
-      int ttsConfigId;
-      if (existingTTSConfig.isNotEmpty) {
-        ttsConfigId = existingTTSConfig.first[ColumnName.id] as int;
+      int textToSpeechConfigId;
+      if (existingTextToSpeechConfig.isNotEmpty) {
+        textToSpeechConfigId = existingTextToSpeechConfig.first[ColumnName.id] as int;
 
         await _updateKeyValuePairList(
           txn,
           TableName.textToSpeechVoice,
-          ttsConfigId,
+          textToSpeechConfigId,
           textToSpeechConfig.voices,
         );
       } else {
-        ttsConfigId = await txn.insert(TableName.textToSpeechConfig,
+        textToSpeechConfigId = await txn.insert(TableName.textToSpeechConfig,
             {ColumnName.serviceConfigId: serviceConfigId});
 
         for (var voice in textToSpeechConfig.voices) {
           await txn.insert(
-              TableName.textToSpeechVoice, voice.toDatabaseMap(ttsConfigId));
+              TableName.textToSpeechVoice, voice.toDatabaseMap(textToSpeechConfigId));
         }
       }
     } else {
@@ -270,29 +270,29 @@ class SqfliteHelper {
   Future<void> _updateSpeechToTextConfig(Transaction txn, int serviceConfigId,
       SpeechToTextConfig? speechToTextConfig) async {
     if (speechToTextConfig != null) {
-      final List<Map<String, dynamic>> existingSTTConfig = await txn.query(
+      final List<Map<String, dynamic>> existingSpeechToTextConfig = await txn.query(
         TableName.speechToTextConfig,
         where: '${ColumnName.serviceConfigId} = ?',
         whereArgs: [serviceConfigId],
       );
 
-      int sttConfigId;
-      if (existingSTTConfig.isNotEmpty) {
-        sttConfigId = existingSTTConfig.first[ColumnName.id] as int;
+      int speechToTextConfigId;
+      if (existingSpeechToTextConfig.isNotEmpty) {
+        speechToTextConfigId = existingSpeechToTextConfig.first[ColumnName.id] as int;
 
         await _updateKeyValuePairList(
           txn,
           TableName.speechToTextModel,
-          sttConfigId,
+          speechToTextConfigId,
           speechToTextConfig.models,
         );
       } else {
-        sttConfigId = await txn.insert(TableName.speechToTextConfig,
+        speechToTextConfigId = await txn.insert(TableName.speechToTextConfig,
             {ColumnName.serviceConfigId: serviceConfigId});
 
         for (var model in speechToTextConfig.models) {
           await txn.insert(
-              TableName.speechToTextModel, model.toDatabaseMap(sttConfigId));
+              TableName.speechToTextModel, model.toDatabaseMap(speechToTextConfigId));
         }
       }
     } else {

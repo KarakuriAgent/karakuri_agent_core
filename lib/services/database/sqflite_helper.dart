@@ -398,11 +398,11 @@ class SqfliteHelper {
           speechToTextConfigMap[serviceConfig[ColumnName.id] as int];
       return ServiceConfig.fromJson(serviceConfig).copyWith(
         textConfig:
-            textConfig?.copyWith(models: textModelMap[textConfig.id!] ?? []),
+            textConfig?.copyWith(models: textModelMap[textConfig.id] ?? []),
         textToSpeechConfig: textToSpeechConfig?.copyWith(
-            voices: textToSpeechVoiceMap[textToSpeechConfig.id!] ?? []),
+            voices: textToSpeechVoiceMap[textToSpeechConfig.id] ?? []),
         speechToTextConfig: speechToTextConfig?.copyWith(
-            models: speechToTextModelMap[speechToTextConfig.id!] ?? []),
+            models: speechToTextModelMap[speechToTextConfig.id] ?? []),
       );
     }).toList();
   }

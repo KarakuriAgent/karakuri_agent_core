@@ -26,12 +26,15 @@ class ServiceConfig with _$ServiceConfig {
       _$ServiceConfigFromJson(json);
 
   Map<String, dynamic> toDatabaseMap() {
-    return {
-      ColumnName.id: id,
+    final map = <String, dynamic>{
       ColumnName.name: name,
       ColumnName.type: type.name,
       ColumnName.baseUrl: baseUrl,
       ColumnName.apiKey: apiKey,
     };
+    if (id != null) {
+      map[ColumnName.id] = id;
+    }
+    return map;
   }
 }

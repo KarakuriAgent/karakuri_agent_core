@@ -16,9 +16,12 @@ class SpeechToTextConfig with _$SpeechToTextConfig {
       _$SpeechToTextConfigFromJson(json);
 
   Map<String, dynamic> toDatabaseMap(int serviceConfigId) {
-    return {
-      ColumnName.id: id,
+    final map = <String, dynamic>{
       ColumnName.serviceConfigId: serviceConfigId,
     };
+    if (id != null) {
+      map[ColumnName.id] = id;
+    }
+    return map;
   }
 }

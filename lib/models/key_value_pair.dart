@@ -17,11 +17,14 @@ class KeyValuePair with _$KeyValuePair {
       _$KeyValuePairFromJson(json);
 
   Map<String, dynamic> toDatabaseMap(int parentId) {
-    return {
-      ColumnName.id: id,
+    final map = <String, dynamic>{
       ColumnName.parentId: parentId,
       ColumnName.key: key,
       ColumnName.value: value
     };
+    if (id != null) {
+      map[ColumnName.id] = id;
+    }
+    return map;
   }
 }

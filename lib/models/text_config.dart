@@ -16,10 +16,13 @@ class TextConfig with _$TextConfig {
   factory TextConfig.fromJson(Map<String, dynamic> json) =>
       _$TextConfigFromJson(json);
 
-  Map<String, dynamic> toDatabaseMap(int id) {
-    return {
-      ColumnName.id: id,
-      ColumnName.serviceConfigId: id,
+  Map<String, dynamic> toDatabaseMap(int serviceConfigId) {
+    final map = <String, dynamic>{
+      ColumnName.serviceConfigId: serviceConfigId,
     };
+    if (id != null) {
+      map[ColumnName.id] = id;
+    }
+    return map;
   }
 }

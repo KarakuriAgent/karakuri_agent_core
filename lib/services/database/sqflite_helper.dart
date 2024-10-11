@@ -74,6 +74,7 @@ class SqfliteHelper {
         ${ColumnName.parentId} INTEGER NOT NULL,
         ${ColumnName.key} TEXT NOT NULL,
         ${ColumnName.value} TEXT NOT NULL,
+        UNIQUE (${ColumnName.parentId}, ${ColumnName.key}),
         FOREIGN KEY (${ColumnName.parentId}) REFERENCES ${TableName.textConfig}(${ColumnName.id}) ON DELETE CASCADE
       )
     ''');
@@ -92,6 +93,7 @@ class SqfliteHelper {
         ${ColumnName.parentId} INTEGER NOT NULL,
         ${ColumnName.key} TEXT NOT NULL,
         ${ColumnName.value} TEXT NOT NULL,
+        UNIQUE (${ColumnName.parentId}, ${ColumnName.key}),
         FOREIGN KEY (${ColumnName.parentId}) REFERENCES ${TableName.textToSpeechConfig}(${ColumnName.id}) ON DELETE CASCADE
       )
     ''');
@@ -110,6 +112,7 @@ class SqfliteHelper {
         ${ColumnName.parentId} INTEGER NOT NULL,
         ${ColumnName.key} TEXT NOT NULL,
         ${ColumnName.value} TEXT NOT NULL,
+        UNIQUE (${ColumnName.parentId}, ${ColumnName.key}),
         FOREIGN KEY (${ColumnName.parentId}) REFERENCES ${TableName.speechToTextConfig}(${ColumnName.id}) ON DELETE CASCADE
       )
     ''');

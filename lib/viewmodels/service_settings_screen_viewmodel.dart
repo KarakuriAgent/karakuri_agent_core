@@ -21,10 +21,14 @@ class ServiceSettingsScreenViewmodel {
 
   Future<void> addServiceConfig(ServiceConfig config) async {
     final id = await _configStorage.addServiceConfig(config);
-    final serviceConfigNotifier = _ref.read(serviceConfigsProvider.notifier);
-    final currentConfigs = serviceConfigNotifier.state ?? [];
+    if (id != -1) {
+      final serviceConfigNotifier = _ref.read(serviceConfigsProvider.notifier);
+      final currentConfigs = serviceConfigNotifier.state ?? [];
       final updatedConfigs = [...currentConfigs, config.copyWith(id: id)];
-    serviceConfigNotifier.state = updatedConfigs;
+      serviceConfigNotifier.state = updatedConfigs;
+    } else {
+      throw Exception("Failed to add service config");
+    }
   }
 
   Future<void> updateServiceConfig(ServiceConfig config) async {

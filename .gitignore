@@ -42,6 +42,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+*.freezed.dart
 *.g.dart
 *.g.kt
 /android/app/src/main/java/io/flutter/plugins/Messages.java

@@ -1,24 +1,24 @@
-import 'dart:convert';
-
 import 'package:karakuri_agent/models/service_config.dart';
-import 'package:karakuri_agent/services/shared_preference_service.dart';
+import 'package:karakuri_agent/services/database/local_datasource.dart';
 
 class ConfigStorageRepository {
-  static const String _keyServiceConfig = 'service_configs';
-  final SharedPreferencesService _service;
+  final LocalDatasource _datasource;
 
-  ConfigStorageRepository(this._service);
+  ConfigStorageRepository(this._datasource);
 
-  Future<void> saveConfigs(List<ServiceConfig> configs) async {
-    final jsonList =
-        configs.map((config) => jsonEncode(config.toJson())).toList();
-    await _service.setStringList(_keyServiceConfig, jsonList);
+  Future<int> addServiceConfig(ServiceConfig config) async {
+    return await _datasource.insertServiceConfig(config);
+  }
+
+  Future<bool> updateServiceConfig(ServiceConfig config) async {
+    return await _datasource.updateServiceConfig(config);
+  }
+
+  Future<bool> deleteServiceConfig(int configId) async {
+    return await _datasource.deleteServiceConfig(configId);
   }
 
   Future<List<ServiceConfig>> loadConfigs() async {
-    final jsonList = await _service.getStringList(_keyServiceConfig) ?? [];
-    return jsonList
-        .map((jsonString) => ServiceConfig.fromJson(jsonDecode(jsonString)))
-        .toList();
+    return await _datasource.queryAllServiceConfig();
   }
 }

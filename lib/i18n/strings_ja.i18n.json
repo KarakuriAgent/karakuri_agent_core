@@ -10,6 +10,7 @@
       "serviceType": "サービスタイプ:${serviceType}",
       "addService": "+ サービスを追加",
       "editService": "サービスを編集する",
+      "deleteService": "サービスを削除する",
       "serviceConfig": {
         "serviceAdd": "サービスを追加",
         "serviceEdit": "サービスを編集",
@@ -28,7 +29,7 @@
           "name": "名前",
           "addModel": "モデルを追加"
         },
-        "sttConfig": {
+        "speechToTextConfig": {
           "configType": "SPEECH TO TEXT",
           "title": "SPEECH TO TEXT設定",
           "models": "モデル",
@@ -36,7 +37,7 @@
           "name": "名前",
           "addModel": "モデルを追加"
         },
-        "ttsConfig": {
+        "textToSpeechConfig": {
           "configType": "TEXT TO SPEECH",
           "title": "TEXT TO SPEECH",
           "voices": "ボイス",

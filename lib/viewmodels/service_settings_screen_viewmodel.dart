@@ -19,40 +19,49 @@ class ServiceSettingsScreenViewmodel {
     _ref.read(serviceConfigsProvider.notifier).dispose();
   }
 
-  Future<void> saveServiceConfig(ServiceConfig config) async {
-    final serviceConfigNotifer = _ref.read(serviceConfigsProvider.notifier);
-    final currentConfigs = serviceConfigNotifer.state ?? [];
-    final index = currentConfigs.indexWhere((c) => c.id == config.id);
-    List<ServiceConfig> updatedConfigs;
-
-    if (index != -1) {
-      updatedConfigs = List.from(currentConfigs);
-      updatedConfigs[index] = config;
+  Future<void> addServiceConfig(ServiceConfig config) async {
+    final id = await _configStorage.addServiceConfig(config);
+    if (id != -1) {
+      final serviceConfigNotifier = _ref.read(serviceConfigsProvider.notifier);
+      final currentConfigs = serviceConfigNotifier.state ?? [];
+      final updatedConfigs = [...currentConfigs, config.copyWith(id: id)];
+      serviceConfigNotifier.state = updatedConfigs;
     } else {
-      updatedConfigs = [
-        ...currentConfigs,
-        config.copyWith(id: DateTime.now().millisecondsSinceEpoch.toString())
-      ];
+      throw Exception("Failed to add service config");
     }
-
-    serviceConfigNotifer.state = updatedConfigs;
-    await _configStorage.saveConfigs(updatedConfigs);
   }
 
-  Future<void> deleteServiceConfig(String configId) async {
-    final serviceConfigNotifer = _ref.read(serviceConfigsProvider.notifier);
-    final currentConfigs = serviceConfigNotifer.state ?? [];
-    final updatedConfigs =
-        currentConfigs.where((config) => config.id != configId).toList();
-    serviceConfigNotifer.state = updatedConfigs;
-    await _configStorage.saveConfigs(updatedConfigs);
+  Future<void> updateServiceConfig(ServiceConfig config) async {
+    final bool updated = await _configStorage.updateServiceConfig(config);
+    if (updated) {
+      final serviceConfigNotifier = _ref.read(serviceConfigsProvider.notifier);
+      final currentConfigs = serviceConfigNotifier.state ?? [];
+      final updatedConfigs =
+          currentConfigs.map((c) => c.id == config.id ? config : c).toList();
+      serviceConfigNotifier.state = updatedConfigs;
+    } else {
+      throw Exception("Failed to update service config");
+    }
+  }
+
+  Future<void> deleteServiceConfig(int configId) async {
+    final bool deleted = await _configStorage.deleteServiceConfig(configId);
+    if (deleted) {
+      final serviceConfigNotifier = _ref.read(serviceConfigsProvider.notifier);
+      final currentConfigs = serviceConfigNotifier.state ?? [];
+      final deleteConfigs =
+          currentConfigs.where((c) => c.id != configId).toList();
+      serviceConfigNotifier.state = deleteConfigs;
+    } else {
+      throw Exception("Failed to delete service config");
+    }
   }
 
   List<String> getConfigTypes(ServiceConfig config) {
     List<String> types = [];
     if (config.textConfig != null) types.add("TEXT");
-    if (config.ttsConfig != null) types.add("TEXT TO SPEECH");
-    if (config.sttConfig != null) types.add("SPEECH TO TEXT");
+    if (config.textToSpeechConfig != null) types.add("TEXT TO SPEECH");
+    if (config.speechToTextConfig != null) types.add("SPEECH TO TEXT");
     return types;
   }
 }

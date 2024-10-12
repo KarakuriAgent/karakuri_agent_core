@@ -10,6 +10,7 @@
       "serviceType": "Service Type:${serviceType}",
       "addService": "+ Add Service",
       "editService": "Edit Service",
+      "deleteService": "Delete Service",
       "serviceConfig": {
         "serviceAdd": "Add Service",
         "serviceEdit": "Edit Service",
@@ -28,7 +29,7 @@
           "name": "Name",
           "addModel": "Add Model"
         },
-        "sttConfig": {
+        "speechToTextConfig": {
           "configType": "SPEECH TO TEXT",
           "title": "SPEECH TO TEXT Settings",
           "models": "Models",
@@ -36,7 +37,7 @@
           "name": "Name",
           "addModel": "Add Model"
         },
-        "ttsConfig": {
+        "textToSpeechConfig": {
           "configType": "TEXT TO SPEECH",
           "title": "TEXT TO SPEECH Settings",
           "voices": "Voices",

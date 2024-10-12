@@ -2,19 +2,18 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/services/database/sqflite_helper.dart';
 
-part 'text_config.freezed.dart';
-part 'text_config.g.dart';
+part 'text_to_speech_config.freezed.dart';
+part 'text_to_speech_config.g.dart';
 
 @freezed
-class TextConfig with _$TextConfig {
-  const TextConfig._();
-  const factory TextConfig({
+class TextToSpeechConfig with _$TextToSpeechConfig {
+  const TextToSpeechConfig._();
+  const factory TextToSpeechConfig({
     @JsonKey(name: ColumnName.id) int? id,
-    @Default([]) List<KeyValuePair> models,
-  }) = _TextConfig;
-
-  factory TextConfig.fromJson(Map<String, dynamic> json) =>
-      _$TextConfigFromJson(json);
+    @Default([]) List<KeyValuePair> voices,
+  }) = _TextToSpeechConfig;
+  factory TextToSpeechConfig.fromJson(Map<String, dynamic> json) =>
+      _$TextToSpeechConfigFromJson(json);
 
   Map<String, dynamic> toDatabaseMap(int serviceConfigId) {
     final map = <String, dynamic>{

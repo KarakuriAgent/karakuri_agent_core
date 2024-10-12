@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/service_config.dart';
+import 'package:karakuri_agent/models/service_type.dart';
 import 'package:karakuri_agent/providers/service_settings_screen_viewmodel_provider.dart';
 import 'package:karakuri_agent/viewmodels/service_settings_screen_viewmodel.dart';
 import 'package:karakuri_agent/views/service_config_screen.dart';
@@ -64,7 +65,7 @@ class _ServiceSettingsContent extends HookConsumerWidget {
                     ),
                   ) as ServiceConfig?;
                   if (serviceConfig != null) {
-                    viewModel.saveServiceConfig(serviceConfig);
+                    viewModel.addServiceConfig(serviceConfig);
                   }
                 },
               ),
@@ -95,7 +96,7 @@ class ServiceCard extends HookConsumerWidget {
             ),
             Text(
               t.settings.serviceSettings
-                  .serviceType(serviceType: config.type.name),
+                  .serviceType(serviceType: config.type.displayName),
             ),
             Wrap(
               spacing: 8.0,
@@ -104,20 +105,31 @@ class ServiceCard extends HookConsumerWidget {
                   .map((cap) => Chip(label: Text(cap)))
                   .toList(),
             ),
-            TextButton(
-              child: Text(t.settings.serviceSettings.editService),
-              onPressed: () async {
-                final serviceConfig = await Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                    builder: (context) =>
-                        ServiceConfigScreen(initialConfig: config),
-                  ),
-                ) as ServiceConfig?;
-                if (serviceConfig != null) {
-                  viewModel.saveServiceConfig(serviceConfig);
-                }
-              },
+            Row(
+              children: [
+                TextButton(
+                  child: Text(t.settings.serviceSettings.editService),
+                  onPressed: () async {
+                    final serviceConfig = await Navigator.push(
+                      context,
+                      CupertinoPageRoute(builder: (context) {
+                        return ServiceConfigScreen(initialConfig: config);
+                      }),
+                    ) as ServiceConfig?;
+                    if (serviceConfig != null) {
+                      viewModel.updateServiceConfig(serviceConfig);
+                    }
+                  },
+                ),
+                TextButton(
+                  child: Text(t.settings.serviceSettings.deleteService),
+                  onPressed: () async {
+                    if (config.id != null) {
+                      viewModel.deleteServiceConfig(config.id!);
+                    }
+                  },
+                ),
+              ],
             ),
           ],
         ),

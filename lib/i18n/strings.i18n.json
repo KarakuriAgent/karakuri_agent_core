@@ -10,6 +10,7 @@
       "serviceType": "Service Type:${serviceType}",
       "addService": "+ Add Service",
       "editService": "Edit Service",
+      "deleteService": "Delete Service",
       "serviceConfig": {
         "serviceAdd": "Add Service",
         "serviceEdit": "Edit Service",

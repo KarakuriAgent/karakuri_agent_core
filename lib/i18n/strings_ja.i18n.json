@@ -10,6 +10,7 @@
       "serviceType": "サービスタイプ:${serviceType}",
       "addService": "+ サービスを追加",
       "editService": "サービスを編集する",
+      "deleteService": "サービスを削除する",
       "serviceConfig": {
         "serviceAdd": "サービスを追加",
         "serviceEdit": "サービスを編集",

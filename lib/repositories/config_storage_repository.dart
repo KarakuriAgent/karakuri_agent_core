@@ -6,11 +6,19 @@ class ConfigStorageRepository {
 
   ConfigStorageRepository(this._datasource);
 
-  Future<void> saveServiceConfigs(List<ServiceConfig> configs) async {
-    await _datasource.saveServiceConfigs(configs);
+  Future<int> addServiceConfig(ServiceConfig config) async {
+    return await _datasource.insertServiceConfig(config);
+  }
+
+  Future<bool> updateServiceConfig(ServiceConfig config) async {
+    return await _datasource.updateServiceConfig(config);
+  }
+
+  Future<bool> deleteServiceConfig(int configId) async {
+    return await _datasource.deleteServiceConfig(configId);
   }
 
   Future<List<ServiceConfig>> loadConfigs() async {
-    return await _datasource.getServiceConfigs();
+    return await _datasource.queryAllServiceConfig();
   }
 }

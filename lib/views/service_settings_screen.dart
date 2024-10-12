@@ -65,7 +65,7 @@ class _ServiceSettingsContent extends HookConsumerWidget {
                     ),
                   ) as ServiceConfig?;
                   if (serviceConfig != null) {
-                    viewModel.saveServiceConfig(serviceConfig);
+                    viewModel.addServiceConfig(serviceConfig);
                   }
                 },
               ),
@@ -105,20 +105,31 @@ class ServiceCard extends HookConsumerWidget {
                   .map((cap) => Chip(label: Text(cap)))
                   .toList(),
             ),
-            TextButton(
-              child: Text(t.settings.serviceSettings.editService),
-              onPressed: () async {
-                final serviceConfig = await Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                    builder: (context) =>
-                        ServiceConfigScreen(initialConfig: config),
-                  ),
-                ) as ServiceConfig?;
-                if (serviceConfig != null) {
-                  viewModel.saveServiceConfig(serviceConfig);
-                }
-              },
+            Row(
+              children: [
+                TextButton(
+                  child: Text(t.settings.serviceSettings.editService),
+                  onPressed: () async {
+                    final serviceConfig = await Navigator.push(
+                      context,
+                      CupertinoPageRoute(builder: (context) {
+                        return ServiceConfigScreen(initialConfig: config);
+                      }),
+                    ) as ServiceConfig?;
+                    if (serviceConfig != null) {
+                      viewModel.updateServiceConfig(serviceConfig);
+                    }
+                  },
+                ),
+                TextButton(
+                  child: Text(t.settings.serviceSettings.deleteService),
+                  onPressed: () async {
+                    if (config.id != null) {
+                      viewModel.deleteServiceConfig(config.id!);
+                    }
+                  },
+                ),
+              ],
             ),
           ],
         ),

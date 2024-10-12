@@ -118,17 +118,28 @@ class SqfliteHelper {
     ''');
   }
 
-  Future<void> saveServiceConfigs(List<ServiceConfig> serviceConfigs) async {
+  Future<int> insertServiceConfig(ServiceConfig serviceConfig) async {
     final db = await database;
-    await db.transaction((txn) async {
-      for (var serviceConfig in serviceConfigs) {
-        if (serviceConfig.id != null) {
-          await _updateServiceConfig(txn, serviceConfig);
-        } else {
-          await _insertServiceConfig(txn, serviceConfig);
-        }
-      }
+    return await db.transaction((txn) async {
+      return await _insertServiceConfig(txn, serviceConfig);
     });
+  }
+
+  Future<bool> updateServiceConfig(ServiceConfig serviceConfig) async {
+    final db = await database;
+    return await db.transaction((txn) async {
+      return await _updateServiceConfig(txn, serviceConfig);
+    });
+  }
+
+  Future<bool> deleteServiceConfig(int configId) async {
+    final db = await database;
+    final int rowsAffected = await db.delete(
+      TableName.serviceConfig,
+      where: '${ColumnName.id} = ?',
+      whereArgs: [configId],
+    );
+    return rowsAffected > 0;
   }
 
   Future<int> _insertServiceConfig(
@@ -151,29 +162,31 @@ class SqfliteHelper {
     }
 
     if (serviceConfig.textToSpeechConfig != null) {
-      final int textToSpeechConfigId = await txn.insert(TableName.textToSpeechConfig,
+      final int textToSpeechConfigId = await txn.insert(
+          TableName.textToSpeechConfig,
           serviceConfig.textToSpeechConfig!.toDatabaseMap(serviceConfigId));
 
       for (var voice in serviceConfig.textToSpeechConfig!.voices) {
-        await txn.insert(
-            TableName.textToSpeechVoice, voice.toDatabaseMap(textToSpeechConfigId));
+        await txn.insert(TableName.textToSpeechVoice,
+            voice.toDatabaseMap(textToSpeechConfigId));
       }
     }
 
     if (serviceConfig.speechToTextConfig != null) {
-      final int speechToTextConfigId = await txn.insert(TableName.speechToTextConfig,
+      final int speechToTextConfigId = await txn.insert(
+          TableName.speechToTextConfig,
           serviceConfig.speechToTextConfig!.toDatabaseMap(serviceConfigId));
 
       for (var model in serviceConfig.speechToTextConfig!.models) {
-        await txn.insert(
-            TableName.speechToTextModel, model.toDatabaseMap(speechToTextConfigId));
+        await txn.insert(TableName.speechToTextModel,
+            model.toDatabaseMap(speechToTextConfigId));
       }
     }
 
     return serviceConfigId;
   }
 
-  Future<void> _updateServiceConfig(
+  Future<bool> _updateServiceConfig(
       Transaction txn, ServiceConfig serviceConfig) async {
     final int serviceConfigId = serviceConfig.id!;
 
@@ -191,6 +204,8 @@ class SqfliteHelper {
 
     await _updateSpeechToTextConfig(
         txn, serviceConfigId, serviceConfig.speechToTextConfig);
+
+    return true;
   }
 
   Future<void> _updateTextConfig(
@@ -233,7 +248,8 @@ class SqfliteHelper {
   Future<void> _updateTextToSpeechConfig(Transaction txn, int serviceConfigId,
       TextToSpeechConfig? textToSpeechConfig) async {
     if (textToSpeechConfig != null) {
-      final List<Map<String, dynamic>> existingTextToSpeechConfig = await txn.query(
+      final List<Map<String, dynamic>> existingTextToSpeechConfig =
+          await txn.query(
         TableName.textToSpeechConfig,
         where: '${ColumnName.serviceConfigId} = ?',
         whereArgs: [serviceConfigId],
@@ -241,7 +257,8 @@ class SqfliteHelper {
 
       int textToSpeechConfigId;
       if (existingTextToSpeechConfig.isNotEmpty) {
-        textToSpeechConfigId = existingTextToSpeechConfig.first[ColumnName.id] as int;
+        textToSpeechConfigId =
+            existingTextToSpeechConfig.first[ColumnName.id] as int;
 
         await _updateKeyValuePairList(
           txn,
@@ -254,8 +271,8 @@ class SqfliteHelper {
             {ColumnName.serviceConfigId: serviceConfigId});
 
         for (var voice in textToSpeechConfig.voices) {
-          await txn.insert(
-              TableName.textToSpeechVoice, voice.toDatabaseMap(textToSpeechConfigId));
+          await txn.insert(TableName.textToSpeechVoice,
+              voice.toDatabaseMap(textToSpeechConfigId));
         }
       }
     } else {
@@ -270,7 +287,8 @@ class SqfliteHelper {
   Future<void> _updateSpeechToTextConfig(Transaction txn, int serviceConfigId,
       SpeechToTextConfig? speechToTextConfig) async {
     if (speechToTextConfig != null) {
-      final List<Map<String, dynamic>> existingSpeechToTextConfig = await txn.query(
+      final List<Map<String, dynamic>> existingSpeechToTextConfig =
+          await txn.query(
         TableName.speechToTextConfig,
         where: '${ColumnName.serviceConfigId} = ?',
         whereArgs: [serviceConfigId],
@@ -278,7 +296,8 @@ class SqfliteHelper {
 
       int speechToTextConfigId;
       if (existingSpeechToTextConfig.isNotEmpty) {
-        speechToTextConfigId = existingSpeechToTextConfig.first[ColumnName.id] as int;
+        speechToTextConfigId =
+            existingSpeechToTextConfig.first[ColumnName.id] as int;
 
         await _updateKeyValuePairList(
           txn,
@@ -291,8 +310,8 @@ class SqfliteHelper {
             {ColumnName.serviceConfigId: serviceConfigId});
 
         for (var model in speechToTextConfig.models) {
-          await txn.insert(
-              TableName.speechToTextModel, model.toDatabaseMap(speechToTextConfigId));
+          await txn.insert(TableName.speechToTextModel,
+              model.toDatabaseMap(speechToTextConfigId));
         }
       }
     } else {
@@ -350,7 +369,7 @@ class SqfliteHelper {
     }
   }
 
-  Future<List<ServiceConfig>> getServiceConfigs() async {
+  Future<List<ServiceConfig>> queryAllServiceConfig() async {
     final db = await instance.database;
     final serviceConfigs = await db.query(TableName.serviceConfig);
     final textConfigs = await db.query(TableName.textConfig);

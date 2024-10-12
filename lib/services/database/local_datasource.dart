@@ -6,14 +6,23 @@ class LocalDatasource implements DataSource {
   final SqfliteHelper _databaseHelper = SqfliteHelper.instance;
 
   @override
-  Future<bool> saveServiceConfigs(List<ServiceConfig> serviceConfigs) async {
-      await _databaseHelper.saveServiceConfigs(serviceConfigs);
-      return true;
+  Future<int> insertServiceConfig(ServiceConfig serviceConfig) async {
+      return await _databaseHelper.insertServiceConfig(serviceConfig);
   }
 
   @override
-  Future<List<ServiceConfig>> getServiceConfigs() async {
-      return await _databaseHelper.getServiceConfigs();
+  Future<bool> updateServiceConfig(ServiceConfig serviceConfig) async {
+      return await _databaseHelper.updateServiceConfig(serviceConfig);
+  }
+
+  @override
+  Future<bool> deleteServiceConfig(int configId) async {
+      return await _databaseHelper.deleteServiceConfig(configId);
+  }
+
+  @override
+  Future<List<ServiceConfig>> queryAllServiceConfig() async {
+      return await _databaseHelper.queryAllServiceConfig();
   }
 
   @override

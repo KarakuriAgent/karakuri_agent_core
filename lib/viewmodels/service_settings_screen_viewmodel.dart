@@ -19,30 +19,38 @@ class ServiceSettingsScreenViewmodel {
     _ref.read(serviceConfigsProvider.notifier).dispose();
   }
 
-  Future<void> saveServiceConfig(ServiceConfig config) async {
+  Future<void> addServiceConfig(ServiceConfig config) async {
+    final id = await _configStorage.addServiceConfig(config);
     final serviceConfigNotifer = _ref.read(serviceConfigsProvider.notifier);
     final currentConfigs = serviceConfigNotifer.state ?? [];
-    final index = currentConfigs.indexWhere((c) => c.id == config.id);
-    List<ServiceConfig> updatedConfigs;
-
-    if (index != -1) {
-      updatedConfigs = List.from(currentConfigs);
-      updatedConfigs[index] = config;
-    } else {
-      updatedConfigs = [...currentConfigs, config];
-    }
-
+    final updatedConfigs = [...currentConfigs, config.copyWith(id: id)];
     serviceConfigNotifer.state = updatedConfigs;
-    await _configStorage.saveServiceConfigs(updatedConfigs);
   }
 
-  Future<void> deleteServiceConfig(String configId) async {
-    final serviceConfigNotifer = _ref.read(serviceConfigsProvider.notifier);
-    final currentConfigs = serviceConfigNotifer.state ?? [];
-    final updatedConfigs =
-        currentConfigs.where((config) => config.id != configId).toList();
-    serviceConfigNotifer.state = updatedConfigs;
-    await _configStorage.saveServiceConfigs(updatedConfigs);
+  Future<void> updateServiceConfig(ServiceConfig config) async {
+    final bool updated = await _configStorage.updateServiceConfig(config);
+    if (updated) {
+      final serviceConfigNotifer = _ref.read(serviceConfigsProvider.notifier);
+      final currentConfigs = serviceConfigNotifer.state ?? [];
+      final updatedConfigs = currentConfigs
+          .map((c) => c.id == config.id ? config : c)
+          .toList();
+      serviceConfigNotifer.state = updatedConfigs;
+    } else {
+      throw Exception("Failed to update service config");
+    }
+  }
+
+  Future<void> deleteServiceConfig(int configId) async {
+    final bool deleted = await _configStorage.deleteServiceConfig(configId);
+    if (deleted) {
+      final serviceConfigNotifer = _ref.read(serviceConfigsProvider.notifier);
+      final currentConfigs = serviceConfigNotifer.state ?? [];
+      currentConfigs.removeWhere((c) => c.id == configId);
+      serviceConfigNotifer.state = [...currentConfigs];
+    } else {
+      throw Exception("Failed to delete service config");
+    }
   }
 
   List<String> getConfigTypes(ServiceConfig config) {

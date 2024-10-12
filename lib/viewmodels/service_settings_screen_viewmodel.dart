@@ -32,9 +32,8 @@ class ServiceSettingsScreenViewmodel {
     if (updated) {
       final serviceConfigNotifier = _ref.read(serviceConfigsProvider.notifier);
       final currentConfigs = serviceConfigNotifier.state ?? [];
-      final updatedConfigs = currentConfigs
-          .map((c) => c.id == config.id ? config : c)
-          .toList();
+      final updatedConfigs =
+          currentConfigs.map((c) => c.id == config.id ? config : c).toList();
       serviceConfigNotifier.state = updatedConfigs;
     } else {
       throw Exception("Failed to update service config");
@@ -46,8 +45,9 @@ class ServiceSettingsScreenViewmodel {
     if (deleted) {
       final serviceConfigNotifier = _ref.read(serviceConfigsProvider.notifier);
       final currentConfigs = serviceConfigNotifier.state ?? [];
-      currentConfigs.removeWhere((c) => c.id == configId);
-      serviceConfigNotifier.state = [...currentConfigs];
+      final deleteConfigs =
+          currentConfigs.where((c) => c.id != configId).toList();
+      serviceConfigNotifier.state = deleteConfigs;
     } else {
       throw Exception("Failed to delete service config");
     }

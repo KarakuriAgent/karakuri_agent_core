@@ -21,21 +21,21 @@ class ServiceSettingsScreenViewmodel {
 
   Future<void> addServiceConfig(ServiceConfig config) async {
     final id = await _configStorage.addServiceConfig(config);
-    final serviceConfigNotifer = _ref.read(serviceConfigsProvider.notifier);
-    final currentConfigs = serviceConfigNotifer.state ?? [];
-    final updatedConfigs = [...currentConfigs, config.copyWith(id: id)];
-    serviceConfigNotifer.state = updatedConfigs;
+    final serviceConfigNotifier = _ref.read(serviceConfigsProvider.notifier);
+    final currentConfigs = serviceConfigNotifier.state ?? [];
+      final updatedConfigs = [...currentConfigs, config.copyWith(id: id)];
+    serviceConfigNotifier.state = updatedConfigs;
   }
 
   Future<void> updateServiceConfig(ServiceConfig config) async {
     final bool updated = await _configStorage.updateServiceConfig(config);
     if (updated) {
-      final serviceConfigNotifer = _ref.read(serviceConfigsProvider.notifier);
-      final currentConfigs = serviceConfigNotifer.state ?? [];
+      final serviceConfigNotifier = _ref.read(serviceConfigsProvider.notifier);
+      final currentConfigs = serviceConfigNotifier.state ?? [];
       final updatedConfigs = currentConfigs
           .map((c) => c.id == config.id ? config : c)
           .toList();
-      serviceConfigNotifer.state = updatedConfigs;
+      serviceConfigNotifier.state = updatedConfigs;
     } else {
       throw Exception("Failed to update service config");
     }
@@ -44,10 +44,10 @@ class ServiceSettingsScreenViewmodel {
   Future<void> deleteServiceConfig(int configId) async {
     final bool deleted = await _configStorage.deleteServiceConfig(configId);
     if (deleted) {
-      final serviceConfigNotifer = _ref.read(serviceConfigsProvider.notifier);
-      final currentConfigs = serviceConfigNotifer.state ?? [];
+      final serviceConfigNotifier = _ref.read(serviceConfigsProvider.notifier);
+      final currentConfigs = serviceConfigNotifier.state ?? [];
       currentConfigs.removeWhere((c) => c.id == configId);
-      serviceConfigNotifer.state = [...currentConfigs];
+      serviceConfigNotifier.state = [...currentConfigs];
     } else {
       throw Exception("Failed to delete service config");
     }

@@ -283,7 +283,7 @@ class _ConfigSectionMap extends HookConsumerWidget {
                   const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.remove_circle),
-                    onPressed: onRemove(index),
+                    onPressed: () => onRemove(index),
                   ),
                 ],
               ),

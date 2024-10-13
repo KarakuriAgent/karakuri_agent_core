@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/models/service_type.dart';
@@ -8,68 +7,40 @@ import 'package:karakuri_agent/models/text_config.dart';
 import 'package:karakuri_agent/models/text_to_speech_config.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';
 
-class ServiceConfigScreenViewmodel {
-  final Ref _ref;
+class ServiceConfigScreenViewmodel extends ChangeNotifier {
   final int? _id;
-  final AutoDisposeStateProvider<TextEditingController> nameControllerProvider;
-  final AutoDisposeStateProvider<TextEditingController>
-      baseUrlControllerProvider;
-  final AutoDisposeStateProvider<TextEditingController>
-      apiKeyControllerProvider;
-  final AutoDisposeStateProvider<ServiceType> serviceTypeProvider;
-  final AutoDisposeStateProvider<List<TextEditPair>> textConfigModelsProvider;
-  final AutoDisposeStateProvider<List<TextEditPair>>
-      speechToTextConfigModelsProvider;
-  final AutoDisposeStateProvider<List<TextEditPair>>
-      textToSpeechConfigVoicesProvider;
+  final TextEditingController nameController;
+  final TextEditingController baseUrlController;
+  final TextEditingController apiKeyController;
+  ServiceType serviceType;
+  List<TextEditPair> textConfigModels;
+  List<TextEditPair> speechToTextConfigModels;
+  List<TextEditPair> textToSpeechConfigVoices;
 
-  ServiceConfigScreenViewmodel(this._ref, {ServiceConfig? serviceConfig})
+  ServiceConfigScreenViewmodel({ServiceConfig? serviceConfig})
       : _id = serviceConfig?.id,
-        nameControllerProvider =
-            StateProvider.autoDispose<TextEditingController>((ref) {
-          final controller =
-              TextEditingController(text: serviceConfig?.name ?? '');
-          ref.onDispose(() {
-            controller.dispose();
-          });
-          return controller;
-        }),
-        baseUrlControllerProvider =
-            StateProvider.autoDispose<TextEditingController>((ref) {
-          final controller =
-              TextEditingController(text: serviceConfig?.baseUrl ?? '');
-          ref.onDispose(() {
-            controller.dispose();
-          });
-          return controller;
-        }),
-        apiKeyControllerProvider =
-            StateProvider.autoDispose<TextEditingController>((ref) {
-          final controller =
-              TextEditingController(text: serviceConfig?.apiKey ?? '');
-          ref.onDispose(() {
-            controller.dispose();
-          });
-          return controller;
-        }),
-        serviceTypeProvider = StateProvider.autoDispose<ServiceType>(
-            (ref) => serviceConfig?.type ?? ServiceType.openAI),
-        textConfigModelsProvider =
-            StateProvider.autoDispose<List<TextEditPair>>((ref) =>
-                TextEditPair.fromList(serviceConfig?.textConfig?.models)),
-        speechToTextConfigModelsProvider =
-            StateProvider.autoDispose<List<TextEditPair>>((ref) =>
-                TextEditPair.fromList(
-                    serviceConfig?.speechToTextConfig?.models)),
-        textToSpeechConfigVoicesProvider =
-            StateProvider.autoDispose<List<TextEditPair>>((ref) =>
-                TextEditPair.fromList(
-                    serviceConfig?.textToSpeechConfig?.voices)) {
-    _ref.onDispose(() {
-      _disposeList(_ref.read(textConfigModelsProvider));
-      _disposeList(_ref.read(speechToTextConfigModelsProvider));
-      _disposeList(_ref.read(textToSpeechConfigVoicesProvider));
-    });
+        nameController = TextEditingController(text: serviceConfig?.name ?? ''),
+        baseUrlController =
+            TextEditingController(text: serviceConfig?.baseUrl ?? ''),
+        apiKeyController =
+            TextEditingController(text: serviceConfig?.apiKey ?? ''),
+        serviceType = serviceConfig?.type ?? ServiceType.openAI,
+        textConfigModels =
+            TextEditPair.fromList(serviceConfig?.textConfig?.models),
+        speechToTextConfigModels =
+            TextEditPair.fromList(serviceConfig?.speechToTextConfig?.models),
+        textToSpeechConfigVoices =
+            TextEditPair.fromList(serviceConfig?.textToSpeechConfig?.voices);
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    baseUrlController.dispose();
+    apiKeyController.dispose();
+    _disposeList(textConfigModels);
+    _disposeList(speechToTextConfigModels);
+    _disposeList(textToSpeechConfigVoices);
+    super.dispose();
   }
 
   void _disposeList(List<TextEditPair> list) {
@@ -79,97 +50,71 @@ class ServiceConfigScreenViewmodel {
   }
 
   void updateServiceType(ServiceType type) {
-    _ref.read(serviceTypeProvider.notifier).state = type;
+    serviceType = type;
+    notifyListeners();
   }
 
   void addTextConfigModels() {
-    _ref.read(textConfigModelsProvider.notifier).update((state) {
-      state.add(TextEditPair());
-      return List.from(state);
-    });
+    textConfigModels = [...textConfigModels, TextEditPair()];
+    notifyListeners();
   }
 
   void addSpeechToTextConfigModels() {
-    _ref.read(speechToTextConfigModelsProvider.notifier).update((state) {
-      state.add(TextEditPair());
-      return List.from(state);
-    });
+    speechToTextConfigModels = [...speechToTextConfigModels, TextEditPair()];
+    notifyListeners();
   }
 
   void addTextToSpeechConfigVoices() {
-    _ref.read(textToSpeechConfigVoicesProvider.notifier).update((state) {
-      state.add(TextEditPair());
-      return List.from(state);
-    });
+    textToSpeechConfigVoices = [...textToSpeechConfigVoices, TextEditPair()];
+    notifyListeners();
   }
 
   void clearTextConfigModels() {
-    _ref.read(textConfigModelsProvider.notifier).update((state) {
-      _disposeList(state);
-      state.clear();
-      return [];
-    });
+    textConfigModels = [];
+    notifyListeners();
   }
 
   void clearSpeechToTextConfigModels() {
-    _ref.read(speechToTextConfigModelsProvider.notifier).update((state) {
-      _disposeList(state);
-      state.clear();
-      return [];
-    });
+    speechToTextConfigModels = [];
+    notifyListeners();
   }
 
   void clearTextToSpeechConfigVoices() {
-    _ref.read(textToSpeechConfigVoicesProvider.notifier).update((state) {
-      _disposeList(state);
-      state.clear();
-      return [];
-    });
+    textToSpeechConfigVoices = [];
+    notifyListeners();
   }
 
   void removeTextConfigModelsAt(int index) {
-    _ref.read(textConfigModelsProvider.notifier).update((state) {
-      state[index].dispose();
-      state.removeAt(index);
-      return List.from(state);
-    });
+    textConfigModels = List.from(textConfigModels)..removeAt(index);
+    notifyListeners();
   }
 
   void removeSpeechToTextConfigModelsAt(int index) {
-    _ref.read(speechToTextConfigModelsProvider.notifier).update((state) {
-      state[index].dispose();
-      state.removeAt(index);
-      return List.from(state);
-    });
+    speechToTextConfigModels = List.from(speechToTextConfigModels)
+      ..removeAt(index);
+    notifyListeners();
   }
 
   void removeTextToSpeechConfigVoicesAt(int index) {
-    _ref.read(textToSpeechConfigVoicesProvider.notifier).update((state) {
-      state[index].dispose();
-      state.removeAt(index);
-      return List.from(state);
-    });
+    textToSpeechConfigVoices = List.from(textToSpeechConfigVoices)
+      ..removeAt(index);
+    notifyListeners();
   }
 
   String? validationCheck() {
-    final name = _ref.read(nameControllerProvider).text;
-    if (name.isEmpty) {
+    if (nameController.text.isEmpty) {
       return t.settings.serviceSettings.serviceConfig.error.nameIsRequired;
     }
 
-    final baseUrl = _ref.read(baseUrlControllerProvider).text;
-    if (baseUrl.isEmpty) {
+    if (baseUrlController.text.isEmpty) {
       return t.settings.serviceSettings.serviceConfig.error.baseUrlIsRequired;
     }
 
-    final apiKey = _ref.read(apiKeyControllerProvider).text;
-    if (apiKey.isEmpty) {
+    if (apiKeyController.text.isEmpty) {
       return t.settings.serviceSettings.serviceConfig.error.apiKeyIsRequired;
     }
 
-    final type = _ref.read(serviceTypeProvider);
-    if (type.capabilities.supportsText) {
-      final textConfigModels = _ref.read(textConfigModelsProvider);
+    if (serviceType.capabilities.supportsText) {
       if (textConfigModels.isNotEmpty) {
         final Set<String> keys = {};
         for (var model in textConfigModels) {
@@ -189,9 +134,7 @@ class ServiceConfigScreenViewmodel {
       }
     }
 
-    if (type.capabilities.supportsSpeechToText) {
-      final speechToTextConfigModels =
-          _ref.read(speechToTextConfigModelsProvider);
+    if (serviceType.capabilities.supportsSpeechToText) {
       if (speechToTextConfigModels.isNotEmpty) {
         final Set<String> keys = {};
         for (var model in speechToTextConfigModels) {
@@ -211,9 +154,7 @@ class ServiceConfigScreenViewmodel {
       }
     }
 
-    if (type.capabilities.supportsTextToSpeech) {
-      final textToSpeechConfigVoices =
-          _ref.read(textToSpeechConfigVoicesProvider);
+    if (serviceType.capabilities.supportsTextToSpeech) {
       if (textToSpeechConfigVoices.isNotEmpty) {
         final Set<String> keys = {};
         for (var voice in textToSpeechConfigVoices) {
@@ -238,15 +179,13 @@ class ServiceConfigScreenViewmodel {
   ServiceConfig createServiceConfig() {
     return ServiceConfig(
       id: _id,
-      name: _ref.read(nameControllerProvider).text,
-      type: _ref.read(serviceTypeProvider),
-      baseUrl: _ref.read(baseUrlControllerProvider).text,
-      apiKey: _ref.read(apiKeyControllerProvider).text,
-      textConfig: _createTextConfig(_ref.read(textConfigModelsProvider)),
-      textToSpeechConfig: _createTextToSpeechConfig(
-          _ref.read(textToSpeechConfigVoicesProvider)),
-      speechToTextConfig: _createSpeechToTextConfig(
-          _ref.read(speechToTextConfigModelsProvider)),
+      name: nameController.text,
+      type: serviceType,
+      baseUrl: baseUrlController.text,
+      apiKey: apiKeyController.text,
+      textConfig: _createTextConfig(textConfigModels),
+      textToSpeechConfig: _createTextToSpeechConfig(textToSpeechConfigVoices),
+      speechToTextConfig: _createSpeechToTextConfig(speechToTextConfigModels),
     );
   }
 

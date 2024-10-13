@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:karakuri_agent/repositories/config_storage_repository.dart';
 import 'package:karakuri_agent/models/service_config.dart';
+import 'package:karakuri_agent/utils/exception.dart';
 
 class ServiceSettingsScreenViewmodel extends ChangeNotifier {
   final ConfigStorageRepository _configStorage;
-  late List<ServiceConfig> serviceConfigs;
+  List<ServiceConfig> serviceConfigs = [];
   bool initialized = false;
 
   ServiceSettingsScreenViewmodel(this._configStorage);
@@ -16,13 +17,10 @@ class ServiceSettingsScreenViewmodel extends ChangeNotifier {
   }
 
   Future<void> addServiceConfig(ServiceConfig config) async {
-    if (!initialized) {
-      throw Exception("Viewmodel not initialized");
-    }
+    _ensureInitialized();
     final id = await _configStorage.addServiceConfig(config);
     if (id != -1) {
       serviceConfigs = [...serviceConfigs, config.copyWith(id: id)];
-      ;
       notifyListeners();
     } else {
       throw Exception("Failed to add service config");
@@ -30,9 +28,7 @@ class ServiceSettingsScreenViewmodel extends ChangeNotifier {
   }
 
   Future<void> updateServiceConfig(ServiceConfig config) async {
-    if (!initialized) {
-      throw Exception("Viewmodel not initialized");
-    }
+    _ensureInitialized();
     final bool updated = await _configStorage.updateServiceConfig(config);
     if (updated) {
       serviceConfigs =
@@ -44,9 +40,7 @@ class ServiceSettingsScreenViewmodel extends ChangeNotifier {
   }
 
   Future<void> deleteServiceConfig(int configId) async {
-    if (!initialized) {
-      throw Exception("Viewmodel not initialized");
-    }
+    _ensureInitialized();
     final bool deleted = await _configStorage.deleteServiceConfig(configId);
     if (deleted) {
       serviceConfigs = serviceConfigs.where((c) => c.id != configId).toList();
@@ -62,5 +56,11 @@ class ServiceSettingsScreenViewmodel extends ChangeNotifier {
     if (config.textToSpeechConfig != null) types.add("TEXT TO SPEECH");
     if (config.speechToTextConfig != null) types.add("SPEECH TO TEXT");
     return types;
+  }
+
+  void _ensureInitialized() {
+    if (!initialized) {
+      throw UninitializedViewModelException();
+    }
   }
 }

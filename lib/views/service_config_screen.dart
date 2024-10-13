@@ -14,15 +14,15 @@ class ServiceConfigScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<ServiceConfigScreenViewmodel>(
+      serviceConfigScreenViewmodelProvider(initialConfig),
+      (_, __) {},
+    );
     final viewModel =
-        ref.watch(serviceConfigScreenViewmodelProvider(initialConfig));
-    final selectedType = ref.watch(viewModel.serviceTypeProvider);
-
-    // TODO サポート対象外になった場合、watchしなくなるためデフォルト値に戻ってします。
-    ref.watch(viewModel.textConfigModelsProvider);
-    ref.watch(viewModel.speechToTextConfigModelsProvider);
-    ref.watch(viewModel.textToSpeechConfigVoicesProvider);
-
+        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
+    final selectedType = ref.watch(
+        serviceConfigScreenViewmodelProvider(initialConfig)
+            .select((it) => it.serviceType));
     return Scaffold(
       appBar: AppBar(
         title: Text(initialConfig == null
@@ -34,28 +34,28 @@ class ServiceConfigScreen extends HookConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _BaseConfigSection(viewModel: viewModel),
-            _ServiceTypeDropdownSection(viewModel: viewModel),
+            _BaseConfigSection(initialConfig: initialConfig),
+            _ServiceTypeDropdownSection(initialConfig: initialConfig),
             if (selectedType.capabilities.supportsText)
               Padding(
                 padding: const EdgeInsets.only(
                   bottom: 3,
                 ),
-                child: _TextConfigSection(viewModel: viewModel),
+                child: _TextConfigSection(initialConfig: initialConfig),
               ),
             if (selectedType.capabilities.supportsSpeechToText)
               Padding(
                 padding: const EdgeInsets.only(
                   bottom: 3,
                 ),
-                child: _SpeechToTextConfigSection(viewModel: viewModel),
+                child: _SpeechToTextConfigSection(initialConfig: initialConfig),
               ),
             if (selectedType.capabilities.supportsTextToSpeech)
               Padding(
                 padding: const EdgeInsets.only(
                   bottom: 3,
                 ),
-                child: _TextToSpeechConfigSection(viewModel: viewModel),
+                child: _TextToSpeechConfigSection(initialConfig: initialConfig),
               ),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -85,29 +85,28 @@ class ServiceConfigScreen extends HookConsumerWidget {
 }
 
 class _BaseConfigSection extends HookConsumerWidget {
-  final ServiceConfigScreenViewmodel viewModel;
+  final ServiceConfig? initialConfig;
 
-  const _BaseConfigSection({required this.viewModel});
+  const _BaseConfigSection({required this.initialConfig});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nameController = ref.watch(viewModel.nameControllerProvider);
-    final baseUrlController = ref.watch(viewModel.baseUrlControllerProvider);
-    final apiKeyController = ref.watch(viewModel.apiKeyControllerProvider);
+    final viewModel =
+        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
     return Column(
       children: [
         TextFormField(
-          controller: nameController,
+          controller: viewModel.nameController,
           decoration: InputDecoration(
               labelText: t.settings.serviceSettings.serviceConfig.name),
         ),
         TextFormField(
-          controller: baseUrlController,
+          controller: viewModel.baseUrlController,
           decoration: InputDecoration(
               labelText: t.settings.serviceSettings.serviceConfig.baseUrl),
         ),
         TextFormField(
-          controller: apiKeyController,
+          controller: viewModel.apiKeyController,
           decoration: InputDecoration(
               labelText: t.settings.serviceSettings.serviceConfig.apiKey),
         ),
@@ -117,15 +116,19 @@ class _BaseConfigSection extends HookConsumerWidget {
 }
 
 class _ServiceTypeDropdownSection extends HookConsumerWidget {
-  final ServiceConfigScreenViewmodel viewModel;
+  final ServiceConfig? initialConfig;
 
   const _ServiceTypeDropdownSection({
-    required this.viewModel,
+    required this.initialConfig,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedType = ref.watch(viewModel.serviceTypeProvider);
+    final viewModel =
+        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
+    final selectedType = ref.watch(
+        serviceConfigScreenViewmodelProvider(initialConfig)
+            .select((it) => it.serviceType));
     return DropdownButtonFormField<ServiceType>(
       value: selectedType,
       onChanged: (ServiceType? newValue) {
@@ -235,7 +238,7 @@ class _ConfigSectionMap extends HookConsumerWidget {
 
   final List<TextEditPair> map;
   final VoidCallback onAdd;
-  final VoidCallback onRemove;
+  final Function(int index) onRemove;
 
   const _ConfigSectionMap({
     required this.title,
@@ -280,7 +283,7 @@ class _ConfigSectionMap extends HookConsumerWidget {
                   const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.remove_circle),
-                    onPressed: onRemove,
+                    onPressed: () => onRemove(index),
                   ),
                 ],
               ),
@@ -299,15 +302,18 @@ class _ConfigSectionMap extends HookConsumerWidget {
 }
 
 class _TextConfigSection extends HookConsumerWidget {
-  final ServiceConfigScreenViewmodel viewModel;
+  final ServiceConfig? initialConfig;
 
   const _TextConfigSection({
-    required this.viewModel,
+    required this.initialConfig,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final models = ref.watch(viewModel.textConfigModelsProvider);
+    final viewModel =
+        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
+    final models = ref.watch(serviceConfigScreenViewmodelProvider(initialConfig)
+        .select((it) => it.textConfigModels));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -326,9 +332,9 @@ class _TextConfigSection extends HookConsumerWidget {
                 t.settings.serviceSettings.serviceConfig.textConfig.addModel,
             map: models,
             onAdd: viewModel.addTextConfigModels,
-            onRemove: () {
+            onRemove: (index) {
               if (models.length > 1) {
-                viewModel.removeTextConfigModelsAt(0);
+                viewModel.removeTextConfigModelsAt(index);
               }
             },
           ),
@@ -338,15 +344,18 @@ class _TextConfigSection extends HookConsumerWidget {
 }
 
 class _SpeechToTextConfigSection extends HookConsumerWidget {
-  final ServiceConfigScreenViewmodel viewModel;
+  final ServiceConfig? initialConfig;
 
   const _SpeechToTextConfigSection({
-    required this.viewModel,
+    required this.initialConfig,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final models = ref.watch(viewModel.speechToTextConfigModelsProvider);
+    final viewModel =
+        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
+    final models = ref.watch(serviceConfigScreenViewmodelProvider(initialConfig)
+        .select((it) => it.speechToTextConfigModels));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -357,16 +366,19 @@ class _SpeechToTextConfigSection extends HookConsumerWidget {
         ),
         if (models.isNotEmpty)
           _ConfigSectionMap(
-            title: t.settings.serviceSettings.serviceConfig.speechToTextConfig.models,
-            labelKey: t.settings.serviceSettings.serviceConfig.speechToTextConfig.id,
-            labelValue: t.settings.serviceSettings.serviceConfig.speechToTextConfig.name,
-            labelAdd:
-                t.settings.serviceSettings.serviceConfig.speechToTextConfig.addModel,
+            title: t.settings.serviceSettings.serviceConfig.speechToTextConfig
+                .models,
+            labelKey:
+                t.settings.serviceSettings.serviceConfig.speechToTextConfig.id,
+            labelValue: t
+                .settings.serviceSettings.serviceConfig.speechToTextConfig.name,
+            labelAdd: t.settings.serviceSettings.serviceConfig
+                .speechToTextConfig.addModel,
             map: models,
             onAdd: viewModel.addSpeechToTextConfigModels,
-            onRemove: () {
+            onRemove: (index) {
               if (models.length > 1) {
-                viewModel.removeSpeechToTextConfigModelsAt(0);
+                viewModel.removeSpeechToTextConfigModelsAt(index);
               }
             },
           ),
@@ -376,15 +388,18 @@ class _SpeechToTextConfigSection extends HookConsumerWidget {
 }
 
 class _TextToSpeechConfigSection extends HookConsumerWidget {
-  final ServiceConfigScreenViewmodel viewModel;
+  final ServiceConfig? initialConfig;
 
   const _TextToSpeechConfigSection({
-    required this.viewModel,
+    required this.initialConfig,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final voices = ref.watch(viewModel.textToSpeechConfigVoicesProvider);
+    final viewModel =
+        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
+    final voices = ref.watch(serviceConfigScreenViewmodelProvider(initialConfig)
+        .select((it) => it.textToSpeechConfigVoices));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -395,16 +410,19 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
         ),
         if (voices.isNotEmpty)
           _ConfigSectionMap(
-            title: t.settings.serviceSettings.serviceConfig.textToSpeechConfig.voices,
-            labelKey: t.settings.serviceSettings.serviceConfig.textToSpeechConfig.id,
-            labelValue: t.settings.serviceSettings.serviceConfig.textToSpeechConfig.name,
-            labelAdd:
-                t.settings.serviceSettings.serviceConfig.textToSpeechConfig.addVoice,
+            title: t.settings.serviceSettings.serviceConfig.textToSpeechConfig
+                .voices,
+            labelKey:
+                t.settings.serviceSettings.serviceConfig.textToSpeechConfig.id,
+            labelValue: t
+                .settings.serviceSettings.serviceConfig.textToSpeechConfig.name,
+            labelAdd: t.settings.serviceSettings.serviceConfig
+                .textToSpeechConfig.addVoice,
             map: voices,
             onAdd: viewModel.addTextToSpeechConfigVoices,
-            onRemove: () {
+            onRemove: (index) {
               if (voices.length > 1) {
-                viewModel.removeTextToSpeechConfigVoicesAt(0);
+                viewModel.removeTextToSpeechConfigVoicesAt(index);
               }
             },
           ),

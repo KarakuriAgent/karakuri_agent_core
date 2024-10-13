@@ -13,28 +13,30 @@ class ServiceSettingsScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final viewModel = ref.watch(serviceSettingsScreenViewmodelProvider);
-    final serviceConfigs = ref.watch(viewModel.serviceConfigsProvider);
-    if (serviceConfigs == null) {
+    ref.listen<ServiceSettingsScreenViewmodel>(
+      serviceSettingsScreenViewmodelProvider,
+      (_, __) {},
+    );
+    final viewModel = ref.read(serviceSettingsScreenViewmodelProvider);
+    final initialized = ref.watch(
+        serviceSettingsScreenViewmodelProvider.select((it) => it.initialized));
+    if (!initialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     } else {
-      return _ServiceSettingsContent(
-        viewModel: viewModel,
-        configs: serviceConfigs,
-      );
+      return _ServiceSettingsContent(viewModel: viewModel);
     }
   }
 }
 
 class _ServiceSettingsContent extends HookConsumerWidget {
   final ServiceSettingsScreenViewmodel viewModel;
-  final List<ServiceConfig> configs;
 
-  const _ServiceSettingsContent(
-      {required this.viewModel, required this.configs});
+  const _ServiceSettingsContent({required this.viewModel});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final configs = ref.watch(serviceSettingsScreenViewmodelProvider
+        .select((it) => it.serviceConfigs));
     return Scaffold(
       appBar: AppBar(
         title: Text(t.settings.serviceSettings.title),

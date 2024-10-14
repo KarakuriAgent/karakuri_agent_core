@@ -22,6 +22,9 @@
       # Runs when a workspace is first created with this `dev.nix` file
       onCreate = {
         build-flutter = ''
+          flutter upgrade
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
           cd /home/user/myapp/android
 
           ./gradlew \
@@ -47,13 +50,6 @@
       };
       
       # To run something each time the workspace is (re)started, use the `onStart` hook
-      onStart = {
-        build-flutter = ''
-          flutter upgrade
-          flutter pub get
-          dart run build_runner build --delete-conflicting-outputs
-        '';
-      };
     };
     # Enable previews and customize configuration
     previews = {

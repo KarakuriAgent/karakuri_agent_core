@@ -199,7 +199,8 @@ class SqfliteHelper {
     final db = await database;
     return await _queryServiceConfigs(
       db,
-      '${TableName.textConfig}.${ColumnName.id} IS NOT NULL',
+      // TODO tablename .
+      'tc.${ColumnName.id} IS NOT NULL',
       [],
     );
   }
@@ -208,7 +209,8 @@ class SqfliteHelper {
     final db = await database;
     return await _queryServiceConfigs(
       db,
-      '${TableName.speechToTextConfig}.${ColumnName.id} IS NOT NULL',
+      // TODO tablename .
+      'sttc.${ColumnName.id} IS NOT NULL',
       [],
     );
   }
@@ -217,7 +219,8 @@ class SqfliteHelper {
     final db = await database;
     return await _queryServiceConfigs(
       db,
-      '${TableName.textToSpeechConfig}.${ColumnName.id} IS NOT NULL',
+      // TODO tablename .
+      'ttsc.${ColumnName.id} IS NOT NULL',
       [],
     );
   }
@@ -516,7 +519,7 @@ class SqfliteHelper {
     return true;
   }
 
-  Future<List<ServiceConfig>> _queryServiceConfigs(
+ Future<List<ServiceConfig>> _queryServiceConfigs(
       Database db, String where, List<dynamic> whereArgs) async {
     final List<Map<String, dynamic>> serviceConfigs = await db.rawQuery('''
     SELECT sc.*, 
@@ -588,7 +591,6 @@ class SqfliteHelper {
     }
     return results;
   }
-
   Future<int> _insertAgentConfig(
       Transaction txn, AgentConfig agentConfig) async {
     final int serviceConfigId = await txn.insert(
@@ -598,7 +600,6 @@ class SqfliteHelper {
     if (serviceConfigId == 0) return -1;
     return serviceConfigId;
   }
-
   Future<bool> _updateAgentConfig(
       Transaction txn, AgentConfig agentConfig) async {
     final int agentConfigId = agentConfig.id!;
@@ -611,7 +612,6 @@ class SqfliteHelper {
     if (updateAgentConfig == 0) return false;
     return true;
   }
-
   Future<List<AgentConfig>> _queryAgentConfigs(Database db) async {
     final List<Map<String, dynamic>> rows = await db.rawQuery('''
     SELECT 

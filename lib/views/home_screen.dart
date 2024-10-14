@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/providers/viewmodel_providers.dart';
 import 'package:karakuri_agent/viewmodels/home_screen_viewmodel.dart';
+import 'package:karakuri_agent/views/agent_config_screen.dart';
 import 'package:karakuri_agent/views/custom_view/link_text.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';
 import 'package:karakuri_agent/views/service_settings_screen.dart';
@@ -76,15 +77,15 @@ class _AgentContent extends HookConsumerWidget {
           child: OutlinedButton(
             child: Text(t.home.agent.agentAdd),
             onPressed: () async {
-              // final agentConfig = await Navigator.push(
-              // context,
-              // CupertinoPageRoute(
-              // builder: (context) => const AgentConfigScreen(),
-              // ),
-              // ) as AgentConfig?;
-              // if (agentConfig != null) {
-              //   viewModel.addAgentConfig(agentConfig);
-              // }
+              final agentConfig = await Navigator.push(
+              context,
+              CupertinoPageRoute(
+              builder: (context) => const AgentConfigScreen(),
+              ),
+              ) as AgentConfig?;
+              if (agentConfig != null) {
+                viewModel.addAgentConfig(agentConfig);
+              }
             },
           ),
         ),
@@ -128,16 +129,16 @@ class _AgentCard extends HookConsumerWidget {
             TextButton(
               child: Text(t.home.agent.agentEdit),
               onPressed: () async {
-                // final agentConfig = await Navigator.push(
-                //   context,
-                //   CupertinoPageRoute(
-                //     builder: (context) =>
-                //         AgentConfigScreen(initialConfig: config),
-                //   ),
-                // ) as AgentConfig?;
-                // if (agentConfig != null) {
-                //   viewModel.updateAgentConfig(agentConfig);
-                // }
+                final agentConfig = await Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (context) =>
+                        AgentConfigScreen(initialConfig: config),
+                  ),
+                ) as AgentConfig?;
+                if (agentConfig != null) {
+                  viewModel.updateAgentConfig(agentConfig);
+                }
               },
             ),
           ],

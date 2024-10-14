@@ -1,7 +1,15 @@
 {
   "appName": "Karakuri Agent",
   "home": {
-    "title": "Karakuri Agent"
+    "title": "Karakuri Agent",
+    "agent": {
+      "name": "Name:${name}",
+      "agentAdd": "Add Agent",
+      "agentEdit": "Edit Agent",
+      "textModel": "TEXT model:${name}",
+      "speechToTextModel": "SPEECH TO TEXT model:${name}",
+      "textToSpeechModel": "TEXT TO SPEECH model:${name}"
+    }
   },
   "settings": {
     "serviceSettings": {

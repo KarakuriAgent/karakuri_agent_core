@@ -16,9 +16,9 @@ class KeyValuePair with _$KeyValuePair {
   factory KeyValuePair.fromJson(Map<String, dynamic> json) =>
       _$KeyValuePairFromJson(json);
 
-  Map<String, dynamic> toDatabaseMap(int parentId) {
+  Map<String, dynamic> toDatabaseMap(String parrentIdColumnName, int parentId) {
     final map = <String, dynamic>{
-      ColumnName.parentId: parentId,
+      parrentIdColumnName: parentId,
       ColumnName.key: key,
       ColumnName.value: value
     };

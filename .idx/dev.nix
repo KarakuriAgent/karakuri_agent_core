@@ -2,7 +2,7 @@
 # see: https://developers.google.com/idx/guides/customize-idx-env
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
-  channel = "stable-23.11"; # or "unstable"
+  channel = "stable-24.05"; # or "unstable"
   # Use https://search.nixos.org/packages to find packages
   packages = [
     pkgs.nodePackages.firebase-tools
@@ -22,6 +22,7 @@
       # Runs when a workspace is first created with this `dev.nix` file
       onCreate = {
         build-flutter = ''
+          flutter upgrade
           cd /home/user/myapp/android
 
           ./gradlew \
@@ -52,7 +53,12 @@
     previews = {
       enable = true;
       previews = {
+        web = {
+          command = ["flutter" "run" "--machine" "-d" "web-server" "--web-hostname" "0.0.0.0" "--web-port" "$PORT"];
+          manager = "flutter";
+        };
         android = {
+          command = ["flutter" "run" "--machine" "-d" "android" "-d" "localhost:5555"];
           manager = "flutter";
         };
       };

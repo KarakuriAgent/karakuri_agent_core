@@ -11,7 +11,7 @@ abstract class DataSource {
   Future<List<ServiceConfig>> queryTextToSpeechServiceConfig();
   Future<int> insertAgentConfig(AgentConfig config);
   Future<bool> updateAgentConfig(AgentConfig config);
-  Future<bool> deleteAgentConfig(AgentConfig config);
+  Future<bool> deleteAgentConfig(int configId);
   Future<List<AgentConfig>> queryAllAgentConfig();
   Future<void> close();
 }

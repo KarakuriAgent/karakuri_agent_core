@@ -52,8 +52,8 @@ class LocalDatasource implements DataSource {
   }
 
   @override
-  Future<bool> deleteAgentConfig(AgentConfig config) async {
-    return await _databaseHelper.deleteAgentConfig(config);
+  Future<bool> deleteAgentConfig(int configId) async {
+    return await _databaseHelper.deleteAgentConfig(configId);
   }
 
   @override

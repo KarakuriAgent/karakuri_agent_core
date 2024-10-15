@@ -239,12 +239,12 @@ class SqfliteHelper {
     });
   }
 
-  Future<bool> deleteAgentConfig(AgentConfig config) async {
+  Future<bool> deleteAgentConfig(int configId) async {
     final db = await database;
     final int rowsAffected = await db.delete(
       TableName.agentConfig,
       where: '${ColumnName.id} = ?',
-      whereArgs: [config.id],
+      whereArgs: [configId],
     );
     return rowsAffected > 0;
   }

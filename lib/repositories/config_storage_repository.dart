@@ -43,8 +43,8 @@ class ConfigStorageRepository {
     return await _datasource.updateAgentConfig(config);
   }
 
-  Future<bool> deleteAgentConfig(AgentConfig config) async {
-    return await _datasource.deleteAgentConfig(config);
+  Future<bool> deleteAgentConfig(int configId) async {
+    return await _datasource.deleteAgentConfig(configId);
   }
 
   Future<List<AgentConfig>> loadAgentConfigs() async {

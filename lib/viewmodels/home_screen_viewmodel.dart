@@ -36,7 +36,7 @@ class HomeScreenViewModel extends ChangeNotifier {
   }
 
   Future<void> deleteAgentConfig(int configId) async {
-    final bool deleted = await _configStorage.deleteServiceConfig(configId);
+    final bool deleted = await _configStorage.deleteAgentConfig(configId);
     if (deleted) {
       agentConfigs = agentConfigs.where((c) => c.id != configId).toList();
       notifyListeners();

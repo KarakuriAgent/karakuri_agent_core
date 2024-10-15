@@ -8,7 +8,16 @@
       "agentEdit": "エージェントを編集",
       "textModel": "TEXTモデル:${name}",
       "speechToTextModel": "SPEECH TO TEXTモデル:${name}",
-      "textToSpeechModel": "TEXT TO SPEECHモデル:${name}"
+      "textToSpeechModel": "TEXT TO SPEECHモデル:${name}",
+      "error": {
+        "nameIsRequired": "名前は必須です",
+        "textServiceRequired": "TEXTサービスは必須です。",
+        "textModelRequired": "TEXTモデルは必須です",
+        "speechToTextServiceRequired": "SPEECH TO TEXTサービスは必須です。",
+        "speechToTextModelRequired": "SPEECH TO TEXTモデルは必須です",
+        "textToSpeechServiceRequired": "TEXT TO SPEECHサービスは必須です。",
+        "textToSpeechVoiceRequired": "TEXT TO SPEECHモデルは必須です"
+      }
     }
   },
   "settings": {

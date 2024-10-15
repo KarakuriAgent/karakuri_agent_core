@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:karakuri_agent/i18n/strings.g.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/models/service_config.dart';
@@ -94,22 +95,30 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
 
   void setTextToSpeech(KeyValuePair? voice) {
     selectTextToSpeechVoice = voice;
-    notifyListeners(); 
+    notifyListeners();
   }
 
   String? validationCheck() {
-    // TODO
     if (nameController.text.isEmpty) {
-      // return t.settings.serviceSettings.serviceConfig.error.nameIsRequired;
+      return t.home.agent.error.nameIsRequired;
     }
     if (selectTextService == null) {
-      // return t.settings.serviceSettings.serviceConfig.error.textServiceIsRequired;
+      return t.home.agent.error.textServiceRequired;
     }
     if (selectTextModel == null) {
-      // return t.settings.serviceSettings.serviceConfig.error.textModelIsRequired;
+      return t.home.agent.error.textModelRequired;
     }
     if (selectSpeechToTextService == null) {
-      // return t.settings.serviceSettings.serviceConfig.error.speechToTextServiceIsRequired;
+      return t.home.agent.error.speechToTextServiceRequired;
+    }
+    if (selectSpeechToTextModel == null) {
+      return t.home.agent.error.speechToTextModelRequired;
+    }
+    if (selectTextToSpeechService == null) {
+      return t.home.agent.error.textToSpeechServiceRequired;
+    }
+    if (selectTextToSpeechVoice == null) {
+      return t.home.agent.error.textToSpeechVoiceRequired;
     }
     return null;
   }

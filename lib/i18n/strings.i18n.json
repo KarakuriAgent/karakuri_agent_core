@@ -8,7 +8,16 @@
       "agentEdit": "Edit Agent",
       "textModel": "TEXT model:${name}",
       "speechToTextModel": "SPEECH TO TEXT model:${name}",
-      "textToSpeechModel": "TEXT TO SPEECH model:${name}"
+      "textToSpeechModel": "TEXT TO SPEECH model:${name}",
+      "error": {
+        "nameIsRequired": "name is required",
+        "textServiceRequired": "TEXT Service is required。",
+        "textModelRequired": "TEXT Modelis required",
+        "speechToTextServiceRequired": "SPEECH TO TEXT Service is required",
+        "speechToTextModelRequired": "SPEECH TO TEXT Model is required",
+        "textToSpeechServiceRequired": "TEXT TO SPEECH Service is required",
+        "textToSpeechVoiceRequired": "TEXT TO SPEECH Model is required"
+      }
     }
   },
   "settings": {

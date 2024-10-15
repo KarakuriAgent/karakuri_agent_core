@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/repositories/config_storage_repository.dart';
 
-class HomeScreenViewmodel extends ChangeNotifier {
+class HomeScreenViewModel extends ChangeNotifier {
   final ConfigStorageRepository _configStorage;
   bool initialized = false;
   List<AgentConfig> agentConfigs = [];
-  HomeScreenViewmodel(this._configStorage);
+  HomeScreenViewModel(this._configStorage);
 
   Future<void> build() async {
     agentConfigs = await _configStorage.loadAgentConfigs();

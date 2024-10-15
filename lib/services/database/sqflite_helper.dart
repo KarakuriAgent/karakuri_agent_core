@@ -453,11 +453,11 @@ class SqfliteHelper {
         if (speechToTextConfigId == 0) return false;
 
         for (var model in speechToTextConfig.models) {
-          final mldelId = await txn.insert(
+          final modelId = await txn.insert(
               TableName.speechToTextModel,
               model.toDatabaseMap(
                   ColumnName.speechToTextConfigId, speechToTextConfigId));
-          if (mldelId == 0) return false;
+          if (modelId == 0) return false;
         }
       }
     } else {
@@ -473,13 +473,13 @@ class SqfliteHelper {
   Future<bool> _updateKeyValuePairList(
     Transaction txn,
     String tableName,
-    String parrentIdColumnName,
+    String parentIdColumnName,
     int parentId,
     List<KeyValuePair> newList,
   ) async {
     final List<Map<String, dynamic>> existingItems = await txn.query(
       tableName,
-      where: '$parrentIdColumnName = ?',
+      where: '$parentIdColumnName = ?',
       whereArgs: [parentId],
     );
 
@@ -502,8 +502,8 @@ class SqfliteHelper {
       if (existingEntry != null) {
         existingItemsMap.remove(existingEntry.key);
       } else {
-        final itemMap = newItem.toDatabaseMap(parrentIdColumnName, parentId);
-        itemMap[parrentIdColumnName] = parentId;
+        final itemMap = newItem.toDatabaseMap(parentIdColumnName, parentId);
+        itemMap[parentIdColumnName] = parentId;
         final id = await txn.insert(tableName, itemMap);
         if (id == 0) return false;
       }
@@ -593,12 +593,12 @@ class SqfliteHelper {
   }
   Future<int> _insertAgentConfig(
       Transaction txn, AgentConfig agentConfig) async {
-    final int serviceConfigId = await txn.insert(
+    final int agentConfigId = await txn.insert(
       TableName.agentConfig,
       agentConfig.toDatabaseMap(),
     );
-    if (serviceConfigId == 0) return -1;
-    return serviceConfigId;
+    if (agentConfigId == 0) return -1;
+    return agentConfigId;
   }
   Future<bool> _updateAgentConfig(
       Transaction txn, AgentConfig agentConfig) async {

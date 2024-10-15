@@ -14,13 +14,13 @@ class HomeScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<HomeScreenViewmodel>(
-      homeScreenViewmodelProvider,
+    ref.listen<HomeScreenViewModel>(
+      homeScreenViewModelProvider,
       (_, __) {},
     );
-    final viewModel = ref.read(homeScreenViewmodelProvider);
+    final viewModel = ref.read(homeScreenViewModelProvider);
     final initialized =
-        ref.watch(homeScreenViewmodelProvider.select((it) => it.initialized));
+        ref.watch(homeScreenViewModelProvider.select((it) => it.initialized));
     return Scaffold(
       appBar: AppBar(
         title: Text(t.home.title),
@@ -51,14 +51,14 @@ class HomeScreen extends HookConsumerWidget {
 }
 
 class _AgentContent extends HookConsumerWidget {
-  final HomeScreenViewmodel viewModel;
+  final HomeScreenViewModel viewModel;
 
   const _AgentContent({required this.viewModel});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final configs =
-        ref.watch(homeScreenViewmodelProvider.select((it) => it.agentConfigs));
+        ref.watch(homeScreenViewModelProvider.select((it) => it.agentConfigs));
     return Column(
       children: [
         ListView.builder(
@@ -101,7 +101,7 @@ class _AgentCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final viewModel = ref.read(homeScreenViewmodelProvider);
+    final viewModel = ref.read(homeScreenViewModelProvider);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),

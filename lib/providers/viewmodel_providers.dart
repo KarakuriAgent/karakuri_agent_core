@@ -7,9 +7,9 @@ import 'package:karakuri_agent/viewmodels/home_screen_viewmodel.dart';
 import 'package:karakuri_agent/viewmodels/service_config_screen_viewmodel.dart';
 import 'package:karakuri_agent/viewmodels/service_settings_screen_viewmodel.dart';
 
-final homeScreenViewmodelProvider = ChangeNotifierProvider.autoDispose((ref) {
+final homeScreenViewModelProvider = ChangeNotifierProvider.autoDispose((ref) {
   final configStorage = ref.watch(configStorageProvider);
-  final viewModel = HomeScreenViewmodel(configStorage);
+  final viewModel = HomeScreenViewModel(configStorage);
   Future.microtask(() async {
     await viewModel.build();
   });

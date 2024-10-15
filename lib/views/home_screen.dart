@@ -61,16 +61,9 @@ class _AgentContent extends HookConsumerWidget {
         ref.watch(homeScreenViewModelProvider.select((it) => it.agentConfigs));
     return Column(
       children: [
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: configs.length,
-          itemBuilder: (context, index) {
-            final config = configs[index];
-            return _AgentCard(
-              config: config,
-            );
-          },
+        Column(
+          children:
+              configs.map((config) => _AgentCard(config: config)).toList(),
         ),
         Padding(
           padding: const EdgeInsets.all(16.0),
@@ -78,10 +71,10 @@ class _AgentContent extends HookConsumerWidget {
             child: Text(t.home.agent.agentAdd),
             onPressed: () async {
               final agentConfig = await Navigator.push(
-              context,
-              CupertinoPageRoute(
-              builder: (context) => const AgentConfigScreen(),
-              ),
+                context,
+                CupertinoPageRoute(
+                  builder: (context) => const AgentConfigScreen(),
+                ),
               ) as AgentConfig?;
               if (agentConfig != null) {
                 viewModel.addAgentConfig(agentConfig);

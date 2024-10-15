@@ -29,7 +29,7 @@ class HomeScreen extends HookConsumerWidget {
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   LinkText(
                     text: t.settings.serviceSettings.title,
@@ -60,11 +60,9 @@ class _AgentContent extends HookConsumerWidget {
     final configs =
         ref.watch(homeScreenViewModelProvider.select((it) => it.agentConfigs));
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Column(
-          children:
-              configs.map((config) => _AgentCard(config: config)).toList(),
-        ),
+        ...configs.map((config) => _AgentCard(config: config)),
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: OutlinedButton(
@@ -96,6 +94,7 @@ class _AgentCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(homeScreenViewModelProvider);
     return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

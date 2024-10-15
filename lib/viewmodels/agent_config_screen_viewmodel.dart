@@ -56,7 +56,7 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
     super.dispose();
   }
 
-  void setTextServiceConfig(ServiceConfig? config) {
+  void updateTextServiceConfig(ServiceConfig? config) {
     if (selectTextService != config) {
       selectTextModel = null;
     }
@@ -65,7 +65,7 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setSpeechToTextServiceConfig(ServiceConfig? config) {
+  void updateSpeechToTextServiceConfig(ServiceConfig? config) {
     if (selectSpeechToTextService != config) {
       selectSpeechToTextModel = null;
     }
@@ -74,7 +74,7 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setTextToSpeechServiceConfig(ServiceConfig? config) {
+  void updateTextToSpeechServiceConfig(ServiceConfig? config) {
     if (selectTextToSpeechService != config) {
       selectTextToSpeechVoice = null;
     }
@@ -83,17 +83,17 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setTextModel(KeyValuePair? model) {
+  void updateTextModel(KeyValuePair? model) {
     selectTextModel = model;
     notifyListeners();
   }
 
-  void setSpeechToText(KeyValuePair? model) {
+  void updateSpeechToTextModel(KeyValuePair? model) {
     selectSpeechToTextModel = model;
     notifyListeners();
   }
 
-  void setTextToSpeech(KeyValuePair? voice) {
+  void updateTextToSpeechVoice(KeyValuePair? voice) {
     selectTextToSpeechVoice = voice;
     notifyListeners();
   }

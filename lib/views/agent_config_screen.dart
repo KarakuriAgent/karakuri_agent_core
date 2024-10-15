@@ -108,7 +108,7 @@ class _TextConfigSection extends HookConsumerWidget {
           serviceConfig: selectService,
           servicesConfigs: services,
           onChanged: (value) {
-            viewmodel.setTextServiceConfig(value);
+            viewmodel.updateTextServiceConfig(value);
           },
         ),
         models.isNotEmpty
@@ -116,7 +116,7 @@ class _TextConfigSection extends HookConsumerWidget {
                 model: selectModel,
                 models: models,
                 onChanged: (value) {
-                  viewmodel.setTextModel(value);
+                  viewmodel.updateTextModel(value);
                 },
               )
             : const SizedBox(),
@@ -151,7 +151,7 @@ class _SpeechToTextConfigSection extends HookConsumerWidget {
           serviceConfig: selectService,
           servicesConfigs: services,
           onChanged: (value) {
-            viewmodel.setSpeechToTextServiceConfig(value);
+            viewmodel.updateSpeechToTextServiceConfig(value);
           },
         ),
         models.isNotEmpty
@@ -159,7 +159,7 @@ class _SpeechToTextConfigSection extends HookConsumerWidget {
                 model: selectModel,
                 models: models,
                 onChanged: (value) {
-                  viewmodel.setSpeechToText(value);
+                  viewmodel.updateSpeechToTextModel(value);
                 },
               )
             : const SizedBox(),
@@ -194,7 +194,7 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
           serviceConfig: selectService,
           servicesConfigs: services,
           onChanged: (value) {
-            viewmodel.setTextToSpeechServiceConfig(value);
+            viewmodel.updateTextToSpeechServiceConfig(value);
           },
         ),
         models.isNotEmpty
@@ -202,7 +202,7 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
                 model: selectModel,
                 models: models,
                 onChanged: (value) {
-                  viewmodel.setTextToSpeech(value);
+                  viewmodel.updateTextToSpeechVoice(value);
                 },
               )
             : const SizedBox(),

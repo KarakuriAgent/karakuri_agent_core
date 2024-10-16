@@ -48,8 +48,7 @@ class _AgentConfigContent extends HookConsumerWidget {
           TextFormField(
             controller: nameController,
             decoration: InputDecoration(
-                // TODO
-                labelText: t.settings.serviceSettings.serviceConfig.name),
+                labelText: t.home.agent.agentConfig.name),
           ),
           _TextConfigSection(initialConfig: initialConfig),
           _SpeechToTextConfigSection(initialConfig: initialConfig),
@@ -57,7 +56,7 @@ class _AgentConfigContent extends HookConsumerWidget {
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () => _saveConfig(context, ref, initialConfig),
-            child: Text(t.settings.serviceSettings.serviceConfig.save),
+            child: Text(t.home.agent.agentConfig.save),
           ),
         ],
       ),

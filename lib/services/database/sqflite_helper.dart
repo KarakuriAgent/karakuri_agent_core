@@ -199,7 +199,6 @@ class SqfliteHelper {
     final db = await database;
     return await _queryServiceConfigs(
       db,
-      // TODO tablename .
       'tc.${ColumnName.id} IS NOT NULL',
       [],
     );
@@ -209,7 +208,6 @@ class SqfliteHelper {
     final db = await database;
     return await _queryServiceConfigs(
       db,
-      // TODO tablename .
       'sttc.${ColumnName.id} IS NOT NULL',
       [],
     );
@@ -219,7 +217,6 @@ class SqfliteHelper {
     final db = await database;
     return await _queryServiceConfigs(
       db,
-      // TODO tablename .
       'ttsc.${ColumnName.id} IS NOT NULL',
       [],
     );

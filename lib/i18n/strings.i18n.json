@@ -9,6 +9,10 @@
       "textModel": "TEXT model:${name}",
       "speechToTextModel": "SPEECH TO TEXT model:${name}",
       "textToSpeechModel": "TEXT TO SPEECH model:${name}",
+      "agentConfig": {
+        "name": "Name",
+        "save": "Save"
+      },
       "error": {
         "nameIsRequired": "Name is required",
         "textServiceRequired": "TEXT Service is required",

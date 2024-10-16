@@ -12,7 +12,7 @@
       "error": {
         "nameIsRequired": "name is required",
         "textServiceRequired": "TEXT Service is required。",
-        "textModelRequired": "TEXT Modelis required",
+        "textModelRequired": "TEXT Model is required",
         "speechToTextServiceRequired": "SPEECH TO TEXT Service is required",
         "speechToTextModelRequired": "SPEECH TO TEXT Model is required",
         "textToSpeechServiceRequired": "TEXT TO SPEECH Service is required",

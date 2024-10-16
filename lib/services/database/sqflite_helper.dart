@@ -34,23 +34,11 @@ class ColumnName {
   static const key = 'key';
   static const value = 'value';
   static const textServiceId = 'text_service_id';
-  static const textService = 'text_service';
-  static const prefixTextService = 'text_service_';
   static const textModelId = 'text_model_id';
-  static const textModel = 'text_model';
-  static const prefixTextModel = 'text_model_';
   static const textToSpeechServiceId = 'text_to_speech_service_id';
-  static const textToSpeechService = 'text_to_speech_service';
-  static const prefixTextToSpeechService = 'text_to_speech_service_';
   static const textToSpeechVoiceId = 'text_to_speech_voice_id';
-  static const textToSpeechVoice = 'text_to_speech_voice';
-  static const prefixTextToSpeechVoice = 'text_to_speech_voice_';
   static const speechToTextServiceId = 'speech_to_text_service_id';
-  static const speechToTextService = 'speech_to_text_service';
-  static const prefixSpeechToTextService = 'speech_to_text_service_';
   static const speechToTextModelId = 'speech_to_text_model_id';
-  static const speechToTextModel = 'speech_to_text_model';
-  static const prefixSpeechToTextModel = 'speech_to_text_model_';
 }
 
 class SqfliteHelper {
@@ -516,7 +504,7 @@ class SqfliteHelper {
     return true;
   }
 
- Future<List<ServiceConfig>> _queryServiceConfigs(
+  Future<List<ServiceConfig>> _queryServiceConfigs(
       Database db, String where, List<dynamic> whereArgs) async {
     final List<Map<String, dynamic>> serviceConfigs = await db.rawQuery('''
     SELECT sc.*, 
@@ -588,6 +576,46 @@ class SqfliteHelper {
     }
     return results;
   }
+
+  Future<List<KeyValuePair>> _queryTextModels(
+      Database db, String where, List<dynamic> whereArgs) async {
+    final List<Map<String, dynamic>> textModels = await db.rawQuery('''
+    SELECT * FROM ${TableName.textModel}
+    ${where.isNotEmpty ? 'WHERE $where' : ''} 
+  ''', whereArgs);
+    final List<KeyValuePair> results = [];
+    for (var scRow in textModels) {
+      results.add(KeyValuePair.fromJson(scRow));
+    }
+    return results;
+  }
+
+  Future<List<KeyValuePair>> _querySpeechToTextModels(
+      Database db, String where, List<dynamic> whereArgs) async {
+    final List<Map<String, dynamic>> speechToTextModels = await db.rawQuery('''
+    SELECT * FROM ${TableName.speechToTextModel}
+    ${where.isNotEmpty ? 'WHERE $where' : ''} 
+  ''', whereArgs);
+    final List<KeyValuePair> results = [];
+    for (var scRow in speechToTextModels) {
+      results.add(KeyValuePair.fromJson(scRow));
+    }
+    return results;
+  }
+
+  Future<List<KeyValuePair>> _queryTextToSpeechVoices(
+      Database db, String where, List<dynamic> whereArgs) async {
+    final List<Map<String, dynamic>> textToSpeechVoices = await db.rawQuery('''
+    SELECT * FROM ${TableName.textToSpeechVoice}
+    ${where.isNotEmpty ? 'WHERE $where' : ''} 
+  ''', whereArgs);
+    final List<KeyValuePair> results = [];
+    for (var scRow in textToSpeechVoices) {
+      results.add(KeyValuePair.fromJson(scRow));
+    }
+    return results;
+  }
+
   Future<int> _insertAgentConfig(
       Transaction txn, AgentConfig agentConfig) async {
     final int agentConfigId = await txn.insert(
@@ -597,6 +625,7 @@ class SqfliteHelper {
     if (agentConfigId == 0) return -1;
     return agentConfigId;
   }
+
   Future<bool> _updateAgentConfig(
       Transaction txn, AgentConfig agentConfig) async {
     final int agentConfigId = agentConfig.id!;
@@ -609,35 +638,18 @@ class SqfliteHelper {
     if (updateAgentConfig == 0) return false;
     return true;
   }
+
   Future<List<AgentConfig>> _queryAgentConfigs(Database db) async {
     final List<Map<String, dynamic>> rows = await db.rawQuery('''
     SELECT 
       ac.${ColumnName.id} AS ${ColumnName.id},
       ac.${ColumnName.name} AS ${ColumnName.name},
-      tsc.${ColumnName.id} AS ${ColumnName.prefixTextService}${ColumnName.id},
-      tsc.${ColumnName.name} AS ${ColumnName.prefixTextService}${ColumnName.name},
-      tsc.${ColumnName.type} AS ${ColumnName.prefixTextService}${ColumnName.type},
-      tsc.${ColumnName.baseUrl} ${ColumnName.prefixTextService}${ColumnName.baseUrl},
-      tsc.${ColumnName.apiKey} AS ${ColumnName.prefixTextService}${ColumnName.apiKey},
-      tmodel.${ColumnName.id} AS ${ColumnName.prefixTextModel}${ColumnName.id},
-      tmodel.${ColumnName.key} AS ${ColumnName.prefixTextModel}${ColumnName.key},
-      tmodel.${ColumnName.value} AS ${ColumnName.prefixTextModel}${ColumnName.value},
-      stsc.${ColumnName.id} AS ${ColumnName.prefixSpeechToTextService}${ColumnName.id},
-      stsc.${ColumnName.name} AS ${ColumnName.prefixSpeechToTextService}${ColumnName.name},
-      stsc.${ColumnName.type} AS ${ColumnName.prefixSpeechToTextService}${ColumnName.type},
-      stsc.${ColumnName.baseUrl} AS ${ColumnName.prefixSpeechToTextService}${ColumnName.baseUrl},
-      stsc.${ColumnName.apiKey} AS ${ColumnName.prefixSpeechToTextService}${ColumnName.apiKey},
-      stmodel.${ColumnName.id} AS ${ColumnName.prefixSpeechToTextModel}${ColumnName.id},
-      stmodel.${ColumnName.key} AS ${ColumnName.prefixSpeechToTextModel}${ColumnName.key},
-      stmodel.${ColumnName.value} AS ${ColumnName.prefixSpeechToTextModel}${ColumnName.value},
-      ttsc.${ColumnName.id} AS ${ColumnName.prefixTextToSpeechService}${ColumnName.id},
-      ttsc.${ColumnName.name} AS ${ColumnName.prefixTextToSpeechService}${ColumnName.name},
-      ttsc.${ColumnName.type} AS ${ColumnName.prefixTextToSpeechService}${ColumnName.type},
-      ttsc.${ColumnName.baseUrl} AS ${ColumnName.prefixTextToSpeechService}${ColumnName.baseUrl},
-      ttsc.${ColumnName.apiKey} AS ${ColumnName.prefixTextToSpeechService}${ColumnName.apiKey},
-      ttsmodel.${ColumnName.id} AS ${ColumnName.prefixTextToSpeechVoice}${ColumnName.id},
-      ttsmodel.${ColumnName.key} AS ${ColumnName.prefixTextToSpeechVoice}${ColumnName.key},
-      ttsmodel.${ColumnName.value} AS ${ColumnName.prefixTextToSpeechVoice}${ColumnName.value}
+      tsc.${ColumnName.id} AS  ${ColumnName.textServiceId},
+      tmodel.${ColumnName.id} AS ${ColumnName.textModelId},
+      stsc.${ColumnName.id} AS ${ColumnName.speechToTextServiceId},
+      stmodel.${ColumnName.id} AS ${ColumnName.speechToTextModelId},
+      ttsc.${ColumnName.id} AS ${ColumnName.textToSpeechServiceId},
+      ttsmodel.${ColumnName.id} AS ${ColumnName.textToSpeechVoiceId}
     FROM ${TableName.agentConfig} ac
     LEFT JOIN ${TableName.serviceConfig} tsc ON ac.${ColumnName.textServiceId} = tsc.${ColumnName.id}
     LEFT JOIN ${TableName.textModel} tmodel ON ac.${ColumnName.textModelId} = tmodel.${ColumnName.id}
@@ -648,82 +660,22 @@ class SqfliteHelper {
   ''');
     final List<AgentConfig> agentConfigs = [];
     for (final row in rows) {
-      final textServiceConfig = ServiceConfig.fromJson({
-        ColumnName.id:
-            row['${ColumnName.prefixTextService}${ColumnName.id}'] as int,
-        ColumnName.name:
-            row['${ColumnName.prefixTextService}${ColumnName.name}'] as String,
-        ColumnName.type:
-            row['${ColumnName.prefixTextService}${ColumnName.type}'] as String,
-        ColumnName.baseUrl:
-            row['${ColumnName.prefixTextService}${ColumnName.baseUrl}']
-                as String,
-        ColumnName.apiKey:
-            row['${ColumnName.prefixTextService}${ColumnName.apiKey}']
-                as String,
-      });
-      final textModel = KeyValuePair.fromJson({
-        ColumnName.id:
-            row['${ColumnName.prefixTextModel}${ColumnName.id}'] as int,
-        ColumnName.key:
-            row['${ColumnName.prefixTextModel}${ColumnName.key}'] as String,
-        ColumnName.value:
-            row['${ColumnName.prefixTextModel}${ColumnName.value}'] as String,
-      });
-      final speechToTextServiceConfig = ServiceConfig.fromJson({
-        ColumnName.id:
-            row['${ColumnName.prefixSpeechToTextService}${ColumnName.id}']
-                as int,
-        ColumnName.name:
-            row['${ColumnName.prefixSpeechToTextService}${ColumnName.name}']
-                as String,
-        ColumnName.type:
-            row['${ColumnName.prefixSpeechToTextService}${ColumnName.type}']
-                as String,
-        ColumnName.baseUrl:
-            row['${ColumnName.prefixSpeechToTextService}${ColumnName.baseUrl}']
-                as String,
-        ColumnName.apiKey:
-            row['${ColumnName.prefixSpeechToTextService}${ColumnName.apiKey}']
-                as String,
-      });
-      final speechToTextModel = KeyValuePair.fromJson({
-        ColumnName.id:
-            row['${ColumnName.prefixSpeechToTextModel}${ColumnName.id}'] as int,
-        ColumnName.key:
-            row['${ColumnName.prefixSpeechToTextModel}${ColumnName.key}']
-                as String,
-        ColumnName.value:
-            row['${ColumnName.prefixSpeechToTextModel}${ColumnName.value}']
-                as String,
-      });
-      final textToSpeechServiceConfig = ServiceConfig.fromJson({
-        ColumnName.id:
-            row['${ColumnName.prefixTextToSpeechService}${ColumnName.id}']
-                as int,
-        ColumnName.name:
-            row['${ColumnName.prefixTextToSpeechService}${ColumnName.name}']
-                as String,
-        ColumnName.type:
-            row['${ColumnName.prefixTextToSpeechService}${ColumnName.type}']
-                as String,
-        ColumnName.baseUrl:
-            row['${ColumnName.prefixTextToSpeechService}${ColumnName.baseUrl}']
-                as String,
-        ColumnName.apiKey:
-            row['${ColumnName.prefixTextToSpeechService}${ColumnName.apiKey}']
-                as String,
-      });
-      final textToSpeechVoice = KeyValuePair.fromJson({
-        ColumnName.id:
-            row['${ColumnName.prefixTextToSpeechVoice}${ColumnName.id}'] as int,
-        ColumnName.key:
-            row['${ColumnName.prefixTextToSpeechVoice}${ColumnName.key}']
-                as String,
-        ColumnName.value:
-            row['${ColumnName.prefixTextToSpeechVoice}${ColumnName.value}']
-                as String,
-      });
+      final textServiceConfig = await _queryServiceConfigs(
+              db, 'sc.${ColumnName.id} = ?', [row[ColumnName.textServiceId]])
+          .then((v) => v.first);
+
+      final textModel = await _queryTextModels(db, '${ColumnName.id} = ?', [row[ColumnName.textModelId]])
+          .then((v) => v.first);
+        final speechToTextServiceConfig = await _queryServiceConfigs(
+              db, 'sc.${ColumnName.id} = ?', [row[ColumnName.speechToTextServiceId]])
+          .then((v) => v.first);
+      final speechToTextModel = await _querySpeechToTextModels(db, '${ColumnName.id} = ?', [row[ColumnName.speechToTextModelId]])
+          .then((v) => v.first);
+      final textToSpeechServiceConfig = await _queryServiceConfigs(
+              db, 'sc.${ColumnName.id} = ?', [row[ColumnName.textToSpeechServiceId]])
+          .then((v) => v.first);
+      final textToSpeechVoice = await _queryTextToSpeechVoices(db, '${ColumnName.id} = ?', [row[ColumnName.textToSpeechVoiceId]])
+          .then((v) => v.first);
       final agentConfig = AgentConfig(
         id: row[ColumnName.id] as int,
         name: row[ColumnName.name] as String,

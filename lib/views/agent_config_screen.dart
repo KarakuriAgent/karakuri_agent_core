@@ -22,8 +22,8 @@ class AgentConfigScreen extends HookConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(initialConfig == null
-            ? t.home.agent.agentAdd
-            : t.home.agent.agentEdit),
+            ? t.home.agent.agentConfig.agentAdd
+            : t.home.agent.agentConfig.agentEdit),
       ),
       body: !initialized
           ? const Center(child: CircularProgressIndicator())
@@ -100,9 +100,10 @@ class _TextConfigSection extends HookConsumerWidget {
     final selectModel = ref.watch(
         agentConfigScreenViewmodelProvider(initialConfig)
             .select((it) => it.selectTextModel));
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(t.home.agent.agentConfig.textService),
         _ServiceDropdownSection(
           serviceConfig: selectService,
           servicesConfigs: services,
@@ -110,6 +111,7 @@ class _TextConfigSection extends HookConsumerWidget {
             viewmodel.updateTextServiceConfig(value);
           },
         ),
+        Text(t.home.agent.agentConfig.textModel),
         models.isNotEmpty
             ? _ModelDropdownSection(
                 model: selectModel,
@@ -143,9 +145,10 @@ class _SpeechToTextConfigSection extends HookConsumerWidget {
     final selectModel = ref.watch(
         agentConfigScreenViewmodelProvider(initialConfig)
             .select((it) => it.selectSpeechToTextModel));
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(t.home.agent.agentConfig.speechToTextService),
         _ServiceDropdownSection(
           serviceConfig: selectService,
           servicesConfigs: services,
@@ -153,6 +156,7 @@ class _SpeechToTextConfigSection extends HookConsumerWidget {
             viewmodel.updateSpeechToTextServiceConfig(value);
           },
         ),
+        Text(t.home.agent.agentConfig.speechToTextModel),
         models.isNotEmpty
             ? _ModelDropdownSection(
                 model: selectModel,
@@ -186,9 +190,10 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
     final selectModel = ref.watch(
         agentConfigScreenViewmodelProvider(initialConfig)
             .select((it) => it.selectTextToSpeechVoice));
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(t.home.agent.agentConfig.textToSpeechService),
         _ServiceDropdownSection(
           serviceConfig: selectService,
           servicesConfigs: services,
@@ -196,6 +201,7 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
             viewmodel.updateTextToSpeechServiceConfig(value);
           },
         ),
+        Text(t.home.agent.agentConfig.textToSpeechVoice),
         models.isNotEmpty
             ? _ModelDropdownSection(
                 model: selectModel,

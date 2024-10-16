@@ -4,14 +4,23 @@
     "title": "Karakuri Agent",
     "agent": {
       "name": "Name:${name}",
-      "agentAdd": "Add Agent",
-      "agentEdit": "Edit Agent",
+      "addAgent": "Add Agent",
+      "editAgent": "Edit Agent",
+      "deleteAgent": "Delete Agent",
       "textModel": "TEXT model:${name}",
       "speechToTextModel": "SPEECH TO TEXT model:${name}",
       "textToSpeechModel": "TEXT TO SPEECH model:${name}",
       "agentConfig": {
+        "agentAdd": "Add Agent",
+        "agentEdit": "Edit Agent",
         "name": "Name",
-        "save": "Save"
+        "save": "Save",
+        "textService": "TEXT Service",
+        "textModel": "TEXT Model",
+        "speechToTextService": "SPEECH TO TEXT Service",
+        "speechToTextModel": "SPEECH TO TEXT Model",
+        "textToSpeechService": "TEXT TO SPEECH Service",
+        "textToSpeechVoice": "TEXT TO SPEECH Voice"
       },
       "error": {
         "nameIsRequired": "Name is required",

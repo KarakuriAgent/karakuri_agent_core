@@ -66,7 +66,7 @@ class _AgentContent extends HookConsumerWidget {
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: OutlinedButton(
-            child: Text(t.home.agent.agentAdd),
+            child: Text(t.home.agent.addAgent),
             onPressed: () async {
               final agentConfig = await Navigator.push(
                 context,
@@ -118,20 +118,32 @@ class _AgentCard extends HookConsumerWidget {
                   name:
                       '${config.textToSpeechServiceConfig.name}:${config.textToSpeechVoice.value}'),
             ),
-            TextButton(
-              child: Text(t.home.agent.agentEdit),
-              onPressed: () async {
-                final agentConfig = await Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                    builder: (context) =>
-                        AgentConfigScreen(initialConfig: config),
-                  ),
-                ) as AgentConfig?;
-                if (agentConfig != null) {
-                  viewModel.updateAgentConfig(agentConfig);
-                }
-              },
+            Row(
+              children: [
+                TextButton(
+                  child: Text(t.home.agent.editAgent),
+                  onPressed: () async {
+                    final agentConfig = await Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) =>
+                            AgentConfigScreen(initialConfig: config),
+                      ),
+                    ) as AgentConfig?;
+                    if (agentConfig != null) {
+                      viewModel.updateAgentConfig(agentConfig);
+                    }
+                  },
+                ),
+                TextButton(
+                  child: Text(t.home.agent.deleteAgent),
+                  onPressed: () async {
+                    if (config.id != null) {
+                      viewModel.deleteAgentConfig(config.id!);
+                    }
+                  },
+                ),
+              ],
             ),
           ],
         ),

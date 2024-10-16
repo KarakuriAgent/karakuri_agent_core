@@ -1,7 +1,37 @@
 {
   "appName": "からくりエージェント",
   "home": {
-    "title": "からくりエージェント"
+    "title": "からくりエージェント",
+    "agent": {
+      "name": "名前:${name}",
+      "addAgent": "+ エージェントを追加",
+      "editAgent": "エージェントを編集",
+      "deleteAgent": "エージェントを削除する",
+      "textModel": "TEXTモデル:${name}",
+      "speechToTextModel": "SPEECH TO TEXTモデル:${name}",
+      "textToSpeechModel": "TEXT TO SPEECHモデル:${name}",
+      "agentConfig": {
+        "agentAdd": "エージェントを追加",
+        "agentEdit": "エージェントを編集",
+        "name": "名前",
+        "save": "保存",
+        "textService": "TEXTサービス",
+        "textModel": "TEXTモデル",
+        "speechToTextService": "SPEECH TO TEXTサービス",
+        "speechToTextModel": "SPEECH TO TEXTモデル",
+        "textToSpeechService": "TEXT TO SPEECHサービス",
+        "textToSpeechVoice": "TEXT TO SPEECHボイス"
+      },
+      "error": {
+        "nameIsRequired": "名前は必須です",
+        "textServiceRequired": "TEXTサービスは必須です。",
+        "textModelRequired": "TEXTモデルは必須です",
+        "speechToTextServiceRequired": "SPEECH TO TEXTサービスは必須です。",
+        "speechToTextModelRequired": "SPEECH TO TEXTモデルは必須です",
+        "textToSpeechServiceRequired": "TEXT TO SPEECHサービスは必須です。",
+        "textToSpeechVoiceRequired": "TEXT TO SPEECHボイスは必須です"
+      }
+    }
   },
   "settings": {
     "serviceSettings": {

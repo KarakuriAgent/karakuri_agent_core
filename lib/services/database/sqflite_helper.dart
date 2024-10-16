@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/models/speech_to_text_config.dart';
@@ -16,6 +17,7 @@ class TableName {
   static const textToSpeechVoice = 'text_to_speech_voice';
   static const speechToTextConfig = 'speech_to_text_config';
   static const speechToTextModel = 'speech_to_text_model';
+  static const agentConfig = 'agent_config';
 }
 
 class ColumnName {
@@ -25,9 +27,18 @@ class ColumnName {
   static const baseUrl = 'base_url';
   static const apiKey = 'api_key';
   static const serviceConfigId = 'service_config_id';
+  static const textConfigId = 'text_config_id';
+  static const textToSpeechConfigId = 'text_to_speech_config_id';
+  static const speechToTextConfigId = 'speech_to_text_config_id';
   static const parentId = 'parent_id';
   static const key = 'key';
   static const value = 'value';
+  static const textServiceId = 'text_service_id';
+  static const textModelId = 'text_model_id';
+  static const textToSpeechServiceId = 'text_to_speech_service_id';
+  static const textToSpeechVoiceId = 'text_to_speech_voice_id';
+  static const speechToTextServiceId = 'speech_to_text_service_id';
+  static const speechToTextModelId = 'speech_to_text_model_id';
 }
 
 class SqfliteHelper {
@@ -43,7 +54,13 @@ class SqfliteHelper {
     final factory = kIsWeb ? databaseFactoryFfiWeb : databaseFactory;
     return await factory.openDatabase(
       path,
-      options: OpenDatabaseOptions(version: 1, onCreate: _createDB),
+      options: OpenDatabaseOptions(
+        version: 1,
+        onCreate: _createDB,
+        onOpen: (db) async {
+          await db.execute('PRAGMA foreign_keys = ON;');
+        },
+      ),
     );
   }
 
@@ -71,11 +88,11 @@ class SqfliteHelper {
     await db.execute('''
       CREATE TABLE ${TableName.textModel} (
         ${ColumnName.id} INTEGER PRIMARY KEY AUTOINCREMENT,
-        ${ColumnName.parentId} INTEGER NOT NULL,
+        ${ColumnName.textConfigId} INTEGER NOT NULL,
         ${ColumnName.key} TEXT NOT NULL,
         ${ColumnName.value} TEXT NOT NULL,
-        UNIQUE (${ColumnName.parentId}, ${ColumnName.key}),
-        FOREIGN KEY (${ColumnName.parentId}) REFERENCES ${TableName.textConfig}(${ColumnName.id}) ON DELETE CASCADE
+        UNIQUE (${ColumnName.textConfigId}, ${ColumnName.key}),
+        FOREIGN KEY (${ColumnName.textConfigId}) REFERENCES ${TableName.textConfig}(${ColumnName.id}) ON DELETE CASCADE
       )
     ''');
 
@@ -90,11 +107,11 @@ class SqfliteHelper {
     await db.execute('''
       CREATE TABLE ${TableName.textToSpeechVoice} (
         ${ColumnName.id} INTEGER PRIMARY KEY AUTOINCREMENT,
-        ${ColumnName.parentId} INTEGER NOT NULL,
+        ${ColumnName.textToSpeechConfigId} INTEGER NOT NULL,
         ${ColumnName.key} TEXT NOT NULL,
         ${ColumnName.value} TEXT NOT NULL,
-        UNIQUE (${ColumnName.parentId}, ${ColumnName.key}),
-        FOREIGN KEY (${ColumnName.parentId}) REFERENCES ${TableName.textToSpeechConfig}(${ColumnName.id}) ON DELETE CASCADE
+        UNIQUE (${ColumnName.textToSpeechConfigId}, ${ColumnName.key}),
+        FOREIGN KEY (${ColumnName.textToSpeechConfigId}) REFERENCES ${TableName.textToSpeechConfig}(${ColumnName.id}) ON DELETE CASCADE
       )
     ''');
 
@@ -109,11 +126,30 @@ class SqfliteHelper {
     await db.execute('''
       CREATE TABLE ${TableName.speechToTextModel} (
         ${ColumnName.id} INTEGER PRIMARY KEY AUTOINCREMENT,
-        ${ColumnName.parentId} INTEGER NOT NULL,
+        ${ColumnName.speechToTextConfigId} INTEGER NOT NULL,
         ${ColumnName.key} TEXT NOT NULL,
         ${ColumnName.value} TEXT NOT NULL,
-        UNIQUE (${ColumnName.parentId}, ${ColumnName.key}),
-        FOREIGN KEY (${ColumnName.parentId}) REFERENCES ${TableName.speechToTextConfig}(${ColumnName.id}) ON DELETE CASCADE
+        UNIQUE (${ColumnName.speechToTextConfigId}, ${ColumnName.key}),
+        FOREIGN KEY (${ColumnName.speechToTextConfigId}) REFERENCES ${TableName.speechToTextConfig}(${ColumnName.id}) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE ${TableName.agentConfig} (
+        ${ColumnName.id} INTEGER PRIMARY KEY AUTOINCREMENT,
+        ${ColumnName.name} TEXT NOT NULL,
+        ${ColumnName.textServiceId} INTEGER NOT NULL,
+        ${ColumnName.textModelId} INTEGER NOT NULL,
+        ${ColumnName.textToSpeechServiceId} INTEGER NOT NULL,
+        ${ColumnName.textToSpeechVoiceId} INTEGER NOT NULL,
+        ${ColumnName.speechToTextServiceId} INTEGER NOT NULL,
+        ${ColumnName.speechToTextModelId} INTEGER NOT NULL,
+        FOREIGN KEY (${ColumnName.textServiceId}) REFERENCES ${TableName.serviceConfig}(${ColumnName.id}) ON DELETE RESTRICT,
+        FOREIGN KEY (${ColumnName.textModelId}) REFERENCES ${TableName.textModel}(${ColumnName.id}) ON DELETE RESTRICT,
+        FOREIGN KEY (${ColumnName.speechToTextServiceId}) REFERENCES ${TableName.serviceConfig}(${ColumnName.id}) ON DELETE RESTRICT,
+        FOREIGN KEY (${ColumnName.speechToTextModelId}) REFERENCES ${TableName.speechToTextModel}(${ColumnName.id}) ON DELETE RESTRICT,
+        FOREIGN KEY (${ColumnName.textToSpeechServiceId}) REFERENCES ${TableName.serviceConfig}(${ColumnName.id}) ON DELETE RESTRICT,
+        FOREIGN KEY (${ColumnName.textToSpeechVoiceId}) REFERENCES ${TableName.textToSpeechVoice}(${ColumnName.id}) ON DELETE RESTRICT
       )
     ''');
   }
@@ -142,6 +178,67 @@ class SqfliteHelper {
     return rowsAffected > 0;
   }
 
+  Future<List<ServiceConfig>> queryAllServiceConfig() async {
+    final db = await database;
+    return await _queryServiceConfigs(db, '', []);
+  }
+
+  Future<List<ServiceConfig>> queryTextServiceConfig() async {
+    final db = await database;
+    return await _queryServiceConfigs(
+      db,
+      'tc.${ColumnName.id} IS NOT NULL',
+      [],
+    );
+  }
+
+  Future<List<ServiceConfig>> querySpeechToTextServiceConfig() async {
+    final db = await database;
+    return await _queryServiceConfigs(
+      db,
+      'sttc.${ColumnName.id} IS NOT NULL',
+      [],
+    );
+  }
+
+  Future<List<ServiceConfig>> queryTextToSpeechServiceConfig() async {
+    final db = await database;
+    return await _queryServiceConfigs(
+      db,
+      'ttsc.${ColumnName.id} IS NOT NULL',
+      [],
+    );
+  }
+
+  Future<int> insertAgentConfig(AgentConfig config) async {
+    final db = await database;
+    return await db.transaction((txn) async {
+      return await _insertAgentConfig(txn, config);
+    });
+  }
+
+  Future<bool> updateAgentConfig(AgentConfig config) async {
+    final db = await database;
+    return await db.transaction((txn) async {
+      return await _updateAgentConfig(txn, config);
+    });
+  }
+
+  Future<bool> deleteAgentConfig(int configId) async {
+    final db = await database;
+    final int rowsAffected = await db.delete(
+      TableName.agentConfig,
+      where: '${ColumnName.id} = ?',
+      whereArgs: [configId],
+    );
+    return rowsAffected > 0;
+  }
+
+  Future<List<AgentConfig>> queryAllAgentConfig() async {
+    final db = await database;
+    return _queryAgentConfigs(db);
+  }
+
   Future<int> _insertServiceConfig(
       Transaction txn, ServiceConfig serviceConfig) async {
     final int serviceConfigId = await txn.insert(
@@ -158,8 +255,8 @@ class SqfliteHelper {
       if (textConfigId == 0) return -1;
 
       for (var model in serviceConfig.textConfig!.models) {
-        final int modelId = await txn.insert(
-            TableName.textModel, model.toDatabaseMap(textConfigId));
+        final int modelId = await txn.insert(TableName.textModel,
+            model.toDatabaseMap(ColumnName.textConfigId, textConfigId));
         if (modelId == 0) return -1;
       }
     }
@@ -171,8 +268,10 @@ class SqfliteHelper {
       if (textToSpeechConfigId == 0) return -1;
 
       for (var voice in serviceConfig.textToSpeechConfig!.voices) {
-        final voiceId = await txn.insert(TableName.textToSpeechVoice,
-            voice.toDatabaseMap(textToSpeechConfigId));
+        final voiceId = await txn.insert(
+            TableName.textToSpeechVoice,
+            voice.toDatabaseMap(
+                ColumnName.textToSpeechConfigId, textToSpeechConfigId));
         if (voiceId == 0) return -1;
       }
     }
@@ -184,8 +283,10 @@ class SqfliteHelper {
       if (speechToTextConfigId == 0) return -1;
 
       for (var model in serviceConfig.speechToTextConfig!.models) {
-        final modelId = await txn.insert(TableName.speechToTextModel,
-            model.toDatabaseMap(speechToTextConfigId));
+        final modelId = await txn.insert(
+            TableName.speechToTextModel,
+            model.toDatabaseMap(
+                ColumnName.speechToTextConfigId, speechToTextConfigId));
         if (modelId == 0) return -1;
       }
     }
@@ -236,6 +337,7 @@ class SqfliteHelper {
         final result = await _updateKeyValuePairList(
           txn,
           TableName.textModel,
+          ColumnName.textConfigId,
           textConfigId,
           textConfig.models,
         );
@@ -246,8 +348,8 @@ class SqfliteHelper {
         if (textConfigId == 0) return false;
 
         for (var model in textConfig.models) {
-          final modelId = await txn.insert(
-              TableName.textModel, model.toDatabaseMap(textConfigId));
+          final modelId = await txn.insert(TableName.textModel,
+              model.toDatabaseMap(ColumnName.textConfigId, textConfigId));
           if (modelId == 0) return false;
         }
       }
@@ -279,6 +381,7 @@ class SqfliteHelper {
         final result = await _updateKeyValuePairList(
           txn,
           TableName.textToSpeechVoice,
+          ColumnName.textConfigId,
           textToSpeechConfigId,
           textToSpeechConfig.voices,
         );
@@ -289,8 +392,10 @@ class SqfliteHelper {
         if (textToSpeechConfigId == 0) return false;
 
         for (var voice in textToSpeechConfig.voices) {
-          final voiceId = await txn.insert(TableName.textToSpeechVoice,
-              voice.toDatabaseMap(textToSpeechConfigId));
+          final voiceId = await txn.insert(
+              TableName.textToSpeechVoice,
+              voice.toDatabaseMap(
+                  ColumnName.textToSpeechConfigId, textToSpeechConfigId));
           if (voiceId == 0) return false;
         }
       }
@@ -322,6 +427,7 @@ class SqfliteHelper {
         final result = await _updateKeyValuePairList(
           txn,
           TableName.speechToTextModel,
+          ColumnName.textConfigId,
           speechToTextConfigId,
           speechToTextConfig.models,
         );
@@ -332,9 +438,11 @@ class SqfliteHelper {
         if (speechToTextConfigId == 0) return false;
 
         for (var model in speechToTextConfig.models) {
-          final mldelId = await txn.insert(TableName.speechToTextModel,
-              model.toDatabaseMap(speechToTextConfigId));
-          if (mldelId == 0) return false;
+          final modelId = await txn.insert(
+              TableName.speechToTextModel,
+              model.toDatabaseMap(
+                  ColumnName.speechToTextConfigId, speechToTextConfigId));
+          if (modelId == 0) return false;
         }
       }
     } else {
@@ -350,12 +458,13 @@ class SqfliteHelper {
   Future<bool> _updateKeyValuePairList(
     Transaction txn,
     String tableName,
+    String parentIdColumnName,
     int parentId,
     List<KeyValuePair> newList,
   ) async {
     final List<Map<String, dynamic>> existingItems = await txn.query(
       tableName,
-      where: '${ColumnName.parentId} = ?',
+      where: '$parentIdColumnName = ?',
       whereArgs: [parentId],
     );
 
@@ -378,8 +487,8 @@ class SqfliteHelper {
       if (existingEntry != null) {
         existingItemsMap.remove(existingEntry.key);
       } else {
-        final itemMap = newItem.toDatabaseMap(parentId);
-        itemMap[ColumnName.parentId] = parentId;
+        final itemMap = newItem.toDatabaseMap(parentIdColumnName, parentId);
+        itemMap[parentIdColumnName] = parentId;
         final id = await txn.insert(tableName, itemMap);
         if (id == 0) return false;
       }
@@ -395,60 +504,190 @@ class SqfliteHelper {
     return true;
   }
 
-  Future<List<ServiceConfig>> queryAllServiceConfig() async {
-    final db = await instance.database;
-    final serviceConfigs = await db.query(TableName.serviceConfig);
-    final textConfigs = await db.query(TableName.textConfig);
-    final textModels = await db.query(TableName.textModel);
-    final textToSpeechConfigs = await db.query(TableName.textToSpeechConfig);
-    final textToSpeechVoices = await db.query(TableName.textToSpeechVoice);
-    final speechToTextConfigs = await db.query(TableName.speechToTextConfig);
-    final speechToTextModels = await db.query(TableName.speechToTextModel);
-
-    final textConfigMap = {
-      for (var d in textConfigs)
-        d[ColumnName.serviceConfigId] as int: TextConfig.fromJson(d)
-    };
-    final textModelMap = <int, List<KeyValuePair>>{};
-    for (var textModel in textModels) {
-      textModelMap
-          .putIfAbsent(textModel[ColumnName.parentId] as int, () => [])
-          .add(KeyValuePair.fromJson(textModel));
-    }
-    final textToSpeechConfigMap = {
-      for (var d in textToSpeechConfigs)
-        d[ColumnName.serviceConfigId] as int: TextToSpeechConfig.fromJson(d)
-    };
-    final textToSpeechVoiceMap = <int, List<KeyValuePair>>{};
-    for (var voice in textToSpeechVoices) {
-      textToSpeechVoiceMap
-          .putIfAbsent(voice[ColumnName.parentId] as int, () => [])
-          .add(KeyValuePair.fromJson(voice));
-    }
-    final speechToTextConfigMap = {
-      for (var d in speechToTextConfigs)
-        d[ColumnName.serviceConfigId] as int: SpeechToTextConfig.fromJson(d)
-    };
-    final speechToTextModelMap = <int, List<KeyValuePair>>{};
-    for (var model in speechToTextModels) {
-      speechToTextModelMap
-          .putIfAbsent(model[ColumnName.parentId] as int, () => [])
-          .add(KeyValuePair.fromJson(model));
-    }
-    return serviceConfigs.map((serviceConfig) {
-      final textConfig = textConfigMap[serviceConfig[ColumnName.id] as int];
-      final textToSpeechConfig =
-          textToSpeechConfigMap[serviceConfig[ColumnName.id] as int];
-      final speechToTextConfig =
-          speechToTextConfigMap[serviceConfig[ColumnName.id] as int];
-      return ServiceConfig.fromJson(serviceConfig).copyWith(
-        textConfig:
-            textConfig?.copyWith(models: textModelMap[textConfig.id] ?? []),
-        textToSpeechConfig: textToSpeechConfig?.copyWith(
-            voices: textToSpeechVoiceMap[textToSpeechConfig.id] ?? []),
-        speechToTextConfig: speechToTextConfig?.copyWith(
-            models: speechToTextModelMap[speechToTextConfig.id] ?? []),
+  Future<List<ServiceConfig>> _queryServiceConfigs(
+      Database db, String where, List<dynamic> whereArgs) async {
+    final List<Map<String, dynamic>> serviceConfigs = await db.rawQuery('''
+    SELECT sc.*, 
+           tc.${ColumnName.id} as ${ColumnName.textConfigId}, 
+           ttsc.${ColumnName.id} as ${ColumnName.textToSpeechConfigId}, 
+           sttc.${ColumnName.id} as ${ColumnName.speechToTextConfigId}
+    FROM ${TableName.serviceConfig} sc
+    LEFT JOIN ${TableName.textConfig} tc ON sc.${ColumnName.id} = tc.${ColumnName.serviceConfigId}
+    LEFT JOIN ${TableName.textToSpeechConfig} ttsc ON sc.${ColumnName.id} = ttsc.${ColumnName.serviceConfigId}
+    LEFT JOIN ${TableName.speechToTextConfig} sttc ON sc.${ColumnName.id} = sttc.${ColumnName.serviceConfigId}
+    ${where.isNotEmpty ? 'WHERE $where' : ''} 
+  ''', whereArgs);
+    final List<ServiceConfig> results = [];
+    for (var scRow in serviceConfigs) {
+      final serviceConfig = ServiceConfig.fromJson(scRow);
+      TextConfig? textConfig;
+      if (scRow[ColumnName.textConfigId] != null) {
+        final int textConfigId = scRow[ColumnName.textConfigId] as int;
+        final List<Map<String, dynamic>> textModelRows = await db.query(
+          TableName.textModel,
+          where: '${ColumnName.textConfigId} = ?',
+          whereArgs: [textConfigId],
+        );
+        final models =
+            textModelRows.map((tmRow) => KeyValuePair.fromJson(tmRow)).toList();
+        textConfig = TextConfig(
+          id: textConfigId,
+          models: models,
+        );
+      }
+      TextToSpeechConfig? textToSpeechConfig;
+      if (scRow[ColumnName.textToSpeechConfigId] != null) {
+        final int textToSpeechConfigId =
+            scRow[ColumnName.textToSpeechConfigId] as int;
+        final List<Map<String, dynamic>> voiceRows = await db.query(
+          TableName.textToSpeechVoice,
+          where: '${ColumnName.textToSpeechConfigId} = ?',
+          whereArgs: [textToSpeechConfigId],
+        );
+        final voices =
+            voiceRows.map((vRow) => KeyValuePair.fromJson(vRow)).toList();
+        textToSpeechConfig = TextToSpeechConfig(
+          id: textToSpeechConfigId,
+          voices: voices,
+        );
+      }
+      SpeechToTextConfig? speechToTextConfig;
+      if (scRow[ColumnName.speechToTextConfigId] != null) {
+        final int speechToTextConfigId =
+            scRow[ColumnName.speechToTextConfigId] as int;
+        final List<Map<String, dynamic>> modelRows = await db.query(
+          TableName.speechToTextModel,
+          where: '${ColumnName.speechToTextConfigId} = ?',
+          whereArgs: [speechToTextConfigId],
+        );
+        final models =
+            modelRows.map((mRow) => KeyValuePair.fromJson(mRow)).toList();
+        speechToTextConfig = SpeechToTextConfig(
+          id: speechToTextConfigId,
+          models: models,
+        );
+      }
+      final completeServiceConfig = serviceConfig.copyWith(
+        textConfig: textConfig,
+        textToSpeechConfig: textToSpeechConfig,
+        speechToTextConfig: speechToTextConfig,
       );
-    }).toList();
+      results.add(completeServiceConfig);
+    }
+    return results;
+  }
+
+  Future<List<KeyValuePair>> _queryTextModels(
+      Database db, String where, List<dynamic> whereArgs) async {
+    final List<Map<String, dynamic>> textModels = await db.rawQuery('''
+    SELECT * FROM ${TableName.textModel}
+    ${where.isNotEmpty ? 'WHERE $where' : ''} 
+  ''', whereArgs);
+    final List<KeyValuePair> results = [];
+    for (var scRow in textModels) {
+      results.add(KeyValuePair.fromJson(scRow));
+    }
+    return results;
+  }
+
+  Future<List<KeyValuePair>> _querySpeechToTextModels(
+      Database db, String where, List<dynamic> whereArgs) async {
+    final List<Map<String, dynamic>> speechToTextModels = await db.rawQuery('''
+    SELECT * FROM ${TableName.speechToTextModel}
+    ${where.isNotEmpty ? 'WHERE $where' : ''} 
+  ''', whereArgs);
+    final List<KeyValuePair> results = [];
+    for (var scRow in speechToTextModels) {
+      results.add(KeyValuePair.fromJson(scRow));
+    }
+    return results;
+  }
+
+  Future<List<KeyValuePair>> _queryTextToSpeechVoices(
+      Database db, String where, List<dynamic> whereArgs) async {
+    final List<Map<String, dynamic>> textToSpeechVoices = await db.rawQuery('''
+    SELECT * FROM ${TableName.textToSpeechVoice}
+    ${where.isNotEmpty ? 'WHERE $where' : ''} 
+  ''', whereArgs);
+    final List<KeyValuePair> results = [];
+    for (var scRow in textToSpeechVoices) {
+      results.add(KeyValuePair.fromJson(scRow));
+    }
+    return results;
+  }
+
+  Future<int> _insertAgentConfig(
+      Transaction txn, AgentConfig agentConfig) async {
+    final int agentConfigId = await txn.insert(
+      TableName.agentConfig,
+      agentConfig.toDatabaseMap(),
+    );
+    if (agentConfigId == 0) return -1;
+    return agentConfigId;
+  }
+
+  Future<bool> _updateAgentConfig(
+      Transaction txn, AgentConfig agentConfig) async {
+    final int agentConfigId = agentConfig.id!;
+    final updateAgentConfig = await txn.update(
+      TableName.agentConfig,
+      agentConfig.toDatabaseMap(),
+      where: '${ColumnName.id} = ?',
+      whereArgs: [agentConfigId],
+    );
+    if (updateAgentConfig == 0) return false;
+    return true;
+  }
+
+  Future<List<AgentConfig>> _queryAgentConfigs(Database db) async {
+    final List<Map<String, dynamic>> rows = await db.rawQuery('''
+    SELECT 
+      ac.${ColumnName.id} AS ${ColumnName.id},
+      ac.${ColumnName.name} AS ${ColumnName.name},
+      tsc.${ColumnName.id} AS  ${ColumnName.textServiceId},
+      tmodel.${ColumnName.id} AS ${ColumnName.textModelId},
+      stsc.${ColumnName.id} AS ${ColumnName.speechToTextServiceId},
+      stmodel.${ColumnName.id} AS ${ColumnName.speechToTextModelId},
+      ttsc.${ColumnName.id} AS ${ColumnName.textToSpeechServiceId},
+      ttsmodel.${ColumnName.id} AS ${ColumnName.textToSpeechVoiceId}
+    FROM ${TableName.agentConfig} ac
+    LEFT JOIN ${TableName.serviceConfig} tsc ON ac.${ColumnName.textServiceId} = tsc.${ColumnName.id}
+    LEFT JOIN ${TableName.textModel} tmodel ON ac.${ColumnName.textModelId} = tmodel.${ColumnName.id}
+    LEFT JOIN ${TableName.serviceConfig} stsc ON ac.${ColumnName.speechToTextServiceId} = stsc.${ColumnName.id}
+    LEFT JOIN ${TableName.speechToTextModel} stmodel ON ac.${ColumnName.speechToTextModelId} = stmodel.${ColumnName.id}
+    LEFT JOIN ${TableName.serviceConfig} ttsc ON ac.${ColumnName.textToSpeechServiceId} = ttsc.${ColumnName.id}
+    LEFT JOIN ${TableName.textToSpeechVoice} ttsmodel ON ac.${ColumnName.textToSpeechVoiceId} = ttsmodel.${ColumnName.id}
+  ''');
+    final List<AgentConfig> agentConfigs = [];
+    for (final row in rows) {
+      final textServiceConfig = await _queryServiceConfigs(
+              db, 'sc.${ColumnName.id} = ?', [row[ColumnName.textServiceId]])
+          .then((v) => v.first);
+
+      final textModel = await _queryTextModels(db, '${ColumnName.id} = ?', [row[ColumnName.textModelId]])
+          .then((v) => v.first);
+        final speechToTextServiceConfig = await _queryServiceConfigs(
+              db, 'sc.${ColumnName.id} = ?', [row[ColumnName.speechToTextServiceId]])
+          .then((v) => v.first);
+      final speechToTextModel = await _querySpeechToTextModels(db, '${ColumnName.id} = ?', [row[ColumnName.speechToTextModelId]])
+          .then((v) => v.first);
+      final textToSpeechServiceConfig = await _queryServiceConfigs(
+              db, 'sc.${ColumnName.id} = ?', [row[ColumnName.textToSpeechServiceId]])
+          .then((v) => v.first);
+      final textToSpeechVoice = await _queryTextToSpeechVoices(db, '${ColumnName.id} = ?', [row[ColumnName.textToSpeechVoiceId]])
+          .then((v) => v.first);
+      final agentConfig = AgentConfig(
+        id: row[ColumnName.id] as int,
+        name: row[ColumnName.name] as String,
+        textServiceConfig: textServiceConfig,
+        textModel: textModel,
+        speechToTextServiceConfig: speechToTextServiceConfig,
+        speechToTextModel: speechToTextModel,
+        textToSpeechServiceConfig: textToSpeechServiceConfig,
+        textToSpeechVoice: textToSpeechVoice,
+      );
+      agentConfigs.add(agentConfig);
+    }
+    return agentConfigs;
   }
 }

@@ -1,7 +1,37 @@
 {
   "appName": "Karakuri Agent",
   "home": {
-    "title": "Karakuri Agent"
+    "title": "Karakuri Agent",
+    "agent": {
+      "name": "Name:${name}",
+      "addAgent": "Add Agent",
+      "editAgent": "Edit Agent",
+      "deleteAgent": "Delete Agent",
+      "textModel": "TEXT model:${name}",
+      "speechToTextModel": "SPEECH TO TEXT model:${name}",
+      "textToSpeechModel": "TEXT TO SPEECH model:${name}",
+      "agentConfig": {
+        "agentAdd": "Add Agent",
+        "agentEdit": "Edit Agent",
+        "name": "Name",
+        "save": "Save",
+        "textService": "TEXT Service",
+        "textModel": "TEXT Model",
+        "speechToTextService": "SPEECH TO TEXT Service",
+        "speechToTextModel": "SPEECH TO TEXT Model",
+        "textToSpeechService": "TEXT TO SPEECH Service",
+        "textToSpeechVoice": "TEXT TO SPEECH Voice"
+      },
+      "error": {
+        "nameIsRequired": "Name is required",
+        "textServiceRequired": "TEXT Service is required",
+        "textModelRequired": "TEXT Model is required",
+        "speechToTextServiceRequired": "SPEECH TO TEXT Service is required",
+        "speechToTextModelRequired": "SPEECH TO TEXT Model is required",
+        "textToSpeechServiceRequired": "TEXT TO SPEECH Service is required",
+        "textToSpeechVoiceRequired": "TEXT TO SPEECH Voice is required."
+      }
+    }
   },
   "settings": {
     "serviceSettings": {

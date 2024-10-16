@@ -16,7 +16,7 @@
         "speechToTextServiceRequired": "SPEECH TO TEXTサービスは必須です。",
         "speechToTextModelRequired": "SPEECH TO TEXTモデルは必須です",
         "textToSpeechServiceRequired": "TEXT TO SPEECHサービスは必須です。",
-        "textToSpeechVoiceRequired": "TEXT TO SPEECHモデルは必須です"
+        "textToSpeechVoiceRequired": "TEXT TO SPEECHボイスは必須です"
       }
     }
   },

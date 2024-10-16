@@ -10,13 +10,13 @@
       "speechToTextModel": "SPEECH TO TEXT model:${name}",
       "textToSpeechModel": "TEXT TO SPEECH model:${name}",
       "error": {
-        "nameIsRequired": "name is required",
-        "textServiceRequired": "TEXT Service is required。",
+        "nameIsRequired": "Name is required",
+        "textServiceRequired": "TEXT Service is required",
         "textModelRequired": "TEXT Model is required",
         "speechToTextServiceRequired": "SPEECH TO TEXT Service is required",
         "speechToTextModelRequired": "SPEECH TO TEXT Model is required",
         "textToSpeechServiceRequired": "TEXT TO SPEECH Service is required",
-        "textToSpeechVoiceRequired": "TEXT TO SPEECH Model is required"
+        "textToSpeechVoiceRequired": "TEXT TO SPEECH Voice is required."
       }
     }
   },

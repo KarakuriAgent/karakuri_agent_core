@@ -12,8 +12,9 @@ class SpeechToTextRepository {
   final AutoDisposeFutureProviderRef _ref;
   final AgentConfig _agentConfig;
   Function(String)? _speechToTextResult;
-  late VoiceActivityDetectionRepository _voiceActivityDetectionRepository;
-  late SpeechToTextService _service;
+  late final VoiceActivityDetectionRepository _voiceActivityDetectionRepository;
+  late final SpeechToTextService _service;
+  bool initialized = false;
 
   SpeechToTextRepository(this._ref, this._agentConfig);
 
@@ -28,6 +29,7 @@ class SpeechToTextRepository {
       default:
         throw Exception('Service type not supported');
     }
+    initialized = true;
   }
 
   Future<void> dispose() async {
@@ -35,12 +37,18 @@ class SpeechToTextRepository {
   }
 
   void startRecognition(Function(String) speechToTextResult) {
+    if (initialized == false) {
+      throw Exception('SpeechToTextRepository not initialized');
+    }
     _speechToTextResult = speechToTextResult;
     _speechToTextResult!.call('');
     _voiceActivityDetectionRepository.start();
   }
 
   void pauseRecognition() {
+    if (initialized == false) {
+      throw Exception('SpeechToTextRepository not initialized');
+    }
     _speechToTextResult?.call('');
     _speechToTextResult = null;
     _voiceActivityDetectionRepository.pause();

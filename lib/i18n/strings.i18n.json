@@ -4,6 +4,7 @@
     "title": "Karakuri Agent",
     "agent": {
       "name": "Name:${name}",
+      "startTalk": "Start Talk",
       "addAgent": "Add Agent",
       "editAgent": "Edit Agent",
       "deleteAgent": "Delete Agent",
@@ -32,6 +33,11 @@
         "textToSpeechVoiceRequired": "TEXT TO SPEECH Voice is required."
       }
     }
+  },
+  "talk": {
+    "title": "Talk",
+    "start": "start",
+    "pause": "pause"
   },
   "settings": {
     "serviceSettings": {

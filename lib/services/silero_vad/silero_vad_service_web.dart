@@ -1,6 +1,9 @@
 @JS('vad_web')
+import 'dart:typed_data';
+
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
+import 'package:karakuri_agent/utils/audio_util.dart';
 
 @JS('createVad')
 external Object createVad(Function end);
@@ -21,8 +24,9 @@ external void pauseVad();
 external void destroyVad();
 
 class SileroVadServce {
-  Future<void> create(Function(List<int>) end) async =>
-      await promiseToFuture(createVad(allowInterop((audio) => end(audio))));
+  Future<void> create(Function(Uint8List) end) async =>
+      await promiseToFuture(createVad(
+          allowInterop((audio) => end(AudioUtil.float32ListToWav(audio)))));
 
   bool isCreated() => isVadCreated();
 

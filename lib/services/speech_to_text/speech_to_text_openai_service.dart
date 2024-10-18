@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/services/speech_to_text/speech_to_text_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart'; 
 
 class SpeechToTextOpenaiService extends SpeechToTextService {
   final AgentConfig _agentConfig;
@@ -21,10 +22,11 @@ class SpeechToTextOpenaiService extends SpeechToTextService {
       'file',
       audio,
       filename: 'audio.wav',
+      contentType: MediaType('audio', 'wav'),
     ));
 
     try {
-      final response = await request.send();
+      final response = await request.send().timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
         final jsonResponse = json.decode(responseBody);

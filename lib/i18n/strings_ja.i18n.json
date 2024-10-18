@@ -4,6 +4,7 @@
     "title": "からくりエージェント",
     "agent": {
       "name": "名前:${name}",
+      "startTalk": "トークを開始",
       "addAgent": "+ エージェントを追加",
       "editAgent": "エージェントを編集",
       "deleteAgent": "エージェントを削除する",
@@ -32,6 +33,11 @@
         "textToSpeechVoiceRequired": "TEXT TO SPEECHボイスは必須です"
       }
     }
+  },
+  "talk": {
+    "title": "トーク",
+    "start": "トークを開始",
+    "pause": "トークを停止"
   },
   "settings": {
     "serviceSettings": {

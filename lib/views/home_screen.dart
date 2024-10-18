@@ -8,6 +8,7 @@ import 'package:karakuri_agent/views/agent_config_screen.dart';
 import 'package:karakuri_agent/views/custom_view/link_text.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';
 import 'package:karakuri_agent/views/service_settings_screen.dart';
+import 'package:karakuri_agent/views/talk_screen.dart';
 
 class HomeScreen extends HookConsumerWidget {
   const HomeScreen({super.key});
@@ -120,6 +121,17 @@ class _AgentCard extends HookConsumerWidget {
             ),
             Row(
               children: [
+                TextButton(
+                  child: Text(t.home.agent.startTalk),
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) => TalkScreen(config),
+                      ),
+                    );
+                  },
+                ),
                 TextButton(
                   child: Text(t.home.agent.editAgent),
                   onPressed: () async {

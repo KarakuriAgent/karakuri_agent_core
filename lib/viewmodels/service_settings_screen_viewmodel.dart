@@ -10,7 +10,7 @@ class ServiceSettingsScreenViewmodel extends ChangeNotifier {
 
   ServiceSettingsScreenViewmodel(this._configStorage);
 
-  Future<void> build() async {
+  Future<void> initialize() async {
     serviceConfigs = await _configStorage.loadServiceConfigs();
     initialized = true;
     notifyListeners();

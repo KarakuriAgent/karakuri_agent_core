@@ -8,7 +8,7 @@ class HomeScreenViewModel extends ChangeNotifier {
   List<AgentConfig> agentConfigs = [];
   HomeScreenViewModel(this._configStorage);
 
-  Future<void> build() async {
+  Future<void> initialize() async {
     agentConfigs = await _configStorage.loadAgentConfigs();
     initialized = true;
     notifyListeners();

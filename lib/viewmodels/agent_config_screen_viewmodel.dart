@@ -40,7 +40,7 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
                 [],
         selectTextToSpeechVoice = agentConfig?.textToSpeechVoice;
 
-  Future<void> build() async {
+  Future<void> initialize() async {
     textServiceConfigs.addAll(await _configStorage.loadTextServiceConfigs());
     speechToTextServiceConfigs
         .addAll(await _configStorage.loadSpeechToTextServiceConfigs());

@@ -12,7 +12,7 @@ final homeScreenViewModelProvider = ChangeNotifierProvider.autoDispose((ref) {
   final configStorage = ref.watch(configStorageProvider);
   final viewModel = HomeScreenViewModel(configStorage);
   Future.microtask(() async {
-    await viewModel.build();
+    await viewModel.initialize();
   });
   return viewModel;
 });
@@ -23,7 +23,7 @@ final agentConfigScreenViewmodelProvider = ChangeNotifierProvider.autoDispose
   final viewModel =
       AgentConfigScreenViewmodel(configStorage, agentConfig: param);
   Future.microtask(() async {
-    await viewModel.build();
+    await viewModel.initialize();
   });
   return viewModel;
 });
@@ -32,7 +32,7 @@ final talkScreenViewModelProvider = ChangeNotifierProvider.autoDispose
     .family<TalkScreenViewModel, AgentConfig>((ref, agentConfig) {
   final viewModel = TalkScreenViewModel(ref, agentConfig);
   Future.microtask(() async {
-    await viewModel.build();
+    await viewModel.initialize();
   });
   ref.onDispose(() {
     viewModel.dispose();
@@ -45,7 +45,7 @@ final serviceSettingsScreenViewmodelProvider =
   final configStorage = ref.watch(configStorageProvider);
   final viewModel = ServiceSettingsScreenViewmodel(configStorage);
   Future.microtask(() async {
-    await viewModel.build();
+    await viewModel.initialize();
   });
   return viewModel;
 });

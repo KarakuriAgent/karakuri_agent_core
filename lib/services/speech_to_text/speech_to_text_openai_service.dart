@@ -16,7 +16,6 @@ class SpeechToTextOpenaiService extends SpeechToTextService {
     final url = Uri.parse('${serviceConfig.baseUrl}/audio/transcriptions');
     final request = http.MultipartRequest('POST', url);
     request.headers['Authorization'] = 'Bearer ${serviceConfig.apiKey}';
-    request.headers['Content-Type'] = 'multipart/form-data';
     request.fields['model'] = _agentConfig.speechToTextModel.value;
     request.files.add(http.MultipartFile.fromBytes(
       'file',

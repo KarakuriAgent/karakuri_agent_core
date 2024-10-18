@@ -30,10 +30,12 @@ class SpeechToTextOpenaiService extends SpeechToTextService {
         final jsonResponse = json.decode(responseBody);
         return jsonResponse['text'];
       } else {
-        return 'Error: ${response.statusCode}: ${response.toString()}';
+        final errorResponse = await response.stream.bytesToString();
+        final errorMessage = json.decode(errorResponse)['error']['message'];
+        throw Exception('HTTP ${response.statusCode}: $errorMessage');
       }
     } catch (e) {
-      return 'Error: $e';
+      throw Exception('An unexpected error occurred during transcription.');
     }
   }
 }

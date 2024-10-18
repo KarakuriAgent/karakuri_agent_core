@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:karakuri_agent/repositories/voice_activity_detaction_repository.dart';
+import 'package:karakuri_agent/repositories/voice_activity_detection_repository.dart';
 import 'package:karakuri_agent/services/silero_vad/export_silero_vad_service.dart';
 
 final _sileroVadServiceProvider = Provider.autoDispose((ref) {
-  return SileroVadServce();
+  return SileroVadService();
 });
 
 final voiceActivityDetectionProvider = FutureProvider.autoDispose

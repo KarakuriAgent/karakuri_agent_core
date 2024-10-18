@@ -33,10 +33,10 @@ class _TalkContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(talkScreenViewModelProvider(agentConfig));
-    final isListning = ref.watch(
-        talkScreenViewModelProvider(agentConfig).select((it) => it.isListning));
+    final isListening = ref.watch(
+        talkScreenViewModelProvider(agentConfig).select((it) => it.isListening));
     final text = ref.watch(talkScreenViewModelProvider(agentConfig)
-        .select((it) => it.speechToTextResulText));
+        .select((it) => it.speechToTextResultText));
     return Scaffold(
       appBar: AppBar(
         title: Text(t.talk.title),
@@ -48,13 +48,13 @@ class _TalkContent extends HookConsumerWidget {
             Text(text),
             ElevatedButton(
               onPressed: () {
-                if (isListning) {
+                if (isListening) {
                   viewModel.pause();
                 } else {
                   viewModel.start();
                 }
               },
-              child: Text(isListning ? t.talk.pause : t.talk.start),
+              child: Text(isListening ? t.talk.pause : t.talk.start),
             ),
           ],
         ),

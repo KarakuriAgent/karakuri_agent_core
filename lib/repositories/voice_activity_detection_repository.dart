@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:karakuri_agent/services/silero_vad/export_silero_vad_service.dart';
 
 class VoiceActivityDetectionRepository {
-  final SileroVadServce _service;
+  final SileroVadService _service;
 
   VoiceActivityDetectionRepository(this._service);
   Future<void> init(Function(Uint8List) end) async {

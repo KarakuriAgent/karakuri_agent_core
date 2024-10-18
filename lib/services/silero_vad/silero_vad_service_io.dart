@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-class SileroVadServce {
+class SileroVadService {
   Future<void> create(Function(Uint8List) end) async => {};
   bool isCreated() => false;
   bool listening() => false;

@@ -8,8 +8,8 @@ class TalkScreenViewModel extends ChangeNotifier {
   final AutoDisposeRef _ref;
   final AgentConfig _agentConfig;
   bool initialized = false;
-  bool isListning = false;
-  String speechToTextResulText = '';
+  bool isListening = false;
+  String speechToTextResultText = '';
   late SpeechToTextRepository? speechToTextRepository;
 
   TalkScreenViewModel(this._ref, this._agentConfig);
@@ -22,9 +22,9 @@ class TalkScreenViewModel extends ChangeNotifier {
   }
 
   void start() {
-    isListning = true;
+    isListening = true;
     speechToTextRepository?.startRecognition((String speechToTextResult) {
-      speechToTextResulText = speechToTextResult;
+      speechToTextResultText = speechToTextResult;
       notifyListeners();
     });
     notifyListeners();
@@ -32,7 +32,7 @@ class TalkScreenViewModel extends ChangeNotifier {
 
   void pause() {
     speechToTextRepository?.pauseRecognition();
-    isListning = false;
+    isListening = false;
     notifyListeners();
   }
 }

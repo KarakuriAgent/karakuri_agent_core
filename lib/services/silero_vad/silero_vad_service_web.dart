@@ -23,7 +23,7 @@ external void pauseVad();
 @JS('destroyVad')
 external void destroyVad();
 
-class SileroVadServce {
+class SileroVadService {
   Future<void> create(Function(Uint8List) end) async =>
       await promiseToFuture(createVad(
           allowInterop((audio) => end(AudioUtil.float32ListToWav(audio)))));

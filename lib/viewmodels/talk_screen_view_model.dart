@@ -7,10 +7,10 @@ import 'package:karakuri_agent/repositories/speech_to_text_repository.dart';
 class TalkScreenViewModel extends ChangeNotifier {
   final AutoDisposeRef _ref;
   final AgentConfig _agentConfig;
+  late final SpeechToTextRepository speechToTextRepository;
   bool initialized = false;
   bool isListening = false;
   String speechToTextResultText = '';
-  late SpeechToTextRepository? speechToTextRepository;
 
   TalkScreenViewModel(this._ref, this._agentConfig);
 
@@ -23,7 +23,7 @@ class TalkScreenViewModel extends ChangeNotifier {
 
   void start() {
     isListening = true;
-    speechToTextRepository?.startRecognition((String speechToTextResult) {
+    speechToTextRepository.startRecognition((String speechToTextResult) {
       speechToTextResultText = speechToTextResult;
       notifyListeners();
     });
@@ -31,7 +31,7 @@ class TalkScreenViewModel extends ChangeNotifier {
   }
 
   void pause() {
-    speechToTextRepository?.pauseRecognition();
+    speechToTextRepository.pauseRecognition();
     isListening = false;
     notifyListeners();
   }

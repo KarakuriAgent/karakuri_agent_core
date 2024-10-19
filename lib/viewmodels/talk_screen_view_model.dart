@@ -33,10 +33,8 @@ class TalkScreenViewModel extends ChangeNotifier {
       if (speechToTextResult.isEmpty) {
         return;
       }
-      textRepository
-          .completions(_messages
-            ..add(TextMessage(role: Role.user, message: speechToTextResult)))
-          .then((TextMessage text) {
+      _messages.add(TextMessage(role: Role.user, message: speechToTextResult));
+      textRepository.completions(_messages).then((TextMessage text) {
         _messages.add(text);
         resultText = text.message;
         notifyListeners();

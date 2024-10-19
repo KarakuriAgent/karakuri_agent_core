@@ -47,6 +47,8 @@ class OpenaiTextService extends TextService {
         );
       case Role.assistant:
         return ChatCompletionMessage.assistant(content: textMessage.message);
+      default:
+        throw Exception('Unhandled role: ${textMessage.role}');
     }
   }
 }

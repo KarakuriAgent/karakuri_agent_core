@@ -9,7 +9,7 @@ class TextRepository {
   late final TextService _service;
 
   TextRepository(this._agentConfig) {
-    switch (_agentConfig.speechToTextServiceConfig.type) {
+    switch (_agentConfig.textServiceConfig.type) {
       case ServiceType.openAI:
         _service = OpenaiTextService(_agentConfig);
         break;

@@ -117,6 +117,11 @@ class _AgentCard extends HookConsumerWidget {
             Text(
               t.home.agent.textToSpeechModel(
                   name:
+                      '${config.textToSpeechServiceConfig.name}:${config.textToSpeechModel.value}'),
+            ),
+            Text(
+              t.home.agent.textToSpeechVoice(
+                  name:
                       '${config.textToSpeechServiceConfig.name}:${config.textToSpeechVoice.value}'),
             ),
             Row(

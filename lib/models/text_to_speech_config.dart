@@ -10,6 +10,7 @@ class TextToSpeechConfig with _$TextToSpeechConfig {
   const TextToSpeechConfig._();
   const factory TextToSpeechConfig({
     @JsonKey(name: ColumnName.id) int? id,
+    @Default([]) List<KeyValuePair> models,
     @Default([]) List<KeyValuePair> voices,
   }) = _TextToSpeechConfig;
   factory TextToSpeechConfig.fromJson(Map<String, dynamic> json) =>

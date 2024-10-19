@@ -11,6 +11,7 @@
       "textModel": "TEXTモデル:${name}",
       "speechToTextModel": "SPEECH TO TEXTモデル:${name}",
       "textToSpeechModel": "TEXT TO SPEECHモデル:${name}",
+      "textToSpeechVoice": "TEXT TO SPEECHボイス:${name}",
       "agentConfig": {
         "agentAdd": "エージェントを追加",
         "agentEdit": "エージェントを編集",
@@ -21,6 +22,7 @@
         "speechToTextService": "SPEECH TO TEXTサービス",
         "speechToTextModel": "SPEECH TO TEXTモデル",
         "textToSpeechService": "TEXT TO SPEECHサービス",
+        "textToSpeechModel": "TEXT TO SPEECHモデル",
         "textToSpeechVoice": "TEXT TO SPEECHボイス"
       },
       "error": {
@@ -30,6 +32,7 @@
         "speechToTextServiceRequired": "SPEECH TO TEXTサービスは必須です。",
         "speechToTextModelRequired": "SPEECH TO TEXTモデルは必須です",
         "textToSpeechServiceRequired": "TEXT TO SPEECHサービスは必須です。",
+        "textToSpeechModelRequired": "TEXT TO SPEECHモデルは必須です",
         "textToSpeechVoiceRequired": "TEXT TO SPEECHボイスは必須です"
       }
     }
@@ -76,9 +79,11 @@
         "textToSpeechConfig": {
           "configType": "TEXT TO SPEECH",
           "title": "TEXT TO SPEECH",
+          "models": "モデル",
           "voices": "ボイス",
           "id": "ID",
           "name": "名前",
+          "addModel": "モデルを追加",
           "addVoice": "ボイスを追加"
         },
         "error": {
@@ -91,6 +96,9 @@
           "sttModelKeyIsRequired": "SPEECH TO TEXTモデルのIDは必須です",
           "sttModelValueIsRequired": "SPEECH TO TEXTモデルの名前は必須です",
           "duplicateSttModelkey": "重複するSPEECH TO TEXTモデルのIDが見つかりました: ${key}",
+          "ttsModelKeyIsRequired": "TEXT TO SPEECHモデルのIDは必須です",
+          "ttsModelValueIsRequired": "TEXT TO SPEECHモデルの名前は必須です",
+          "duplicateTtsModelkey": "重複するTEXT TO SPEECHモデルのIDが見つかりました: ${key}",
           "ttsVoiceKeyIsRequired": "TEXT TO SPEECHボイスのIDは必須です",
           "ttsVoiceValueIsRequired": "TEXT TO SPEECHボイスの名前は必須です",
           "duplicateTtsVoicekey": "重複するTEXT TO SPEECHボイスのIDが見つかりました: ${key}"

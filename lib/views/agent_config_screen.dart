@@ -47,8 +47,8 @@ class _AgentConfigContent extends HookConsumerWidget {
         children: [
           TextFormField(
             controller: nameController,
-            decoration: InputDecoration(
-                labelText: t.home.agent.agentConfig.name),
+            decoration:
+                InputDecoration(labelText: t.home.agent.agentConfig.name),
           ),
           _TextConfigSection(initialConfig: initialConfig),
           _SpeechToTextConfigSection(initialConfig: initialConfig),
@@ -186,8 +186,13 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
         agentConfigScreenViewmodelProvider(initialConfig)
             .select((it) => it.selectTextToSpeechService));
     final models = ref.watch(agentConfigScreenViewmodelProvider(initialConfig)
-        .select((it) => it.textToSpeechVoices));
+        .select((it) => it.textToSpeechModels));
     final selectModel = ref.watch(
+        agentConfigScreenViewmodelProvider(initialConfig)
+            .select((it) => it.selectTextToSpeechModel));
+    final voices = ref.watch(agentConfigScreenViewmodelProvider(initialConfig)
+        .select((it) => it.textToSpeechVoices));
+    final selectVoice = ref.watch(
         agentConfigScreenViewmodelProvider(initialConfig)
             .select((it) => it.selectTextToSpeechVoice));
     return Column(
@@ -201,11 +206,21 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
             viewmodel.updateTextToSpeechServiceConfig(value);
           },
         ),
-        Text(t.home.agent.agentConfig.textToSpeechVoice),
+        Text(t.home.agent.agentConfig.textToSpeechModel),
         models.isNotEmpty
             ? _ModelDropdownSection(
                 model: selectModel,
                 models: models,
+                onChanged: (value) {
+                  viewmodel.updateTextToSpeechModel(value);
+                },
+              )
+            : const SizedBox(),
+        Text(t.home.agent.agentConfig.textToSpeechVoice),
+        voices.isNotEmpty
+            ? _ModelDropdownSection(
+                model: selectVoice,
+                models: voices,
                 onChanged: (value) {
                   viewmodel.updateTextToSpeechVoice(value);
                 },

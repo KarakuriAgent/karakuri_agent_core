@@ -140,6 +140,7 @@ class _ServiceTypeDropdownSection extends HookConsumerWidget {
             viewModel.clearSpeechToTextConfigModels();
           }
           if (!newValue.capabilities.supportsTextToSpeech) {
+            viewModel.clearTextToSpeechConfigModels();
             viewModel.clearTextToSpeechConfigVoices();
           }
           viewModel.updateServiceType(newValue);
@@ -178,6 +179,7 @@ class _ToggleConfigSection extends StatelessWidget {
           } else if (configType == ConfigType.stt) {
             viewModel.clearSpeechToTextConfigModels();
           } else if (configType == ConfigType.tts) {
+            viewModel.clearTextToSpeechConfigModels();
             viewModel.clearTextToSpeechConfigVoices();
           }
         } else {
@@ -186,6 +188,7 @@ class _ToggleConfigSection extends StatelessWidget {
           } else if (configType == ConfigType.stt) {
             viewModel.addSpeechToTextConfigModels();
           } else if (configType == ConfigType.tts) {
+            viewModel.addTextToSpeechConfigModels();
             viewModel.addTextToSpeechConfigVoices();
           }
         }
@@ -400,14 +403,39 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
         ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
     final voices = ref.watch(serviceConfigScreenViewmodelProvider(initialConfig)
         .select((it) => it.textToSpeechConfigVoices));
+    final models = ref.watch(serviceConfigScreenViewmodelProvider(initialConfig)
+        .select((it) => it.textToSpeechConfigModels));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _ConfigSectionBase(
           viewModel: viewModel,
           configType: ConfigType.tts,
-          selectedConfigSection: voices.isNotEmpty,
+          selectedConfigSection: models.isNotEmpty || voices.isNotEmpty,
         ),
+        if (models.isNotEmpty)
+          _ConfigSectionMap(
+            title: t.settings.serviceSettings.serviceConfig.textToSpeechConfig
+                .models,
+            labelKey:
+                t.settings.serviceSettings.serviceConfig.textToSpeechConfig.id,
+            labelValue: t
+                .settings.serviceSettings.serviceConfig.textToSpeechConfig.name,
+            labelAdd: t.settings.serviceSettings.serviceConfig
+                .textToSpeechConfig.addModel,
+            map: models,
+            onAdd: viewModel.addTextToSpeechConfigModels,
+            onRemove: (index) {
+              if (models.length > 1) {
+                viewModel.removeTextToSpeechConfigModelsAt(index);
+              }
+            },
+          ),
+        // _ConfigSectionBase(
+        //   viewModel: viewModel,
+        //   configType: ConfigType.tts,
+        //   selectedConfigSection: voices.isNotEmpty,
+        // ),
         if (voices.isNotEmpty)
           _ConfigSectionMap(
             title: t.settings.serviceSettings.serviceConfig.textToSpeechConfig

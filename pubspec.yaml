@@ -27,6 +27,7 @@ dependencies:
   sqflite_common_ffi_web: ^0.4.5+3
   http: ^1.2.2
   http_parser: ^4.0.2
+  openai_dart: ^0.4.2+2
 
 dev_dependencies:
   flutter_test:

@@ -36,7 +36,7 @@ class _TalkContent extends HookConsumerWidget {
     final isListening = ref.watch(
         talkScreenViewModelProvider(agentConfig).select((it) => it.isListening));
     final text = ref.watch(talkScreenViewModelProvider(agentConfig)
-        .select((it) => it.speechToTextResultText));
+        .select((it) => it.resultText));
     return Scaffold(
       appBar: AppBar(
         title: Text(t.talk.title),

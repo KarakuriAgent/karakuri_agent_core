@@ -5,7 +5,7 @@ import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/service_type.dart';
 import 'package:karakuri_agent/providers/voice_activity_detection_provider.dart';
 import 'package:karakuri_agent/repositories/voice_activity_detection_repository.dart';
-import 'package:karakuri_agent/services/speech_to_text/speech_to_text_openai_service.dart';
+import 'package:karakuri_agent/services/speech_to_text/openai_speech_to_text_service.dart';
 import 'package:karakuri_agent/services/speech_to_text/speech_to_text_service.dart';
 
 class SpeechToTextRepository {
@@ -24,7 +24,7 @@ class SpeechToTextRepository {
             .future);
     switch (_agentConfig.speechToTextServiceConfig.type) {
       case ServiceType.openAI:
-        _service = SpeechToTextOpenaiService(_agentConfig);
+        _service = OpenaiSpeechToTextService(_agentConfig);
         break;
       default:
         throw Exception('Service type not supported');

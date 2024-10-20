@@ -113,7 +113,7 @@ class _TextConfigSection extends HookConsumerWidget {
         ),
         Text(t.home.agent.agentConfig.textModel),
         models.isNotEmpty
-            ? _ModelDropdownSection(
+            ? _OptionDropdownSection(
                 model: selectModel,
                 models: models,
                 onChanged: (value) {
@@ -158,7 +158,7 @@ class _SpeechToTextConfigSection extends HookConsumerWidget {
         ),
         Text(t.home.agent.agentConfig.speechToTextModel),
         models.isNotEmpty
-            ? _ModelDropdownSection(
+            ? _OptionDropdownSection(
                 model: selectModel,
                 models: models,
                 onChanged: (value) {
@@ -208,7 +208,7 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
         ),
         Text(t.home.agent.agentConfig.textToSpeechModel),
         models.isNotEmpty
-            ? _ModelDropdownSection(
+            ? _OptionDropdownSection(
                 model: selectModel,
                 models: models,
                 onChanged: (value) {
@@ -218,7 +218,7 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
             : const SizedBox(),
         Text(t.home.agent.agentConfig.textToSpeechVoice),
         voices.isNotEmpty
-            ? _ModelDropdownSection(
+            ? _OptionDropdownSection(
                 model: selectVoice,
                 models: voices,
                 onChanged: (value) {
@@ -256,11 +256,11 @@ class _ServiceDropdownSection extends HookConsumerWidget {
   }
 }
 
-class _ModelDropdownSection extends HookConsumerWidget {
+class _OptionDropdownSection extends HookConsumerWidget {
   final KeyValuePair? model;
   final List<KeyValuePair> models;
   final Function(KeyValuePair?) onChanged;
-  const _ModelDropdownSection({
+  const _OptionDropdownSection({
     required this.model,
     required this.models,
     required this.onChanged,

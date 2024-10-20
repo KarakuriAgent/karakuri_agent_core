@@ -39,6 +39,7 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
       'input': text
     };
 
+    try {
     final response = await http.post(
       Uri.parse('${config.baseUrl}/audio/speech'),
       headers: headers,
@@ -48,7 +49,12 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       return response.bodyBytes;
     } else {
-      throw Exception('An unexpected error occurred during transcription.');
+        final errorResponse = response.toString();
+        final errorMessage = json.decode(errorResponse)['error']['message'];
+        throw Exception('HTTP ${response.statusCode}: $errorMessage');
+      }
+    } catch (e) {
+      throw Exception('An unexpected error occurred during text-to-speech.');
     }
   }
 }

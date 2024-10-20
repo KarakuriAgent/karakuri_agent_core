@@ -37,7 +37,7 @@ class OpenaiSpeechToTextService extends SpeechToTextService {
         throw Exception('HTTP ${response.statusCode}: $errorMessage');
       }
     } catch (e) {
-      throw Exception('An unexpected error occurred during transcription.');
+      throw Exception('An unexpected error occurred during speech-to-text.');
     }
   }
 }

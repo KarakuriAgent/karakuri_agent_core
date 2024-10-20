@@ -13,7 +13,7 @@ class TextToSpeechRepository {
         _service = OpenaiTextToSpeechService(_agentConfig);
         break;
       default:
-        throw Exception('Service type not supported');
+        throw Exception('Unsupported Text-to-Speech service type: ${_agentConfig.textServiceConfig.type}');
     }
   }
 

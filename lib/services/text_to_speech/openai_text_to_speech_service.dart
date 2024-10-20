@@ -14,15 +14,23 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
   OpenaiTextToSpeechService(this._agentConfig);
 
   @override
+  void dispose() {
+    _player.dispose();
+  }
+
+  @override
   Future<void> speech(String text) async {
     final completer = Completer();
     final listen = _player.onPlayerComplete.listen((_) {
       completer.complete();
     });
-    final bytes = await _requestSpeech(text);
-    await _player.play(BytesSource(bytes), mode: PlayerMode.mediaPlayer);
-    await completer.future;
-    listen.cancel();
+    try {
+      final bytes = await _requestSpeech(text);
+      await _player.play(BytesSource(bytes), mode: PlayerMode.mediaPlayer);
+      await completer.future;
+    } finally {
+      listen.cancel();
+    }
   }
 
   Future<Uint8List> _requestSpeech(String text) async {
@@ -40,15 +48,15 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
     };
 
     try {
-    final response = await http.post(
-      Uri.parse('${config.baseUrl}/audio/speech'),
-      headers: headers,
-      body: jsonEncode(data),
-    );
+      final response = await http.post(
+        Uri.parse('${config.baseUrl}/audio/speech'),
+        headers: headers,
+        body: jsonEncode(data),
+      );
 
-    if (response.statusCode == 200 && response.body.isNotEmpty) {
-      return response.bodyBytes;
-    } else {
+      if (response.statusCode == 200 && response.body.isNotEmpty) {
+        return response.bodyBytes;
+      } else {
         final errorResponse = response.toString();
         final errorMessage = json.decode(errorResponse)['error']['message'];
         throw Exception('HTTP ${response.statusCode}: $errorMessage');

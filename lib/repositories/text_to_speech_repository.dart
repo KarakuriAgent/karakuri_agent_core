@@ -17,6 +17,12 @@ class TextToSpeechRepository {
     }
   }
 
+
+  Future<void> dispose() async {
+    _service.dispose();
+  }
+
+
   Future<void> speech(String text) async {
     await _service.speech(text);
   }

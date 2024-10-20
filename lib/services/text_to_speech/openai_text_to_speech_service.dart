@@ -57,7 +57,7 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
       if (response.statusCode == 200 && response.body.isNotEmpty) {
         return response.bodyBytes;
       } else {
-        final errorResponse = response.toString();
+        final errorResponse = response.body;
         final errorMessage = json.decode(errorResponse)['error']['message'];
         throw Exception('HTTP ${response.statusCode}: $errorMessage');
       }

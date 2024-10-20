@@ -232,11 +232,7 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
     if (models.isEmpty) {
       return null;
     } else {
-      final newModels = models
-          .map((model) => KeyValuePair(
-              key: model.keyController.value.text,
-              value: model.valueController.value.text))
-          .toList();
+      final newModels = _mapTextEditPairsToKeyValuePairs(models);
       return TextConfig(models: newModels);
     }
   }
@@ -245,11 +241,7 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
     if (models.isEmpty) {
       return null;
     } else {
-      final newModels = models
-          .map((model) => KeyValuePair(
-              key: model.keyController.value.text,
-              value: model.valueController.value.text))
-          .toList();
+      final newModels = _mapTextEditPairsToKeyValuePairs(models);
       return SpeechToTextConfig(models: newModels);
     }
   }
@@ -259,19 +251,19 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
     if (models.isEmpty || voices.isEmpty) {
       return null;
     } else {
-      final newModels = models
-          .map((model) => KeyValuePair(
-              key: model.keyController.value.text,
-              value: model.valueController.value.text))
-          .toList();
-
-      final newVoices = voices
-          .map((model) => KeyValuePair(
-              key: model.keyController.value.text,
-              value: model.valueController.value.text))
-          .toList();
+      final newModels = _mapTextEditPairsToKeyValuePairs(models);
+      final newVoices = _mapTextEditPairsToKeyValuePairs(voices);
       return TextToSpeechConfig(models: newModels, voices: newVoices);
     }
+  }
+
+  List<KeyValuePair> _mapTextEditPairsToKeyValuePairs(
+      List<TextEditPair> pairs) {
+    return pairs
+        .map((pair) => KeyValuePair(
+            key: pair.keyController.value.text,
+            value: pair.valueController.value.text))
+        .toList();
   }
 }
 

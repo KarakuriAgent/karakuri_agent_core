@@ -8,7 +8,7 @@ Karakuri Agentは、2D画像を用いたAIとのインタラクティブなコ�
 |----------------|:--------:|
 | Android        |    ❌    |
 | iOS            |    ❌    |
-| Web            |    ❌    |
+| Web            |    🟢    |
 | macOS          |    ❌    |
 | Linux          |    ❌    |
 | Windows        |    ❌    |
@@ -17,9 +17,9 @@ Karakuri Agentは、2D画像を用いたAIとのインタラクティブなコ�
 
 | サービス        | エンドポイント | 対応状況 |
 |----------------|----------------|:--------:|
-| OpenAI         | text           |    ❌    |
-|                | text to speech |    ❌    |
-|                | speech to text |    ❌    |
+| OpenAI         | text           |    🟢    |
+|                | text to speech |    🟢    |
+|                | speech to text |    🟢    |
 | VoiceVox       | text to speech |    ❌    |
 | StyleBertVITS2 | text to speech |    ❌    |
 

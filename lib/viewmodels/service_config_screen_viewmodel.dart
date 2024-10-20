@@ -15,6 +15,7 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
   ServiceType serviceType;
   List<TextEditPair> textConfigModels;
   List<TextEditPair> speechToTextConfigModels;
+  List<TextEditPair> textToSpeechConfigModels;
   List<TextEditPair> textToSpeechConfigVoices;
 
   ServiceConfigScreenViewmodel({ServiceConfig? serviceConfig})
@@ -29,6 +30,8 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
             TextEditPair.fromList(serviceConfig?.textConfig?.models),
         speechToTextConfigModels =
             TextEditPair.fromList(serviceConfig?.speechToTextConfig?.models),
+        textToSpeechConfigModels =
+            TextEditPair.fromList(serviceConfig?.textToSpeechConfig?.models),
         textToSpeechConfigVoices =
             TextEditPair.fromList(serviceConfig?.textToSpeechConfig?.voices);
 
@@ -39,6 +42,7 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
     apiKeyController.dispose();
     _disposeList(textConfigModels);
     _disposeList(speechToTextConfigModels);
+    _disposeList(textToSpeechConfigModels);
     _disposeList(textToSpeechConfigVoices);
     super.dispose();
   }
@@ -64,6 +68,11 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addTextToSpeechConfigModels() {
+    textToSpeechConfigModels = [...textToSpeechConfigModels, TextEditPair()];
+    notifyListeners();
+  }
+
   void addTextToSpeechConfigVoices() {
     textToSpeechConfigVoices = [...textToSpeechConfigVoices, TextEditPair()];
     notifyListeners();
@@ -79,6 +88,11 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearTextToSpeechConfigModels() {
+    textToSpeechConfigModels = [];
+    notifyListeners();
+  }
+
   void clearTextToSpeechConfigVoices() {
     textToSpeechConfigVoices = [];
     notifyListeners();
@@ -91,6 +105,12 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
 
   void removeSpeechToTextConfigModelsAt(int index) {
     speechToTextConfigModels = List.from(speechToTextConfigModels)
+      ..removeAt(index);
+    notifyListeners();
+  }
+
+  void removeTextToSpeechConfigModelsAt(int index) {
+    textToSpeechConfigModels = List.from(textToSpeechConfigModels)
       ..removeAt(index);
     notifyListeners();
   }
@@ -155,6 +175,24 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
     }
 
     if (serviceType.capabilities.supportsTextToSpeech) {
+      if (textToSpeechConfigModels.isNotEmpty) {
+        final Set<String> keys = {};
+        for (var model in textToSpeechConfigModels) {
+          if (model.keyController.value.text.isEmpty) {
+            return t.settings.serviceSettings.serviceConfig.error
+                .ttsModelKeyIsRequired;
+          }
+          if (model.valueController.value.text.isEmpty) {
+            return t.settings.serviceSettings.serviceConfig.error
+                .ttsModelValueIsRequired;
+          }
+          if (!keys.add(model.keyController.value.text)) {
+            return t.settings.serviceSettings.serviceConfig.error
+                .duplicateTtsModelkey(key: model.keyController.value.text);
+          }
+        }
+      }
+
       if (textToSpeechConfigVoices.isNotEmpty) {
         final Set<String> keys = {};
         for (var voice in textToSpeechConfigVoices) {
@@ -184,7 +222,8 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
       baseUrl: baseUrlController.text,
       apiKey: apiKeyController.text,
       textConfig: _createTextConfig(textConfigModels),
-      textToSpeechConfig: _createTextToSpeechConfig(textToSpeechConfigVoices),
+      textToSpeechConfig: _createTextToSpeechConfig(
+          textToSpeechConfigModels, textToSpeechConfigVoices),
       speechToTextConfig: _createSpeechToTextConfig(speechToTextConfigModels),
     );
   }
@@ -193,11 +232,7 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
     if (models.isEmpty) {
       return null;
     } else {
-      final newModels = models
-          .map((model) => KeyValuePair(
-              key: model.keyController.value.text,
-              value: model.valueController.value.text))
-          .toList();
+      final newModels = _mapTextEditPairsToKeyValuePairs(models);
       return TextConfig(models: newModels);
     }
   }
@@ -206,26 +241,29 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
     if (models.isEmpty) {
       return null;
     } else {
-      final newModels = models
-          .map((model) => KeyValuePair(
-              key: model.keyController.value.text,
-              value: model.valueController.value.text))
-          .toList();
+      final newModels = _mapTextEditPairsToKeyValuePairs(models);
       return SpeechToTextConfig(models: newModels);
     }
   }
 
-  TextToSpeechConfig? _createTextToSpeechConfig(List<TextEditPair> voices) {
-    if (voices.isEmpty) {
+  TextToSpeechConfig? _createTextToSpeechConfig(
+      List<TextEditPair> models, List<TextEditPair> voices) {
+    if (models.isEmpty || voices.isEmpty) {
       return null;
     } else {
-      final newVoices = voices
-          .map((model) => KeyValuePair(
-              key: model.keyController.value.text,
-              value: model.valueController.value.text))
-          .toList();
-      return TextToSpeechConfig(voices: newVoices);
+      final newModels = _mapTextEditPairsToKeyValuePairs(models);
+      final newVoices = _mapTextEditPairsToKeyValuePairs(voices);
+      return TextToSpeechConfig(models: newModels, voices: newVoices);
     }
+  }
+
+  List<KeyValuePair> _mapTextEditPairsToKeyValuePairs(
+      List<TextEditPair> pairs) {
+    return pairs
+        .map((pair) => KeyValuePair(
+            key: pair.keyController.value.text,
+            value: pair.valueController.value.text))
+        .toList();
   }
 }
 

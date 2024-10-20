@@ -14,7 +14,7 @@ class TextRepository {
         _service = OpenaiTextService(_agentConfig);
         break;
       default:
-        throw Exception('Service type not supported');
+        throw Exception('Unsupported Text service type: ${_agentConfig.textServiceConfig.type}');
     }
   }
 

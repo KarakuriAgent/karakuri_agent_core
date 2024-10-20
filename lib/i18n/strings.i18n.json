@@ -11,6 +11,7 @@
       "textModel": "TEXT model:${name}",
       "speechToTextModel": "SPEECH TO TEXT model:${name}",
       "textToSpeechModel": "TEXT TO SPEECH model:${name}",
+      "textToSpeechVoice": "TEXT TO SPEECH voice:${name}",
       "agentConfig": {
         "agentAdd": "Add Agent",
         "agentEdit": "Edit Agent",
@@ -21,6 +22,7 @@
         "speechToTextService": "SPEECH TO TEXT Service",
         "speechToTextModel": "SPEECH TO TEXT Model",
         "textToSpeechService": "TEXT TO SPEECH Service",
+        "textToSpeechModel": "TEXT TO SPEECH Model",
         "textToSpeechVoice": "TEXT TO SPEECH Voice"
       },
       "error": {
@@ -30,6 +32,7 @@
         "speechToTextServiceRequired": "SPEECH TO TEXT Service is required",
         "speechToTextModelRequired": "SPEECH TO TEXT Model is required",
         "textToSpeechServiceRequired": "TEXT TO SPEECH Service is required",
+        "textToSpeechModelRequired": "TEXT TO SPEECH Model is required.",
         "textToSpeechVoiceRequired": "TEXT TO SPEECH Voice is required."
       }
     }
@@ -76,9 +79,11 @@
         "textToSpeechConfig": {
           "configType": "TEXT TO SPEECH",
           "title": "TEXT TO SPEECH Settings",
+          "models": "Models",
           "voices": "Voices",
           "id": "ID",
           "name": "Name",
+          "addModel": "Add Model",
           "addVoice": "Add Voice"
         },
         "error": {
@@ -91,6 +96,9 @@
           "sttModelKeyIsRequired": "Speech to text model id is required",
           "sttModelValueIsRequired": "Speech to text model name is required",
           "duplicateSttModelkey": "Duplicate speech to text model id found: ${key}",
+          "ttsModelKeyIsRequired": "Text to speech voice id is required",
+          "ttsModelValueIsRequired": "Text to speech voice name is required",
+          "duplicateTtsModelkey": "Duplicate text to speech voice id found: ${key}",
           "ttsVoiceKeyIsRequired": "Text to speech voice id is required",
           "ttsVoiceValueIsRequired": "Text to speech voice name is required",
           "duplicateTtsVoicekey": "Duplicate text to speech voice id found: ${key}"

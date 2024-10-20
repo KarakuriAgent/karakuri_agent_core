@@ -14,13 +14,14 @@ class TalkScreen extends HookConsumerWidget {
       talkScreenViewModelProvider(_agentConfig),
       (_, __) {},
     );
-    final initialized = ref.watch(talkScreenViewModelProvider(_agentConfig)
-        .select((it) => it.initialized));
-    if (!initialized) {
+    final state = ref.watch(talkScreenViewModelProvider(_agentConfig)
+        .select((it) => it.state));
+    if (state == TalkScreenViewModelState.loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     } else {
       return _TalkContent(
         agentConfig: _agentConfig,
+        state: state,
       );
     }
   }
@@ -28,13 +29,13 @@ class TalkScreen extends HookConsumerWidget {
 
 class _TalkContent extends HookConsumerWidget {
   final AgentConfig agentConfig;
+  final TalkScreenViewModelState state;
 
-  const _TalkContent({required this.agentConfig});
+  const _TalkContent({required this.agentConfig, required this.state});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(talkScreenViewModelProvider(agentConfig));
-    final isListening = ref.watch(
-        talkScreenViewModelProvider(agentConfig).select((it) => it.isListening));
     final text = ref.watch(talkScreenViewModelProvider(agentConfig)
         .select((it) => it.resultText));
     return Scaffold(
@@ -48,13 +49,13 @@ class _TalkContent extends HookConsumerWidget {
             Text(text),
             ElevatedButton(
               onPressed: () {
-                if (isListening) {
-                  viewModel.pause();
-                } else {
+                if (state == TalkScreenViewModelState.initialized) {
                   viewModel.start();
+                } else {
+                  viewModel.pause();
                 }
               },
-              child: Text(isListening ? t.talk.pause : t.talk.start),
+              child: Text(state == TalkScreenViewModelState.initialized ? t.talk.start : t.talk.pause),
             ),
           ],
         ),

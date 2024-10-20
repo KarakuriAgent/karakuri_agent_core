@@ -47,8 +47,8 @@ class _AgentConfigContent extends HookConsumerWidget {
         children: [
           TextFormField(
             controller: nameController,
-            decoration: InputDecoration(
-                labelText: t.home.agent.agentConfig.name),
+            decoration:
+                InputDecoration(labelText: t.home.agent.agentConfig.name),
           ),
           _TextConfigSection(initialConfig: initialConfig),
           _SpeechToTextConfigSection(initialConfig: initialConfig),
@@ -113,7 +113,7 @@ class _TextConfigSection extends HookConsumerWidget {
         ),
         Text(t.home.agent.agentConfig.textModel),
         models.isNotEmpty
-            ? _ModelDropdownSection(
+            ? _OptionDropdownSection(
                 model: selectModel,
                 models: models,
                 onChanged: (value) {
@@ -158,7 +158,7 @@ class _SpeechToTextConfigSection extends HookConsumerWidget {
         ),
         Text(t.home.agent.agentConfig.speechToTextModel),
         models.isNotEmpty
-            ? _ModelDropdownSection(
+            ? _OptionDropdownSection(
                 model: selectModel,
                 models: models,
                 onChanged: (value) {
@@ -186,8 +186,13 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
         agentConfigScreenViewmodelProvider(initialConfig)
             .select((it) => it.selectTextToSpeechService));
     final models = ref.watch(agentConfigScreenViewmodelProvider(initialConfig)
-        .select((it) => it.textToSpeechVoices));
+        .select((it) => it.textToSpeechModels));
     final selectModel = ref.watch(
+        agentConfigScreenViewmodelProvider(initialConfig)
+            .select((it) => it.selectTextToSpeechModel));
+    final voices = ref.watch(agentConfigScreenViewmodelProvider(initialConfig)
+        .select((it) => it.textToSpeechVoices));
+    final selectVoice = ref.watch(
         agentConfigScreenViewmodelProvider(initialConfig)
             .select((it) => it.selectTextToSpeechVoice));
     return Column(
@@ -201,11 +206,21 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
             viewmodel.updateTextToSpeechServiceConfig(value);
           },
         ),
-        Text(t.home.agent.agentConfig.textToSpeechVoice),
+        Text(t.home.agent.agentConfig.textToSpeechModel),
         models.isNotEmpty
-            ? _ModelDropdownSection(
+            ? _OptionDropdownSection(
                 model: selectModel,
                 models: models,
+                onChanged: (value) {
+                  viewmodel.updateTextToSpeechModel(value);
+                },
+              )
+            : const SizedBox(),
+        Text(t.home.agent.agentConfig.textToSpeechVoice),
+        voices.isNotEmpty
+            ? _OptionDropdownSection(
+                model: selectVoice,
+                models: voices,
                 onChanged: (value) {
                   viewmodel.updateTextToSpeechVoice(value);
                 },
@@ -241,11 +256,11 @@ class _ServiceDropdownSection extends HookConsumerWidget {
   }
 }
 
-class _ModelDropdownSection extends HookConsumerWidget {
+class _OptionDropdownSection extends HookConsumerWidget {
   final KeyValuePair? model;
   final List<KeyValuePair> models;
   final Function(KeyValuePair?) onChanged;
-  const _ModelDropdownSection({
+  const _OptionDropdownSection({
     required this.model,
     required this.models,
     required this.onChanged,

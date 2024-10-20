@@ -14,6 +14,7 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
   final List<ServiceConfig> speechToTextServiceConfigs = [];
   List<KeyValuePair> speechToTextModels;
   final List<ServiceConfig> textToSpeechServiceConfigs = [];
+  List<KeyValuePair> textToSpeechModels;
   List<KeyValuePair> textToSpeechVoices;
 
   bool initialized = false;
@@ -22,6 +23,7 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
   ServiceConfig? selectSpeechToTextService;
   KeyValuePair? selectSpeechToTextModel;
   ServiceConfig? selectTextToSpeechService;
+  KeyValuePair? selectTextToSpeechModel;
   KeyValuePair? selectTextToSpeechVoice;
   AgentConfigScreenViewmodel(this._configStorage, {AgentConfig? agentConfig})
       : _id = agentConfig?.id,
@@ -35,6 +37,10 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
                 [],
         selectSpeechToTextModel = agentConfig?.speechToTextModel,
         selectTextToSpeechService = agentConfig?.textToSpeechServiceConfig,
+        textToSpeechModels =
+            agentConfig?.textToSpeechServiceConfig.textToSpeechConfig?.models ??
+                [],
+        selectTextToSpeechModel = agentConfig?.textToSpeechModel,
         textToSpeechVoices =
             agentConfig?.textToSpeechServiceConfig.textToSpeechConfig?.voices ??
                 [],
@@ -79,6 +85,7 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
       selectTextToSpeechVoice = null;
     }
     selectTextToSpeechService = config;
+    textToSpeechModels = config?.textToSpeechConfig?.models ?? [];
     textToSpeechVoices = config?.textToSpeechConfig?.voices ?? [];
     notifyListeners();
   }
@@ -90,6 +97,11 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
 
   void updateSpeechToTextModel(KeyValuePair? model) {
     selectSpeechToTextModel = model;
+    notifyListeners();
+  }
+
+  void updateTextToSpeechModel(KeyValuePair? model) {
+    selectTextToSpeechModel = model;
     notifyListeners();
   }
 
@@ -117,6 +129,9 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
     if (selectTextToSpeechService == null) {
       return t.home.agent.error.textToSpeechServiceRequired;
     }
+    if (selectTextToSpeechModel == null) {
+      return t.home.agent.error.textToSpeechModelRequired;
+    }
     if (selectTextToSpeechVoice == null) {
       return t.home.agent.error.textToSpeechVoiceRequired;
     }
@@ -132,6 +147,7 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
       speechToTextServiceConfig: selectSpeechToTextService!,
       speechToTextModel: selectSpeechToTextModel!,
       textToSpeechServiceConfig: selectTextToSpeechService!,
+      textToSpeechModel: selectTextToSpeechModel!,
       textToSpeechVoice: selectTextToSpeechVoice!,
     );
   }

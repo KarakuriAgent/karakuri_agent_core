@@ -404,7 +404,7 @@ class SqfliteHelper {
         final modelResult = await _updateKeyValuePairList(
           txn,
           TableName.textToSpeechModel,
-          ColumnName.textConfigId,
+          ColumnName.textToSpeechConfigId,
           textToSpeechConfigId,
           textToSpeechConfig.models,
         );
@@ -413,7 +413,7 @@ class SqfliteHelper {
         final voiceResult = await _updateKeyValuePairList(
           txn,
           TableName.textToSpeechVoice,
-          ColumnName.textConfigId,
+          ColumnName.textToSpeechConfigId,
           textToSpeechConfigId,
           textToSpeechConfig.voices,
         );
@@ -459,7 +459,7 @@ class SqfliteHelper {
         final result = await _updateKeyValuePairList(
           txn,
           TableName.speechToTextModel,
-          ColumnName.textConfigId,
+          ColumnName.speechToTextConfigId,
           speechToTextConfigId,
           speechToTextConfig.models,
         );

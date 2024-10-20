@@ -49,13 +49,13 @@ class _TalkContent extends HookConsumerWidget {
             Text(text),
             ElevatedButton(
               onPressed: () {
-                if (state != TalkScreenViewModelState.initialized) {
-                  viewModel.pause();
-                } else {
+                if (state == TalkScreenViewModelState.initialized) {
                   viewModel.start();
+                } else {
+                  viewModel.pause();
                 }
               },
-              child: Text(state != TalkScreenViewModelState.initialized ? t.talk.pause : t.talk.start),
+              child: Text(state == TalkScreenViewModelState.initialized ? t.talk.start : t.talk.pause),
             ),
           ],
         ),

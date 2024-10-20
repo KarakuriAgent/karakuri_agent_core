@@ -431,11 +431,6 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
               }
             },
           ),
-        // _ConfigSectionBase(
-        //   viewModel: viewModel,
-        //   configType: ConfigType.tts,
-        //   selectedConfigSection: voices.isNotEmpty,
-        // ),
         if (voices.isNotEmpty)
           _ConfigSectionMap(
             title: t.settings.serviceSettings.serviceConfig.textToSpeechConfig

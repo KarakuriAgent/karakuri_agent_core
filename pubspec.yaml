@@ -29,6 +29,9 @@ dependencies:
   http_parser: ^4.0.2
   openai_dart: ^0.4.2+2
   audioplayers: ^6.1.0
+  sherpa_onnx: ^1.10.28
+  path_provider: ^2.1.4
+  record: ^5.1.2
 
 dev_dependencies:
   flutter_test:

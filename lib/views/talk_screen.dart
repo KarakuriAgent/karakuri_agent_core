@@ -14,8 +14,8 @@ class TalkScreen extends HookConsumerWidget {
       talkScreenViewModelProvider(_agentConfig),
       (_, __) {},
     );
-    final state = ref.watch(talkScreenViewModelProvider(_agentConfig)
-        .select((it) => it.state));
+    final state = ref.watch(
+        talkScreenViewModelProvider(_agentConfig).select((it) => it.state));
     if (state == TalkScreenViewModelState.loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     } else {
@@ -36,29 +36,32 @@ class _TalkContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(talkScreenViewModelProvider(agentConfig));
-    final text = ref.watch(talkScreenViewModelProvider(agentConfig)
-        .select((it) => it.resultText));
+    final speechToText = ref.watch(talkScreenViewModelProvider(agentConfig)
+        .select((it) => it.speechToText));
+    final textToSpeech = ref.watch(talkScreenViewModelProvider(agentConfig)
+        .select((it) => it.textToSpeech));
     return Scaffold(
       appBar: AppBar(
         title: Text(t.talk.title),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(text),
-            ElevatedButton(
-              onPressed: () {
-                if (state == TalkScreenViewModelState.initialized) {
-                  viewModel.start();
-                } else {
-                  viewModel.pause();
-                }
-              },
-              child: Text(state == TalkScreenViewModelState.initialized ? t.talk.start : t.talk.pause),
-            ),
-          ],
-        ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text('speechToText: $speechToText'),
+          Text('textToSpeech: $textToSpeech'),
+          ElevatedButton(
+            onPressed: () async {
+              if (state == TalkScreenViewModelState.initialized) {
+                await viewModel.start();
+              } else {
+                await viewModel.pause();
+              }
+            },
+            child: Text(state == TalkScreenViewModelState.initialized
+                ? t.talk.start
+                : t.talk.pause),
+          ),
+        ],
       ),
     );
   }

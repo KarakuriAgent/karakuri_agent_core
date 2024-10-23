@@ -50,5 +50,8 @@
    		<string>en</string>
    		<string>ja</string>
 	</array>
+	<!-- TODO description AND create Podfile? https://pub.dev/packages/audio_streamer-->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Some message to describe why you need this permission</string>
 </dict>
 </plist>

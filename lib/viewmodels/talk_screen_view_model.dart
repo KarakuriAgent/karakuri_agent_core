@@ -17,46 +17,50 @@ class TalkScreenViewModel extends ChangeNotifier {
   late final TextToSpeechRepository _textToSpeechRepository;
   TalkScreenViewModelState state = TalkScreenViewModelState.loading;
   final List<TextMessage> _messages = [];
-  String resultText = '';
+  String speechToText = '';
+  String textToSpeech = '';
 
   TalkScreenViewModel(this._ref, this._agentConfig);
 
   Future<void> initialize() async {
     _speechToTextRepository =
-        await _ref.watch(speechToTextProvider(_agentConfig).future);
+        await _ref.watch(speechToTextProvider((_agentConfig, _onResult)).future);
     _textRepository = _ref.watch(textProvider(_agentConfig));
     _textToSpeechRepository = _ref.watch(textToSpeechProvider(_agentConfig));
     state = TalkScreenViewModelState.initialized;
     notifyListeners();
   }
 
-  void start() {
+  Future<void> start() async {
     state = TalkScreenViewModelState.listening;
     notifyListeners();
-    _speechToTextRepository.startRecognition((String speechToTextResult) async {
+    await _speechToTextRepository.startRecognition();
+  }
+
+  Future<void> pause() async {
+    // TODO cancel the text and text to speech
+    await _speechToTextRepository.pauseRecognition();
+    state = TalkScreenViewModelState.initialized;
+    notifyListeners();
+  }
+
+  void _onResult(String speechToTextResult) async {
       if (speechToTextResult.isEmpty ||
           state != TalkScreenViewModelState.listening) {
         return;
       }
       state = TalkScreenViewModelState.thinking;
+      speechToText = speechToTextResult;
       notifyListeners();
       _messages.add(TextMessage(role: Role.user, message: speechToTextResult));
       final message = await _textRepository.completions(_messages);
       _messages.add(message);
       state = TalkScreenViewModelState.speaking;
+      textToSpeech = message.message;
       notifyListeners();
       await _textToSpeechRepository.speech(message.message);
-      state = TalkScreenViewModelState.listening;
-      notifyListeners();
-    });
-  }
-
-  void pause() {
-    // TODO cancel the text and text to speech
-    _speechToTextRepository.pauseRecognition();
-    state = TalkScreenViewModelState.initialized;
-    notifyListeners();
-  }
+      await start();
+    }
 }
 
 enum TalkScreenViewModelState {

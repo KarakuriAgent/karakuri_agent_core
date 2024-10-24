@@ -10,26 +10,34 @@ import 'package:karakuri_agent/services/text_to_speech/text_to_speech_service.da
 class OpenaiTextToSpeechService extends TextToSpeechService {
   final AgentConfig _agentConfig;
   final _player = AudioPlayer();
+  Completer<dynamic>? _cancelCompleter;
 
   OpenaiTextToSpeechService(this._agentConfig);
 
   @override
   void dispose() {
     _player.dispose();
+    _cancelCompleter = null;
   }
 
   @override
   Future<void> speech(String text) async {
     final completer = Completer();
+    _cancelCompleter = Completer();
     final listen = _player.onPlayerComplete.listen((_) {
       completer.complete();
     });
     try {
-      final bytes = await _requestSpeech(text);
+      final bytes = await Future.any([
+        _requestSpeech(text),
+        _cancelCompleter!.future,
+      ]);
+      if (bytes == null) return;
       await _player.play(BytesSource(bytes), mode: PlayerMode.mediaPlayer);
       await completer.future;
     } finally {
       listen.cancel();
+      _cancelCompleter = null;
     }
   }
 
@@ -64,5 +72,14 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
     } catch (e) {
       throw Exception('An unexpected error occurred during text-to-speech.');
     }
+  }
+
+  @override
+  void stop() {
+    _player.stop();
+    if (_cancelCompleter?.isCompleted == false) {
+      _cancelCompleter?.complete(null);
+    }
+    _cancelCompleter = null;
   }
 }

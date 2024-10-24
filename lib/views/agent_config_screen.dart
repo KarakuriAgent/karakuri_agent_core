@@ -5,19 +5,19 @@ import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';
 import 'package:karakuri_agent/providers/viewmodel_providers.dart';
-import 'package:karakuri_agent/viewmodels/agent_config_screen_viewmodel.dart';
+import 'package:karakuri_agent/view_models/agent_config_screen_view_model.dart';
 
 class AgentConfigScreen extends HookConsumerWidget {
   final AgentConfig? initialConfig;
   const AgentConfigScreen({super.key, this.initialConfig});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<AgentConfigScreenViewmodel>(
-      agentConfigScreenViewmodelProvider(initialConfig),
+    ref.listen<AgentConfigScreenViewModel>(
+      agentConfigScreenViewModelProvider(initialConfig),
       (_, __) {},
     );
     final initialized = ref.watch(
-        agentConfigScreenViewmodelProvider(initialConfig)
+        agentConfigScreenViewModelProvider(initialConfig)
             .select((it) => it.initialized));
     return Scaffold(
       appBar: AppBar(
@@ -38,7 +38,7 @@ class _AgentConfigContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nameController = ref.read(
-        agentConfigScreenViewmodelProvider(initialConfig)
+        agentConfigScreenViewModelProvider(initialConfig)
             .select((it) => it.nameController));
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -69,7 +69,7 @@ class _AgentConfigContent extends HookConsumerWidget {
     AgentConfig? initialConfig,
   ) {
     final viewModel =
-        ref.read(agentConfigScreenViewmodelProvider(initialConfig));
+        ref.read(agentConfigScreenViewModelProvider(initialConfig));
     final error = viewModel.validationCheck();
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -89,16 +89,16 @@ class _TextConfigSection extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewmodel =
-        ref.read(agentConfigScreenViewmodelProvider(initialConfig));
-    final services = ref.watch(agentConfigScreenViewmodelProvider(initialConfig)
+        ref.read(agentConfigScreenViewModelProvider(initialConfig));
+    final services = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
         .select((it) => it.textServiceConfigs));
     final selectService = ref.watch(
-        agentConfigScreenViewmodelProvider(initialConfig)
+        agentConfigScreenViewModelProvider(initialConfig)
             .select((it) => it.selectTextService));
-    final models = ref.watch(agentConfigScreenViewmodelProvider(initialConfig)
+    final models = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
         .select((it) => it.textModels));
     final selectModel = ref.watch(
-        agentConfigScreenViewmodelProvider(initialConfig)
+        agentConfigScreenViewModelProvider(initialConfig)
             .select((it) => it.selectTextModel));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,16 +134,16 @@ class _SpeechToTextConfigSection extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewmodel =
-        ref.read(agentConfigScreenViewmodelProvider(initialConfig));
-    final services = ref.watch(agentConfigScreenViewmodelProvider(initialConfig)
+        ref.read(agentConfigScreenViewModelProvider(initialConfig));
+    final services = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
         .select((it) => it.speechToTextServiceConfigs));
     final selectService = ref.watch(
-        agentConfigScreenViewmodelProvider(initialConfig)
+        agentConfigScreenViewModelProvider(initialConfig)
             .select((it) => it.selectSpeechToTextService));
-    final models = ref.watch(agentConfigScreenViewmodelProvider(initialConfig)
+    final models = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
         .select((it) => it.speechToTextModels));
     final selectModel = ref.watch(
-        agentConfigScreenViewmodelProvider(initialConfig)
+        agentConfigScreenViewModelProvider(initialConfig)
             .select((it) => it.selectSpeechToTextModel));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,21 +179,21 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewmodel =
-        ref.read(agentConfigScreenViewmodelProvider(initialConfig));
-    final services = ref.watch(agentConfigScreenViewmodelProvider(initialConfig)
+        ref.read(agentConfigScreenViewModelProvider(initialConfig));
+    final services = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
         .select((it) => it.textToSpeechServiceConfigs));
     final selectService = ref.watch(
-        agentConfigScreenViewmodelProvider(initialConfig)
+        agentConfigScreenViewModelProvider(initialConfig)
             .select((it) => it.selectTextToSpeechService));
-    final models = ref.watch(agentConfigScreenViewmodelProvider(initialConfig)
+    final models = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
         .select((it) => it.textToSpeechModels));
     final selectModel = ref.watch(
-        agentConfigScreenViewmodelProvider(initialConfig)
+        agentConfigScreenViewModelProvider(initialConfig)
             .select((it) => it.selectTextToSpeechModel));
-    final voices = ref.watch(agentConfigScreenViewmodelProvider(initialConfig)
+    final voices = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
         .select((it) => it.textToSpeechVoices));
     final selectVoice = ref.watch(
-        agentConfigScreenViewmodelProvider(initialConfig)
+        agentConfigScreenViewModelProvider(initialConfig)
             .select((it) => it.selectTextToSpeechVoice));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

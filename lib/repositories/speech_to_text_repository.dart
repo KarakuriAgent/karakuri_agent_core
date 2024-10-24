@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -14,9 +15,10 @@ class SpeechToTextRepository {
   Function(String)? _speechToTextResult;
   late final VoiceActivityDetectionRepository _voiceActivityDetectionRepository;
   late final SpeechToTextService _service;
-  bool initialized = false;
+  final _initializedCompleter = Completer<void>();
 
-  SpeechToTextRepository(this._ref, this._agentConfig);
+  SpeechToTextRepository(
+      this._ref, this._agentConfig, this._speechToTextResult);
 
   Future<void> init() async {
     _voiceActivityDetectionRepository = await _ref.watch(
@@ -27,34 +29,28 @@ class SpeechToTextRepository {
         _service = OpenaiSpeechToTextService(_agentConfig);
         break;
       default:
-        throw Exception('Unsupported Speech to Text service type: ${_agentConfig.speechToTextServiceConfig.type}');
+        throw Exception(
+            'Unsupported Speech to Text service type: ${_agentConfig.speechToTextServiceConfig.type}');
     }
-    initialized = true;
+    _initializedCompleter.complete();
   }
 
   Future<void> dispose() async {
     _speechToTextResult = null;
   }
 
-  void startRecognition(Function(String) speechToTextResult) {
-    if (initialized == false) {
-      throw Exception('SpeechToTextRepository not initialized');
-    }
-    _speechToTextResult = speechToTextResult;
-    _speechToTextResult!.call('');
+  Future<void> startRecognition() async {
+    await _initializedCompleter.future;
     _voiceActivityDetectionRepository.start();
   }
 
-  void pauseRecognition() {
-    if (initialized == false) {
-      throw Exception('SpeechToTextRepository not initialized');
-    }
-    _speechToTextResult?.call('');
-    _speechToTextResult = null;
+  Future<void> pauseRecognition() async {
+    await _initializedCompleter.future;
     _voiceActivityDetectionRepository.pause();
   }
 
   Future<void> _createTranscription(Uint8List audio) async {
+    pauseRecognition();
     final text = await _service.createTranscription(audio);
     _speechToTextResult?.call(text);
   }

@@ -13,17 +13,20 @@ class TextToSpeechRepository {
         _service = OpenaiTextToSpeechService(_agentConfig);
         break;
       default:
-        throw Exception('Unsupported Text-to-Speech service type: ${_agentConfig.textServiceConfig.type}');
+        throw Exception(
+            'Unsupported Text-to-Speech service type: ${_agentConfig.textServiceConfig.type}');
     }
   }
-
 
   Future<void> dispose() async {
     _service.dispose();
   }
 
-
   Future<void> speech(String text) async {
     await _service.speech(text);
+  }
+
+  Future<void> stop() async {
+    _service.stop();
   }
 }

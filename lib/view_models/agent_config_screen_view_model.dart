@@ -5,46 +5,61 @@ import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/repositories/config_storage_repository.dart';
 
-class AgentConfigScreenViewmodel extends ChangeNotifier {
+class AgentConfigScreenViewModel extends ChangeNotifier {
   final ConfigStorageRepository _configStorage;
   final int? _id;
   final TextEditingController nameController;
   final List<ServiceConfig> textServiceConfigs = [];
-  List<KeyValuePair> textModels;
+  List<KeyValuePair> _textModels;
   final List<ServiceConfig> speechToTextServiceConfigs = [];
-  List<KeyValuePair> speechToTextModels;
+  List<KeyValuePair> _speechToTextModels;
   final List<ServiceConfig> textToSpeechServiceConfigs = [];
-  List<KeyValuePair> textToSpeechModels;
-  List<KeyValuePair> textToSpeechVoices;
+  List<KeyValuePair> _textToSpeechModels;
+  List<KeyValuePair> _textToSpeechVoices;
 
-  bool initialized = false;
-  ServiceConfig? selectTextService;
-  KeyValuePair? selectTextModel;
-  ServiceConfig? selectSpeechToTextService;
-  KeyValuePair? selectSpeechToTextModel;
-  ServiceConfig? selectTextToSpeechService;
-  KeyValuePair? selectTextToSpeechModel;
-  KeyValuePair? selectTextToSpeechVoice;
-  AgentConfigScreenViewmodel(this._configStorage, {AgentConfig? agentConfig})
+  bool _initialized = false;
+  ServiceConfig? _selectTextService;
+  KeyValuePair? _selectTextModel;
+  ServiceConfig? _selectSpeechToTextService;
+  KeyValuePair? _selectSpeechToTextModel;
+  ServiceConfig? _selectTextToSpeechService;
+  KeyValuePair? _selectTextToSpeechModel;
+  KeyValuePair? _selectTextToSpeechVoice;
+
+  List<KeyValuePair> get textModels => _textModels;
+  List<KeyValuePair> get speechToTextModels => _speechToTextModels;
+  List<KeyValuePair> get textToSpeechModels => _textToSpeechModels;
+  List<KeyValuePair> get textToSpeechVoices => _textToSpeechVoices;
+
+  bool get initialized => _initialized;
+  ServiceConfig? get selectTextService => _selectTextService;
+  KeyValuePair? get selectTextModel => _selectTextModel;
+  ServiceConfig? get selectSpeechToTextService => _selectSpeechToTextService;
+  KeyValuePair? get selectSpeechToTextModel => _selectSpeechToTextModel;
+  ServiceConfig? get selectTextToSpeechService => _selectTextToSpeechService;
+  KeyValuePair? get selectTextToSpeechModel => _selectTextToSpeechModel;
+  KeyValuePair? get selectTextToSpeechVoice => _selectTextToSpeechVoice;
+
+  AgentConfigScreenViewModel(this._configStorage, {AgentConfig? agentConfig})
       : _id = agentConfig?.id,
         nameController = TextEditingController(text: agentConfig?.name ?? ''),
-        selectTextService = agentConfig?.textServiceConfig,
-        textModels = agentConfig?.textServiceConfig.textConfig?.models ?? [],
-        selectTextModel = agentConfig?.textModel,
-        selectSpeechToTextService = agentConfig?.speechToTextServiceConfig,
-        speechToTextModels =
+        _selectTextService = agentConfig?.textServiceConfig,
+        _textModels = agentConfig?.textServiceConfig.textConfig?.models ?? [],
+        _selectTextModel = agentConfig?.textModel,
+        _selectSpeechToTextService = agentConfig?.speechToTextServiceConfig,
+        _speechToTextModels =
             agentConfig?.speechToTextServiceConfig.speechToTextConfig?.models ??
                 [],
-        selectSpeechToTextModel = agentConfig?.speechToTextModel,
-        selectTextToSpeechService = agentConfig?.textToSpeechServiceConfig,
-        textToSpeechModels =
+        _selectSpeechToTextModel = agentConfig?.speechToTextModel,
+        _selectTextToSpeechService = agentConfig?.textToSpeechServiceConfig,
+        _textToSpeechModels =
             agentConfig?.textToSpeechServiceConfig.textToSpeechConfig?.models ??
                 [],
-        selectTextToSpeechModel = agentConfig?.textToSpeechModel,
-        textToSpeechVoices =
+        _selectTextToSpeechModel = agentConfig?.textToSpeechModel,
+        _textToSpeechVoices =
             agentConfig?.textToSpeechServiceConfig.textToSpeechConfig?.voices ??
                 [],
-        selectTextToSpeechVoice = agentConfig?.textToSpeechVoice;
+        _selectTextToSpeechVoice = agentConfig?.textToSpeechVoice;
 
   Future<void> initialize() async {
     textServiceConfigs.addAll(await _configStorage.loadTextServiceConfigs());
@@ -52,7 +67,7 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
         .addAll(await _configStorage.loadSpeechToTextServiceConfigs());
     textToSpeechServiceConfigs
         .addAll(await _configStorage.loadTextToSpeechServiceConfigs());
-    initialized = true;
+    _initialized = true;
     notifyListeners();
   }
 
@@ -63,54 +78,64 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
   }
 
   void updateTextServiceConfig(ServiceConfig? config) {
+    if (!initialized) return;
     if (selectTextService != config) {
-      selectTextModel = null;
+      _selectTextModel = null;
     }
-    selectTextService = config;
-    textModels = config?.textConfig?.models ?? [];
+    _selectTextService = config;
+    _textModels = config?.textConfig?.models ?? [];
     notifyListeners();
   }
 
   void updateSpeechToTextServiceConfig(ServiceConfig? config) {
+    if (!initialized) return;
     if (selectSpeechToTextService != config) {
-      selectSpeechToTextModel = null;
+      _selectSpeechToTextModel = null;
     }
-    selectSpeechToTextService = config;
-    speechToTextModels = config?.speechToTextConfig?.models ?? [];
+    _selectSpeechToTextService = config;
+    _speechToTextModels = config?.speechToTextConfig?.models ?? [];
     notifyListeners();
   }
 
   void updateTextToSpeechServiceConfig(ServiceConfig? config) {
+    if (!initialized) return;
     if (selectTextToSpeechService != config) {
-      selectTextToSpeechVoice = null;
+      _selectTextToSpeechVoice = null;
     }
-    selectTextToSpeechService = config;
-    textToSpeechModels = config?.textToSpeechConfig?.models ?? [];
-    textToSpeechVoices = config?.textToSpeechConfig?.voices ?? [];
+    _selectTextToSpeechService = config;
+    _textToSpeechModels = config?.textToSpeechConfig?.models ?? [];
+    _textToSpeechVoices = config?.textToSpeechConfig?.voices ?? [];
     notifyListeners();
   }
 
   void updateTextModel(KeyValuePair? model) {
-    selectTextModel = model;
+    if (!initialized) return;
+    _selectTextModel = model;
     notifyListeners();
   }
 
   void updateSpeechToTextModel(KeyValuePair? model) {
-    selectSpeechToTextModel = model;
+    if (!initialized) return;
+    _selectSpeechToTextModel = model;
     notifyListeners();
   }
 
   void updateTextToSpeechModel(KeyValuePair? model) {
-    selectTextToSpeechModel = model;
+    if (!initialized) return;
+    _selectTextToSpeechModel = model;
     notifyListeners();
   }
 
   void updateTextToSpeechVoice(KeyValuePair? voice) {
-    selectTextToSpeechVoice = voice;
+    if (!initialized) return;
+    _selectTextToSpeechVoice = voice;
     notifyListeners();
   }
 
   String? validationCheck() {
+    if (!initialized) {
+      throw Exception("AgentConfigScreenViewModel not initialized");
+    }
     if (nameController.text.isEmpty) {
       return t.home.agent.error.nameIsRequired;
     }
@@ -139,6 +164,9 @@ class AgentConfigScreenViewmodel extends ChangeNotifier {
   }
 
   AgentConfig createAgentConfig() {
+    if (!initialized) {
+      throw Exception("AgentConfigScreenViewModel not initialized");
+    }
     return AgentConfig(
       id: _id,
       name: nameController.text,

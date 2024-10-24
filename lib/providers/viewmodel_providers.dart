@@ -2,11 +2,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/providers/config_storage_provider.dart';
-import 'package:karakuri_agent/viewmodels/agent_config_screen_viewmodel.dart';
-import 'package:karakuri_agent/viewmodels/home_screen_viewmodel.dart';
-import 'package:karakuri_agent/viewmodels/service_config_screen_viewmodel.dart';
-import 'package:karakuri_agent/viewmodels/service_settings_screen_viewmodel.dart';
-import 'package:karakuri_agent/viewmodels/talk_screen_view_model.dart';
+import 'package:karakuri_agent/view_models/agent_config_screen_view_model.dart';
+import 'package:karakuri_agent/view_models/home_screen_view_model.dart';
+import 'package:karakuri_agent/view_models/service_config_screen_view_model.dart';
+import 'package:karakuri_agent/view_models/service_settings_screen_view_model.dart';
+import 'package:karakuri_agent/view_models/talk_screen_view_model.dart';
 
 final homeScreenViewModelProvider = ChangeNotifierProvider.autoDispose((ref) {
   final configStorage = ref.watch(configStorageProvider);
@@ -17,11 +17,11 @@ final homeScreenViewModelProvider = ChangeNotifierProvider.autoDispose((ref) {
   return viewModel;
 });
 
-final agentConfigScreenViewmodelProvider = ChangeNotifierProvider.autoDispose
-    .family<AgentConfigScreenViewmodel, AgentConfig?>((ref, param) {
+final agentConfigScreenViewModelProvider = ChangeNotifierProvider.autoDispose
+    .family<AgentConfigScreenViewModel, AgentConfig?>((ref, param) {
   final configStorage = ref.watch(configStorageProvider);
   final viewModel =
-      AgentConfigScreenViewmodel(configStorage, agentConfig: param);
+      AgentConfigScreenViewModel(configStorage, agentConfig: param);
   Future.microtask(() async {
     await viewModel.initialize();
   });
@@ -40,17 +40,17 @@ final talkScreenViewModelProvider = ChangeNotifierProvider.autoDispose
   return viewModel;
 });
 
-final serviceSettingsScreenViewmodelProvider =
+final serviceSettingsScreenViewModelProvider =
     ChangeNotifierProvider.autoDispose((ref) {
   final configStorage = ref.watch(configStorageProvider);
-  final viewModel = ServiceSettingsScreenViewmodel(configStorage);
+  final viewModel = ServiceSettingsScreenViewModel(configStorage);
   Future.microtask(() async {
     await viewModel.initialize();
   });
   return viewModel;
 });
 
-final serviceConfigScreenViewmodelProvider = ChangeNotifierProvider.autoDispose
-    .family<ServiceConfigScreenViewmodel, ServiceConfig?>((ref, param) {
-  return ServiceConfigScreenViewmodel(serviceConfig: param);
+final serviceConfigScreenViewModelProvider = ChangeNotifierProvider.autoDispose
+    .family<ServiceConfigScreenViewModel, ServiceConfig?>((ref, param) {
+  return ServiceConfigScreenViewModel(serviceConfig: param);
 });

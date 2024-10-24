@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/text_message.dart';
 import 'package:karakuri_agent/services/text/text_service.dart';
@@ -6,6 +8,7 @@ import 'package:openai_dart/openai_dart.dart';
 class OpenaiTextService extends TextService {
   final AgentConfig _agentConfig;
   final OpenAIClient _client;
+  Completer<dynamic>? _cancelCompleter;
 
   OpenaiTextService(this._agentConfig)
       : _client = OpenAIClient(
@@ -16,20 +19,38 @@ class OpenaiTextService extends TextService {
   @override
   Future<TextMessage> completions(List<TextMessage> messages) async {
     try {
-      final response = await _client.createChatCompletion(
-        request: CreateChatCompletionRequest(
-          model: ChatCompletionModel.modelId(_agentConfig.textModel.key),
-          messages: _createOpenAiMessages(messages),
-          temperature: 0,
+      _cancelCompleter = Completer();
+      final response = await Future.any([
+        _client.createChatCompletion(
+          request: CreateChatCompletionRequest(
+            model: ChatCompletionModel.modelId(_agentConfig.textModel.key),
+            messages: _createOpenAiMessages(messages),
+            temperature: 0,
+          ),
         ),
-      );
+        _cancelCompleter!.future,
+      ]);
+      if (response == null) return TextMessage(role: Role.system, message: '');
       return TextMessage(
         role: Role.assistant,
         message: response.choices.first.message.content!,
       );
     } catch (e) {
-      throw Exception('An unexpected error occurred during transcription.');
+      if (!(_cancelCompleter?.isCompleted ?? true)) {
+        throw Exception('An unexpected error occurred during transcription.');
+      }
+      throw Exception('Request was cancelled');
+    } finally {
+      _cancelCompleter = null;
     }
+  }
+
+  @override
+  void cancel() {
+    if (_cancelCompleter?.isCompleted == false) {
+      _cancelCompleter?.complete(null);
+    }
+    _cancelCompleter = null;
   }
 
   List<ChatCompletionMessage> _createOpenAiMessages(

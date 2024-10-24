@@ -4,7 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/models/service_type.dart';
 import 'package:karakuri_agent/providers/viewmodel_providers.dart';
-import 'package:karakuri_agent/viewmodels/service_settings_screen_viewmodel.dart';
+import 'package:karakuri_agent/view_models/service_settings_screen_view_model.dart';
 import 'package:karakuri_agent/views/service_config_screen.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';
 
@@ -13,13 +13,13 @@ class ServiceSettingsScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<ServiceSettingsScreenViewmodel>(
-      serviceSettingsScreenViewmodelProvider,
+    ref.listen<ServiceSettingsScreenViewModel>(
+      serviceSettingsScreenViewModelProvider,
       (_, __) {},
     );
-    final viewModel = ref.read(serviceSettingsScreenViewmodelProvider);
+    final viewModel = ref.read(serviceSettingsScreenViewModelProvider);
     final initialized = ref.watch(
-        serviceSettingsScreenViewmodelProvider.select((it) => it.initialized));
+        serviceSettingsScreenViewModelProvider.select((it) => it.initialized));
     if (!initialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     } else {
@@ -29,13 +29,13 @@ class ServiceSettingsScreen extends HookConsumerWidget {
 }
 
 class _ServiceSettingsContent extends HookConsumerWidget {
-  final ServiceSettingsScreenViewmodel viewModel;
+  final ServiceSettingsScreenViewModel viewModel;
 
   const _ServiceSettingsContent({required this.viewModel});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final configs = ref.watch(serviceSettingsScreenViewmodelProvider
+    final configs = ref.watch(serviceSettingsScreenViewModelProvider
         .select((it) => it.serviceConfigs));
     return Scaffold(
       appBar: AppBar(
@@ -86,7 +86,7 @@ class ServiceCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final viewModel = ref.read(serviceSettingsScreenViewmodelProvider);
+    final viewModel = ref.read(serviceSettingsScreenViewModelProvider);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),

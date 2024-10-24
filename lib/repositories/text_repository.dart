@@ -14,11 +14,16 @@ class TextRepository {
         _service = OpenaiTextService(_agentConfig);
         break;
       default:
-        throw Exception('Unsupported Text service type: ${_agentConfig.textServiceConfig.type}');
+        throw Exception(
+            'Unsupported Text service type: ${_agentConfig.textServiceConfig.type}');
     }
   }
 
   Future<TextMessage> completions(List<TextMessage> messages) async {
     return await _service.completions(messages);
+  }
+
+  Future<void> cancel() async {
+    _service.cancel();
   }
 }

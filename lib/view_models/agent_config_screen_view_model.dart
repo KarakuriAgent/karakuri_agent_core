@@ -4,6 +4,7 @@ import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/repositories/config_storage_repository.dart';
+import 'package:karakuri_agent/utils/exception.dart';
 
 class AgentConfigScreenViewModel extends ChangeNotifier {
   final ConfigStorageRepository _configStorage;
@@ -78,7 +79,7 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
   }
 
   void updateTextServiceConfig(ServiceConfig? config) {
-    if (!initialized) return;
+    _ensureInitialized();
     if (selectTextService != config) {
       _selectTextModel = null;
     }
@@ -88,7 +89,7 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
   }
 
   void updateSpeechToTextServiceConfig(ServiceConfig? config) {
-    if (!initialized) return;
+    _ensureInitialized();
     if (selectSpeechToTextService != config) {
       _selectSpeechToTextModel = null;
     }
@@ -98,7 +99,7 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
   }
 
   void updateTextToSpeechServiceConfig(ServiceConfig? config) {
-    if (!initialized) return;
+    _ensureInitialized();
     if (selectTextToSpeechService != config) {
       _selectTextToSpeechVoice = null;
     }
@@ -109,33 +110,31 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
   }
 
   void updateTextModel(KeyValuePair? model) {
-    if (!initialized) return;
+    _ensureInitialized();
     _selectTextModel = model;
     notifyListeners();
   }
 
   void updateSpeechToTextModel(KeyValuePair? model) {
-    if (!initialized) return;
+    _ensureInitialized();
     _selectSpeechToTextModel = model;
     notifyListeners();
   }
 
   void updateTextToSpeechModel(KeyValuePair? model) {
-    if (!initialized) return;
+    _ensureInitialized();
     _selectTextToSpeechModel = model;
     notifyListeners();
   }
 
   void updateTextToSpeechVoice(KeyValuePair? voice) {
-    if (!initialized) return;
+    _ensureInitialized();
     _selectTextToSpeechVoice = voice;
     notifyListeners();
   }
 
   String? validationCheck() {
-    if (!initialized) {
-      throw Exception("AgentConfigScreenViewModel not initialized");
-    }
+    _ensureInitialized();
     if (nameController.text.isEmpty) {
       return t.home.agent.error.nameIsRequired;
     }
@@ -164,9 +163,7 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
   }
 
   AgentConfig createAgentConfig() {
-    if (!initialized) {
-      throw Exception("AgentConfigScreenViewModel not initialized");
-    }
+    _ensureInitialized();
     return AgentConfig(
       id: _id,
       name: nameController.text,
@@ -178,5 +175,11 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
       textToSpeechModel: selectTextToSpeechModel!,
       textToSpeechVoice: selectTextToSpeechVoice!,
     );
+  }
+
+  void _ensureInitialized() {
+    if (!initialized) {
+      throw UninitializedException(runtimeType);
+    }
   }
 }

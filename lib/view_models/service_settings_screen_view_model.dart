@@ -66,7 +66,7 @@ class ServiceSettingsScreenViewModel extends ChangeNotifier {
 
   void _ensureInitialized() {
     if (!initialized) {
-      throw UninitializedViewModelException();
+      throw UninitializedException(runtimeType);
     }
   }
 }

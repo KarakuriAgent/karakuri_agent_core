@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/repositories/config_storage_repository.dart';
+import 'package:karakuri_agent/utils/exception.dart';
 
 class HomeScreenViewModel extends ChangeNotifier {
   final ConfigStorageRepository _configStorage;
@@ -19,7 +20,7 @@ class HomeScreenViewModel extends ChangeNotifier {
   }
 
   Future<void> addAgentConfig(AgentConfig config) async {
-    if (!initialized) return;
+    _ensureInitialized();
     final id = await _configStorage.addAgentConfig(config);
     if (id != -1) {
       _agentConfigs = [...agentConfigs, config.copyWith(id: id)];
@@ -30,7 +31,7 @@ class HomeScreenViewModel extends ChangeNotifier {
   }
 
   Future<void> updateAgentConfig(AgentConfig config) async {
-    if (!initialized) return;
+    _ensureInitialized();
     final bool updated = await _configStorage.updateAgentConfig(config);
     if (updated) {
       _agentConfigs =
@@ -42,13 +43,19 @@ class HomeScreenViewModel extends ChangeNotifier {
   }
 
   Future<void> deleteAgentConfig(int configId) async {
-    if (!initialized) return;
+    _ensureInitialized();
     final bool deleted = await _configStorage.deleteAgentConfig(configId);
     if (deleted) {
       _agentConfigs = agentConfigs.where((c) => c.id != configId).toList();
       notifyListeners();
     } else {
       throw Exception("Failed to delete agent config");
+    }
+  }
+
+  void _ensureInitialized() {
+    if (!initialized) {
+      throw UninitializedException(runtimeType);
     }
   }
 }

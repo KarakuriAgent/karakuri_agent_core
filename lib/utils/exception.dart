@@ -1,7 +1,7 @@
-class UninitializedViewModelException implements Exception {
-  final String message;
-  UninitializedViewModelException([this.message = "ViewModel not initialized"]);
+class UninitializedException implements Exception {
+  final Type runtimeType;
+  UninitializedException(this.runtimeType);
 
   @override
-  String toString() => "UninitializedViewModelException: $message";
+  String toString() => "UninitializedViewModelException: ${runtimeType.toString()}";
 }

@@ -9,6 +9,7 @@ import 'package:karakuri_agent/providers/voice_activity_detection_provider.dart'
 import 'package:karakuri_agent/repositories/voice_activity_detection_repository.dart';
 import 'package:karakuri_agent/services/speech_to_text/openai_speech_to_text_service.dart';
 import 'package:karakuri_agent/services/speech_to_text/speech_to_text_service.dart';
+import 'package:karakuri_agent/utils/exception.dart';
 
 class SpeechToTextRepository {
   final AutoDisposeFutureProviderRef _ref;
@@ -42,12 +43,12 @@ class SpeechToTextRepository {
   }
 
   Future<void> startRecognition() async {
-    await _initializedCompleter.future;
+    await _ensureInitialized();
     _voiceActivityDetectionRepository.start();
   }
 
   Future<void> pauseRecognition() async {
-    await _initializedCompleter.future;
+    await _ensureInitialized();
     _voiceActivityDetectionRepository.pause();
   }
 
@@ -55,5 +56,13 @@ class SpeechToTextRepository {
     pauseRecognition();
     final text = await _service.createTranscription(audio);
     _speechToTextResult?.call(text);
+  }
+
+  Future<void> _ensureInitialized() async {
+    try {
+      await _initializedCompleter.future.timeout(Duration(seconds: 5));
+    } on TimeoutException {
+      throw UninitializedException(runtimeType);
+    }
   }
 }

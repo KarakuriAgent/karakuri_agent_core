@@ -32,10 +32,9 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
       }
       await _player.play(BytesSource(bytes), mode: PlayerMode.mediaPlayer);
       await completer.future;
+    } on CancellationException {
+      rethrow;
     } catch (e) {
-      if (_cancelCompleter?.isCompleted ?? true) {
-        rethrow;
-      }
       throw ServiceException(runtimeType.toString(), 'speech');
     } finally {
       listen.cancel();
@@ -46,7 +45,7 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
   @override
   void stop() {
     _player.stop();
-   _cleanupCancelCompleter();
+    _cleanupCancelCompleter();
   }
 
   @override

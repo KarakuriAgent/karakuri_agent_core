@@ -29,7 +29,8 @@ class OpenaiTextService extends TextService {
             temperature: 0,
           ),
         ),
-        _cancelCompleter?.future ?? Future<CreateChatCompletionResponse?>.value(null),
+        _cancelCompleter?.future ??
+            Future<CreateChatCompletionResponse?>.value(null),
       ]);
       if (response == null) {
         throw CancellationException('OpenaiTextToSpeech');
@@ -38,10 +39,9 @@ class OpenaiTextService extends TextService {
         role: Role.assistant,
         message: response.choices.first.message.content!,
       );
+    } on CancellationException {
+      rethrow;
     } catch (e) {
-      if (_cancelCompleter?.isCompleted ?? true) {
-        rethrow;
-      }
       throw ServiceException(runtimeType.toString(), 'completions');
     } finally {
       _cancelCompleter = null;

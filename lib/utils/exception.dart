@@ -3,7 +3,7 @@ class UninitializedException implements Exception {
   UninitializedException(this.className);
 
   @override
-  String toString() => "UninitializedViewModelException: $className";
+  String toString() => "UninitializedException: $className";
 }
 
 class CancellationException implements Exception {

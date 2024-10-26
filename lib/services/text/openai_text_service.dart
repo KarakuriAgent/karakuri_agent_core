@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/text_message.dart';
 import 'package:karakuri_agent/services/text/text_service.dart';
+import 'package:karakuri_agent/utils/exception.dart';
 import 'package:openai_dart/openai_dart.dart';
 
 class OpenaiTextService extends TextService {
   final AgentConfig _agentConfig;
   final OpenAIClient _client;
+  Completer<CreateChatCompletionResponse?>? _cancelCompleter;
 
   OpenaiTextService(this._agentConfig)
       : _client = OpenAIClient(
@@ -16,20 +20,42 @@ class OpenaiTextService extends TextService {
   @override
   Future<TextMessage> completions(List<TextMessage> messages) async {
     try {
-      final response = await _client.createChatCompletion(
-        request: CreateChatCompletionRequest(
-          model: ChatCompletionModel.modelId(_agentConfig.textModel.key),
-          messages: _createOpenAiMessages(messages),
-          temperature: 0,
+      _cancelCompleter = Completer();
+      final response = await Future.any([
+        _client.createChatCompletion(
+          request: CreateChatCompletionRequest(
+            model: ChatCompletionModel.modelId(_agentConfig.textModel.key),
+            messages: _createOpenAiMessages(messages),
+            temperature: 0,
+          ),
         ),
-      );
+        _cancelCompleter?.future ??
+            Future<CreateChatCompletionResponse?>.value(null),
+      ]);
+      if (response == null) {
+        throw CancellationException('OpenaiTextToSpeech');
+      }
       return TextMessage(
         role: Role.assistant,
         message: response.choices.first.message.content!,
       );
+    } on CancellationException {
+      rethrow;
     } catch (e) {
-      throw Exception('An unexpected error occurred during transcription.');
+      throw ServiceException(runtimeType.toString(), 'completions');
+    } finally {
+      _cancelCompleter = null;
     }
+  }
+
+  @override
+  void cancel() {
+    _cleanupCancelCompleter();
+  }
+
+  @override
+  void dispose() {
+    _cleanupCancelCompleter();
   }
 
   List<ChatCompletionMessage> _createOpenAiMessages(
@@ -50,5 +76,12 @@ class OpenaiTextService extends TextService {
       default:
         throw Exception('Unhandled role: ${textMessage.role}');
     }
+  }
+
+  void _cleanupCancelCompleter() {
+    if (_cancelCompleter?.isCompleted == false) {
+      _cancelCompleter?.complete(null);
+    }
+    _cancelCompleter = null;
   }
 }

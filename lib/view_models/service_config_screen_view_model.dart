@@ -1,38 +1,44 @@
 import 'package:flutter/widgets.dart';
+import 'package:karakuri_agent/i18n/strings.g.dart';
 import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/models/service_type.dart';
 import 'package:karakuri_agent/models/speech_to_text_config.dart';
 import 'package:karakuri_agent/models/text_config.dart';
 import 'package:karakuri_agent/models/text_to_speech_config.dart';
-import 'package:karakuri_agent/i18n/strings.g.dart';
 
-class ServiceConfigScreenViewmodel extends ChangeNotifier {
+class ServiceConfigScreenViewModel extends ChangeNotifier {
   final int? _id;
   final TextEditingController nameController;
   final TextEditingController baseUrlController;
   final TextEditingController apiKeyController;
-  ServiceType serviceType;
-  List<TextEditPair> textConfigModels;
-  List<TextEditPair> speechToTextConfigModels;
-  List<TextEditPair> textToSpeechConfigModels;
-  List<TextEditPair> textToSpeechConfigVoices;
+  ServiceType _serviceType;
+  List<TextEditPair> _textConfigModels;
+  List<TextEditPair> _speechToTextConfigModels;
+  List<TextEditPair> _textToSpeechConfigModels;
+  List<TextEditPair> _textToSpeechConfigVoices;
 
-  ServiceConfigScreenViewmodel({ServiceConfig? serviceConfig})
+  ServiceType get serviceType => _serviceType;
+  List<TextEditPair> get textConfigModels => _textConfigModels;
+  List<TextEditPair> get speechToTextConfigModels => _speechToTextConfigModels;
+  List<TextEditPair> get textToSpeechConfigModels => _textToSpeechConfigModels;
+  List<TextEditPair> get textToSpeechConfigVoices => _textToSpeechConfigVoices;
+
+  ServiceConfigScreenViewModel({ServiceConfig? serviceConfig})
       : _id = serviceConfig?.id,
         nameController = TextEditingController(text: serviceConfig?.name ?? ''),
         baseUrlController =
             TextEditingController(text: serviceConfig?.baseUrl ?? ''),
         apiKeyController =
             TextEditingController(text: serviceConfig?.apiKey ?? ''),
-        serviceType = serviceConfig?.type ?? ServiceType.openAI,
-        textConfigModels =
+        _serviceType = serviceConfig?.type ?? ServiceType.openAI,
+        _textConfigModels =
             TextEditPair.fromList(serviceConfig?.textConfig?.models),
-        speechToTextConfigModels =
+        _speechToTextConfigModels =
             TextEditPair.fromList(serviceConfig?.speechToTextConfig?.models),
-        textToSpeechConfigModels =
+        _textToSpeechConfigModels =
             TextEditPair.fromList(serviceConfig?.textToSpeechConfig?.models),
-        textToSpeechConfigVoices =
+        _textToSpeechConfigVoices =
             TextEditPair.fromList(serviceConfig?.textToSpeechConfig?.voices);
 
   @override
@@ -54,72 +60,62 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
   }
 
   void updateServiceType(ServiceType type) {
-    serviceType = type;
+    _serviceType = type;
     notifyListeners();
   }
 
   void addTextConfigModels() {
-    textConfigModels = [...textConfigModels, TextEditPair()];
+    _textConfigModels = [...textConfigModels, TextEditPair()];
     notifyListeners();
   }
 
   void addSpeechToTextConfigModels() {
-    speechToTextConfigModels = [...speechToTextConfigModels, TextEditPair()];
+    _speechToTextConfigModels = [...speechToTextConfigModels, TextEditPair()];
     notifyListeners();
   }
 
   void addTextToSpeechConfigModels() {
-    textToSpeechConfigModels = [...textToSpeechConfigModels, TextEditPair()];
+    _textToSpeechConfigModels = [...textToSpeechConfigModels, TextEditPair()];
     notifyListeners();
   }
 
   void addTextToSpeechConfigVoices() {
-    textToSpeechConfigVoices = [...textToSpeechConfigVoices, TextEditPair()];
+    _textToSpeechConfigVoices = [...textToSpeechConfigVoices, TextEditPair()];
     notifyListeners();
   }
 
-  void clearTextConfigModels() {
-    textConfigModels = [];
-    notifyListeners();
-  }
+  void clearTextConfigModels() => _clearTextEditPairs(
+      () => textConfigModels, (models) => _textConfigModels = models);
 
-  void clearSpeechToTextConfigModels() {
-    speechToTextConfigModels = [];
-    notifyListeners();
-  }
+  void clearSpeechToTextConfigModels() => _clearTextEditPairs(
+      () => speechToTextConfigModels,
+      (models) => _speechToTextConfigModels = models);
 
-  void clearTextToSpeechConfigModels() {
-    textToSpeechConfigModels = [];
-    notifyListeners();
-  }
+  void clearTextToSpeechConfigModels() => _clearTextEditPairs(
+      () => textToSpeechConfigModels,
+      (models) => _textToSpeechConfigModels = models);
 
-  void clearTextToSpeechConfigVoices() {
-    textToSpeechConfigVoices = [];
-    notifyListeners();
-  }
+  void clearTextToSpeechConfigVoices() => _clearTextEditPairs(
+      () => textToSpeechConfigVoices,
+      (voices) => _textToSpeechConfigVoices = voices);
 
-  void removeTextConfigModelsAt(int index) {
-    textConfigModels = List.from(textConfigModels)..removeAt(index);
-    notifyListeners();
-  }
+  void removeTextConfigModelsAt(int index) => _removeTextEditPairAt(
+      () => textConfigModels, (models) => _textConfigModels = models, index);
 
-  void removeSpeechToTextConfigModelsAt(int index) {
-    speechToTextConfigModels = List.from(speechToTextConfigModels)
-      ..removeAt(index);
-    notifyListeners();
-  }
+  void removeSpeechToTextConfigModelsAt(int index) => _removeTextEditPairAt(
+      () => speechToTextConfigModels,
+      (models) => _speechToTextConfigModels = models,
+      index);
 
-  void removeTextToSpeechConfigModelsAt(int index) {
-    textToSpeechConfigModels = List.from(textToSpeechConfigModels)
-      ..removeAt(index);
-    notifyListeners();
-  }
+  void removeTextToSpeechConfigModelsAt(int index) => _removeTextEditPairAt(
+      () => textToSpeechConfigModels,
+      (models) => _textToSpeechConfigModels = models,
+      index);
 
-  void removeTextToSpeechConfigVoicesAt(int index) {
-    textToSpeechConfigVoices = List.from(textToSpeechConfigVoices)
-      ..removeAt(index);
-    notifyListeners();
-  }
+  void removeTextToSpeechConfigVoicesAt(int index) => _removeTextEditPairAt(
+      () => textToSpeechConfigVoices,
+      (voices) => _textToSpeechConfigVoices = voices,
+      index);
 
   String? validationCheck() {
     if (nameController.text.isEmpty) {
@@ -264,6 +260,18 @@ class ServiceConfigScreenViewmodel extends ChangeNotifier {
             key: pair.keyController.value.text,
             value: pair.valueController.value.text))
         .toList();
+  }
+
+  void _clearTextEditPairs<T>(
+      List<T> Function() getter, void Function(List<T>) setter) {
+    setter([]);
+    notifyListeners();
+  }
+
+  void _removeTextEditPairAt<T>(
+      List<T> Function() getter, void Function(List<T>) setter, int index) {
+    setter(List.from(getter())..removeAt(index));
+    notifyListeners();
   }
 }
 

@@ -3,20 +3,23 @@ import 'package:karakuri_agent/repositories/config_storage_repository.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/utils/exception.dart';
 
-class ServiceSettingsScreenViewmodel extends ChangeNotifier {
+class ServiceSettingsScreenViewModel extends ChangeNotifier {
   final ConfigStorageRepository _configStorage;
   List<ServiceConfig> serviceConfigs = [];
-  bool initialized = false;
+  bool _initialized = false;
 
-  ServiceSettingsScreenViewmodel(this._configStorage);
+  bool get initialized => _initialized;
+
+  ServiceSettingsScreenViewModel(this._configStorage);
 
   Future<void> initialize() async {
     serviceConfigs = await _configStorage.loadServiceConfigs();
-    initialized = true;
+    _initialized = true;
     notifyListeners();
   }
 
   Future<void> addServiceConfig(ServiceConfig config) async {
+    if (!initialized) return;
     _ensureInitialized();
     final id = await _configStorage.addServiceConfig(config);
     if (id != -1) {
@@ -28,6 +31,7 @@ class ServiceSettingsScreenViewmodel extends ChangeNotifier {
   }
 
   Future<void> updateServiceConfig(ServiceConfig config) async {
+    if (!initialized) return;
     _ensureInitialized();
     final bool updated = await _configStorage.updateServiceConfig(config);
     if (updated) {
@@ -40,6 +44,7 @@ class ServiceSettingsScreenViewmodel extends ChangeNotifier {
   }
 
   Future<void> deleteServiceConfig(int configId) async {
+    if (!initialized) return;
     _ensureInitialized();
     final bool deleted = await _configStorage.deleteServiceConfig(configId);
     if (deleted) {
@@ -51,6 +56,7 @@ class ServiceSettingsScreenViewmodel extends ChangeNotifier {
   }
 
   List<String> getConfigTypes(ServiceConfig config) {
+    if (!initialized) return [];
     List<String> types = [];
     if (config.textConfig != null) types.add("TEXT");
     if (config.textToSpeechConfig != null) types.add("TEXT TO SPEECH");
@@ -60,7 +66,7 @@ class ServiceSettingsScreenViewmodel extends ChangeNotifier {
 
   void _ensureInitialized() {
     if (!initialized) {
-      throw UninitializedViewModelException();
+      throw UninitializedException(runtimeType.toString());
     }
   }
 }

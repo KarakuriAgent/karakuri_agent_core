@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
-import 'package:karakuri_agent/providers/viewmodel_providers.dart';
-import 'package:karakuri_agent/viewmodels/talk_screen_view_model.dart';
+import 'package:karakuri_agent/providers/view_model_providers.dart';
+import 'package:karakuri_agent/view_models/talk_screen_view_model.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';
 
 class TalkScreen extends HookConsumerWidget {
@@ -14,8 +14,8 @@ class TalkScreen extends HookConsumerWidget {
       talkScreenViewModelProvider(_agentConfig),
       (_, __) {},
     );
-    final state = ref.watch(talkScreenViewModelProvider(_agentConfig)
-        .select((it) => it.state));
+    final state = ref.watch(
+        talkScreenViewModelProvider(_agentConfig).select((it) => it.state));
     if (state == TalkScreenViewModelState.loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     } else {
@@ -36,29 +36,45 @@ class _TalkContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(talkScreenViewModelProvider(agentConfig));
-    final text = ref.watch(talkScreenViewModelProvider(agentConfig)
-        .select((it) => it.resultText));
+    final (speechToText, textToSpeech) = ref.watch(
+      talkScreenViewModelProvider(agentConfig).select(
+        (it) => (it.speechToText, it.textToSpeech),
+      ),
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(t.talk.title),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(text),
-            ElevatedButton(
-              onPressed: () {
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text('speechToText: $speechToText'),
+          Text('textToSpeech: $textToSpeech'),
+          ElevatedButton(
+            onPressed: () async {
+              try {
                 if (state == TalkScreenViewModelState.initialized) {
-                  viewModel.start();
+                  await viewModel.start();
                 } else {
-                  viewModel.pause();
+                  await viewModel.pause();
                 }
-              },
-              child: Text(state == TalkScreenViewModelState.initialized ? t.talk.start : t.talk.pause),
-            ),
-          ],
-        ),
+              } catch (e) {
+                if (!context.mounted) return;
+                debugPrint(e.toString());
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text(
+                          state == TalkScreenViewModelState.initialized
+                              ? t.talk.error.startFailed
+                              : t.talk.error.pauseFailed)),
+                );
+              }
+            },
+            child: Text(state == TalkScreenViewModelState.initialized
+                ? t.talk.start
+                : t.talk.pause),
+          ),
+        ],
       ),
     );
   }

@@ -3,8 +3,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/config_type.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/models/service_type.dart';
-import 'package:karakuri_agent/providers/viewmodel_providers.dart';
-import 'package:karakuri_agent/viewmodels/service_config_screen_viewmodel.dart';
+import 'package:karakuri_agent/providers/view_model_providers.dart';
+import 'package:karakuri_agent/view_models/service_config_screen_view_model.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';
 
 class ServiceConfigScreen extends HookConsumerWidget {
@@ -14,14 +14,14 @@ class ServiceConfigScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<ServiceConfigScreenViewmodel>(
-      serviceConfigScreenViewmodelProvider(initialConfig),
+    ref.listen<ServiceConfigScreenViewModel>(
+      serviceConfigScreenViewModelProvider(initialConfig),
       (_, __) {},
     );
     final viewModel =
-        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
+        ref.read(serviceConfigScreenViewModelProvider(initialConfig));
     final selectedType = ref.watch(
-        serviceConfigScreenViewmodelProvider(initialConfig)
+        serviceConfigScreenViewModelProvider(initialConfig)
             .select((it) => it.serviceType));
     return Scaffold(
       appBar: AppBar(
@@ -71,7 +71,7 @@ class ServiceConfigScreen extends HookConsumerWidget {
   void _saveConfig(
     BuildContext context,
     WidgetRef ref,
-    ServiceConfigScreenViewmodel viewModel,
+    ServiceConfigScreenViewModel viewModel,
   ) {
     final error = viewModel.validationCheck();
     if (error != null) {
@@ -92,7 +92,7 @@ class _BaseConfigSection extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel =
-        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
+        ref.read(serviceConfigScreenViewModelProvider(initialConfig));
     return Column(
       children: [
         TextFormField(
@@ -125,9 +125,9 @@ class _ServiceTypeDropdownSection extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel =
-        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
+        ref.read(serviceConfigScreenViewModelProvider(initialConfig));
     final selectedType = ref.watch(
-        serviceConfigScreenViewmodelProvider(initialConfig)
+        serviceConfigScreenViewModelProvider(initialConfig)
             .select((it) => it.serviceType));
     return DropdownButtonFormField<ServiceType>(
       value: selectedType,
@@ -159,7 +159,7 @@ class _ServiceTypeDropdownSection extends HookConsumerWidget {
 }
 
 class _ToggleConfigSection extends StatelessWidget {
-  final ServiceConfigScreenViewmodel viewModel;
+  final ServiceConfigScreenViewModel viewModel;
   final ConfigType configType;
   final bool selectedConfigSection;
 
@@ -205,7 +205,7 @@ class _ToggleConfigSection extends StatelessWidget {
 }
 
 class _ConfigSectionBase extends HookConsumerWidget {
-  final ServiceConfigScreenViewmodel viewModel;
+  final ServiceConfigScreenViewModel viewModel;
   final ConfigType configType;
   final bool selectedConfigSection;
 
@@ -314,8 +314,8 @@ class _TextConfigSection extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel =
-        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
-    final models = ref.watch(serviceConfigScreenViewmodelProvider(initialConfig)
+        ref.read(serviceConfigScreenViewModelProvider(initialConfig));
+    final models = ref.watch(serviceConfigScreenViewModelProvider(initialConfig)
         .select((it) => it.textConfigModels));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,8 +356,8 @@ class _SpeechToTextConfigSection extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel =
-        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
-    final models = ref.watch(serviceConfigScreenViewmodelProvider(initialConfig)
+        ref.read(serviceConfigScreenViewModelProvider(initialConfig));
+    final models = ref.watch(serviceConfigScreenViewModelProvider(initialConfig)
         .select((it) => it.speechToTextConfigModels));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,11 +400,12 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel =
-        ref.read(serviceConfigScreenViewmodelProvider(initialConfig));
-    final voices = ref.watch(serviceConfigScreenViewmodelProvider(initialConfig)
-        .select((it) => it.textToSpeechConfigVoices));
-    final models = ref.watch(serviceConfigScreenViewmodelProvider(initialConfig)
-        .select((it) => it.textToSpeechConfigModels));
+        ref.read(serviceConfigScreenViewModelProvider(initialConfig));
+    final (voices, models) = ref.watch(
+      serviceConfigScreenViewModelProvider(initialConfig).select(
+        (it) => (it.textToSpeechConfigVoices, it.textToSpeechConfigModels),
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -4,7 +4,7 @@ import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';
-import 'package:karakuri_agent/providers/viewmodel_providers.dart';
+import 'package:karakuri_agent/providers/view_model_providers.dart';
 import 'package:karakuri_agent/view_models/agent_config_screen_view_model.dart';
 
 class AgentConfigScreen extends HookConsumerWidget {

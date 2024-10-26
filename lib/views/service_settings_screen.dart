@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/models/service_type.dart';
-import 'package:karakuri_agent/providers/viewmodel_providers.dart';
+import 'package:karakuri_agent/providers/view_model_providers.dart';
 import 'package:karakuri_agent/view_models/service_settings_screen_view_model.dart';
 import 'package:karakuri_agent/views/service_config_screen.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';

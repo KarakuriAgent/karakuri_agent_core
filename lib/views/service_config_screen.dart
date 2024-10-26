@@ -3,7 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/config_type.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/models/service_type.dart';
-import 'package:karakuri_agent/providers/viewmodel_providers.dart';
+import 'package:karakuri_agent/providers/view_model_providers.dart';
 import 'package:karakuri_agent/view_models/service_config_screen_view_model.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';
 

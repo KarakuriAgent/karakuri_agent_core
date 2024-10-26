@@ -5,7 +5,7 @@ import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/services/speech_to_text/speech_to_text_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:karakuri_agent/utils/exception.dart'; 
+import 'package:karakuri_agent/utils/exception.dart';
 
 class OpenaiSpeechToTextService extends SpeechToTextService {
   final AgentConfig _agentConfig;
@@ -27,7 +27,8 @@ class OpenaiSpeechToTextService extends SpeechToTextService {
     ));
 
     try {
-      final response = await request.send().timeout(const Duration(seconds: 10));
+      final response =
+          await request.send().timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
         final jsonResponse = json.decode(responseBody);
@@ -38,7 +39,8 @@ class OpenaiSpeechToTextService extends SpeechToTextService {
         throw Exception('HTTP ${response.statusCode}: $errorMessage');
       }
     } catch (e) {
-        throw ServiceException(runtimeType.toString(), 'createTranscription');
+      throw ServiceException(runtimeType.toString(), 'createTranscription',
+          message: e.toString());
     }
   }
 }

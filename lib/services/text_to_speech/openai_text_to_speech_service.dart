@@ -16,15 +16,6 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
   OpenaiTextToSpeechService(this._agentConfig);
 
   @override
-  void dispose() {
-    _player.dispose();
-    if (_cancelCompleter?.isCompleted == false) {
-      _cancelCompleter?.complete(null);
-    }
-    _cancelCompleter = null;
-  }
-
-  @override
   Future<void> speech(String text) async {
     final completer = Completer();
     _cancelCompleter = Completer();
@@ -50,6 +41,18 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
       listen.cancel();
       _cancelCompleter = null;
     }
+  }
+
+  @override
+  void stop() {
+    _player.stop();
+   _cleanupCancelCompleter();
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    _cleanupCancelCompleter();
   }
 
   Future<Uint8List> _requestSpeech(String text) async {
@@ -85,9 +88,7 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
     }
   }
 
-  @override
-  void stop() {
-    _player.stop();
+  void _cleanupCancelCompleter() {
     if (_cancelCompleter?.isCompleted == false) {
       _cancelCompleter?.complete(null);
     }

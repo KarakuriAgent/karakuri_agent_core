@@ -50,15 +50,12 @@ class OpenaiTextService extends TextService {
 
   @override
   void cancel() {
-    if (_cancelCompleter?.isCompleted == false) {
-      _cancelCompleter?.complete(null);
-    }
-    _cancelCompleter = null;
+    _cleanupCancelCompleter();
   }
 
   @override
   void dispose() {
-    cancel();
+    _cleanupCancelCompleter();
   }
 
   List<ChatCompletionMessage> _createOpenAiMessages(
@@ -79,5 +76,12 @@ class OpenaiTextService extends TextService {
       default:
         throw Exception('Unhandled role: ${textMessage.role}');
     }
+  }
+
+  void _cleanupCancelCompleter() {
+    if (_cancelCompleter?.isCompleted == false) {
+      _cancelCompleter?.complete(null);
+    }
+    _cancelCompleter = null;
   }
 }

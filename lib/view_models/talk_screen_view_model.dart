@@ -27,8 +27,10 @@ class TalkScreenViewModel extends ChangeNotifier {
   TalkScreenViewModel(this._ref, this._agentConfig);
 
   Future<void> initialize() async {
-    _speechToTextRepository = await _ref
-        .watch(speechToTextProvider((_agentConfig, _onResult)).future);
+    _speechToTextRepository = await _ref.watch(speechToTextProvider(
+            SpeechToTextProviderParam(
+                agentConfig: _agentConfig, onResult: _onResult))
+        .future);
     _textRepository = _ref.watch(textProvider(_agentConfig));
     _textToSpeechRepository = _ref.watch(textToSpeechProvider(_agentConfig));
     _state = TalkScreenViewModelState.initialized;

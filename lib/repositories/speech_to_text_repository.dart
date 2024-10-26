@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/service_type.dart';
+import 'package:karakuri_agent/providers/speech_to_text_provider.dart';
 import 'package:karakuri_agent/providers/voice_activity_detection_provider.dart';
 import 'package:karakuri_agent/repositories/voice_activity_detection_repository.dart';
 import 'package:karakuri_agent/services/speech_to_text/openai_speech_to_text_service.dart';
@@ -17,8 +18,9 @@ class SpeechToTextRepository {
   late final SpeechToTextService _service;
   final _initializedCompleter = Completer<void>();
 
-  SpeechToTextRepository(
-      this._ref, this._agentConfig, this._speechToTextResult);
+  SpeechToTextRepository(this._ref, SpeechToTextProviderParam param)
+      : _agentConfig = param.agentConfig,
+        _speechToTextResult = param.onResult;
 
   Future<void> init() async {
     _voiceActivityDetectionRepository = await _ref.watch(

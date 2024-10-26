@@ -11,7 +11,7 @@ import 'package:karakuri_agent/utils/exception.dart';
 class OpenaiTextToSpeechService extends TextToSpeechService {
   final AgentConfig _agentConfig;
   final _player = AudioPlayer();
-  Completer<dynamic>? _cancelCompleter;
+  Completer<Uint8List?>? _cancelCompleter;
 
   OpenaiTextToSpeechService(this._agentConfig);
 
@@ -25,7 +25,7 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
     try {
       final bytes = await Future.any([
         _requestSpeech(text),
-        _cancelCompleter?.future ?? Future<dynamic>.value(),
+        _cancelCompleter?.future ?? Future<Uint8List?>.value(null),
       ]);
       if (bytes == null) {
         throw CancellationException('OpenaiTextToSpeech');

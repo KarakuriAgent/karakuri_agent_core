@@ -9,7 +9,7 @@ import 'package:openai_dart/openai_dart.dart';
 class OpenaiTextService extends TextService {
   final AgentConfig _agentConfig;
   final OpenAIClient _client;
-  Completer<dynamic>? _cancelCompleter;
+  Completer<CreateChatCompletionResponse?>? _cancelCompleter;
 
   OpenaiTextService(this._agentConfig)
       : _client = OpenAIClient(
@@ -29,7 +29,7 @@ class OpenaiTextService extends TextService {
             temperature: 0,
           ),
         ),
-        _cancelCompleter?.future ?? Future<dynamic>.value(),
+        _cancelCompleter?.future ?? Future<CreateChatCompletionResponse?>.value(null),
       ]);
       if (response == null) {
         throw CancellationException('OpenaiTextToSpeech');

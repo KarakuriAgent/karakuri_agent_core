@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/text_message.dart';
 import 'package:karakuri_agent/services/text/text_service.dart';
+import 'package:karakuri_agent/utils/exception.dart';
 import 'package:openai_dart/openai_dart.dart';
 
 class OpenaiTextService extends TextService {
@@ -30,16 +31,18 @@ class OpenaiTextService extends TextService {
         ),
         _cancelCompleter!.future,
       ]);
-      if (response == null) return TextMessage(role: Role.system, message: '');
+      if (response == null) {
+        throw CancellationException('OpenaiTextToSpeech');
+      }
       return TextMessage(
         role: Role.assistant,
         message: response.choices.first.message.content!,
       );
     } catch (e) {
       if (!(_cancelCompleter?.isCompleted ?? true)) {
-        throw Exception('An unexpected error occurred during transcription.');
+        throw ServiceException(runtimeType.toString(), 'completions');
       }
-      throw Exception('Request was cancelled');
+      rethrow;
     } finally {
       _cancelCompleter = null;
     }
@@ -51,6 +54,11 @@ class OpenaiTextService extends TextService {
       _cancelCompleter?.complete(null);
     }
     _cancelCompleter = null;
+  }
+
+  @override
+  void dispose() {
+    cancel();
   }
 
   List<ChatCompletionMessage> _createOpenAiMessages(

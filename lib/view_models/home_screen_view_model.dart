@@ -55,7 +55,7 @@ class HomeScreenViewModel extends ChangeNotifier {
 
   void _ensureInitialized() {
     if (!initialized) {
-      throw UninitializedException(runtimeType);
+      throw UninitializedException(runtimeType.toString());
     }
   }
 }

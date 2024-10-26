@@ -4,7 +4,8 @@ import 'dart:typed_data';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/services/speech_to_text/speech_to_text_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart'; 
+import 'package:http_parser/http_parser.dart';
+import 'package:karakuri_agent/utils/exception.dart'; 
 
 class OpenaiSpeechToTextService extends SpeechToTextService {
   final AgentConfig _agentConfig;
@@ -37,7 +38,7 @@ class OpenaiSpeechToTextService extends SpeechToTextService {
         throw Exception('HTTP ${response.statusCode}: $errorMessage');
       }
     } catch (e) {
-      throw Exception('An unexpected error occurred during speech-to-text.');
+        throw ServiceException(runtimeType.toString(), 'createTranscription');
     }
   }
 }

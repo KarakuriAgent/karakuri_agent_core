@@ -6,6 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:karakuri_agent/services/text_to_speech/text_to_speech_service.dart';
+import 'package:karakuri_agent/utils/exception.dart';
 
 class OpenaiTextToSpeechService extends TextToSpeechService {
   final AgentConfig _agentConfig;
@@ -17,6 +18,9 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
   @override
   void dispose() {
     _player.dispose();
+    if (_cancelCompleter?.isCompleted == false) {
+      _cancelCompleter?.complete(null);
+    }
     _cancelCompleter = null;
   }
 
@@ -32,9 +36,16 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
         _requestSpeech(text),
         _cancelCompleter!.future,
       ]);
-      if (bytes == null) return;
+      if (bytes == null) {
+        throw CancellationException('OpenaiTextToSpeech');
+      }
       await _player.play(BytesSource(bytes), mode: PlayerMode.mediaPlayer);
       await completer.future;
+    } catch (e) {
+      if (!(_cancelCompleter?.isCompleted ?? true)) {
+        throw ServiceException(runtimeType.toString(), 'speech');
+      }
+      rethrow;
     } finally {
       listen.cancel();
       _cancelCompleter = null;

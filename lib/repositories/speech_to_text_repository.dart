@@ -62,7 +62,7 @@ class SpeechToTextRepository {
     try {
       await _initializedCompleter.future.timeout(Duration(seconds: 5));
     } on TimeoutException {
-      throw UninitializedException(runtimeType);
+      throw UninitializedException(runtimeType.toString());
     }
   }
 }

@@ -8,6 +8,7 @@ import 'package:karakuri_agent/providers/text_to_speech_provider.dart';
 import 'package:karakuri_agent/repositories/speech_to_text_repository.dart';
 import 'package:karakuri_agent/repositories/text_repository.dart';
 import 'package:karakuri_agent/repositories/text_to_speech_repository.dart';
+import 'package:karakuri_agent/utils/exception.dart';
 
 class TalkScreenViewModel extends ChangeNotifier {
   final AutoDisposeRef _ref;
@@ -78,7 +79,15 @@ class TalkScreenViewModel extends ChangeNotifier {
     _speechToText = speechToTextResult;
     notifyListeners();
     _messages.add(TextMessage(role: Role.user, message: speechToTextResult));
-    final message = await _textRepository.completions(_messages);
+    final TextMessage message;
+    try {
+      message = await _textRepository.completions(_messages);
+    } on CancellationException {
+      _messages.removeLast();
+      _state = TalkScreenViewModelState.initialized;
+      notifyListeners();
+      return;
+    }
     if (state == TalkScreenViewModelState.disposed) return;
 
     if (message.message.isEmpty) {
@@ -90,7 +99,13 @@ class TalkScreenViewModel extends ChangeNotifier {
     _state = TalkScreenViewModelState.speaking;
     _textToSpeech = message.message;
     notifyListeners();
-    await _textToSpeechRepository.speech(message.message);
+    try {
+      await _textToSpeechRepository.speech(message.message);
+    } on CancellationException {
+      _state = TalkScreenViewModelState.initialized;
+      notifyListeners();
+      return;
+    }
     if (state == TalkScreenViewModelState.disposed) return;
 
     await start();

@@ -26,4 +26,8 @@ class TextRepository {
   void cancel() {
     _service.cancel();
   }
+
+  Future<void> dispose() async {
+    _service.dispose();
+  }
 }

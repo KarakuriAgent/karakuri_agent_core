@@ -90,16 +90,16 @@ class _TextConfigSection extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final viewmodel =
         ref.read(agentConfigScreenViewModelProvider(initialConfig));
-    final services = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
-        .select((it) => it.textServiceConfigs));
-    final selectService = ref.watch(
-        agentConfigScreenViewModelProvider(initialConfig)
-            .select((it) => it.selectTextService));
-    final models = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
-        .select((it) => it.textModels));
-    final selectModel = ref.watch(
-        agentConfigScreenViewModelProvider(initialConfig)
-            .select((it) => it.selectTextModel));
+    final (services, selectService, models, selectModel) = ref.watch(
+      agentConfigScreenViewModelProvider(initialConfig).select(
+        (it) => (
+          it.textServiceConfigs,
+          it.selectTextService,
+          it.textModels,
+          it.selectTextModel
+        ),
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -135,16 +135,16 @@ class _SpeechToTextConfigSection extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final viewmodel =
         ref.read(agentConfigScreenViewModelProvider(initialConfig));
-    final services = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
-        .select((it) => it.speechToTextServiceConfigs));
-    final selectService = ref.watch(
-        agentConfigScreenViewModelProvider(initialConfig)
-            .select((it) => it.selectSpeechToTextService));
-    final models = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
-        .select((it) => it.speechToTextModels));
-    final selectModel = ref.watch(
-        agentConfigScreenViewModelProvider(initialConfig)
-            .select((it) => it.selectSpeechToTextModel));
+    final (services, selectService, models, selectModel) = ref.watch(
+      agentConfigScreenViewModelProvider(initialConfig).select(
+        (it) => (
+          it.speechToTextServiceConfigs,
+          it.selectSpeechToTextService,
+          it.speechToTextModels,
+          it.selectSpeechToTextModel
+        ),
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,21 +180,19 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final viewmodel =
         ref.read(agentConfigScreenViewModelProvider(initialConfig));
-    final services = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
-        .select((it) => it.textToSpeechServiceConfigs));
-    final selectService = ref.watch(
-        agentConfigScreenViewModelProvider(initialConfig)
-            .select((it) => it.selectTextToSpeechService));
-    final models = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
-        .select((it) => it.textToSpeechModels));
-    final selectModel = ref.watch(
-        agentConfigScreenViewModelProvider(initialConfig)
-            .select((it) => it.selectTextToSpeechModel));
-    final voices = ref.watch(agentConfigScreenViewModelProvider(initialConfig)
-        .select((it) => it.textToSpeechVoices));
-    final selectVoice = ref.watch(
-        agentConfigScreenViewModelProvider(initialConfig)
-            .select((it) => it.selectTextToSpeechVoice));
+    final (services, selectService, models, selectModel, voices, selectVoice) =
+        ref.watch(
+      agentConfigScreenViewModelProvider(initialConfig).select(
+        (it) => (
+          it.textToSpeechServiceConfigs,
+          it.selectTextToSpeechService,
+          it.textToSpeechModels,
+          it.selectTextToSpeechVoice,
+          it.textToSpeechVoices,
+          it.selectTextToSpeechVoice
+        ),
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

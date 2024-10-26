@@ -401,10 +401,11 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel =
         ref.read(serviceConfigScreenViewModelProvider(initialConfig));
-    final voices = ref.watch(serviceConfigScreenViewModelProvider(initialConfig)
-        .select((it) => it.textToSpeechConfigVoices));
-    final models = ref.watch(serviceConfigScreenViewModelProvider(initialConfig)
-        .select((it) => it.textToSpeechConfigModels));
+    final (voices, models) = ref.watch(
+      serviceConfigScreenViewModelProvider(initialConfig).select(
+        (it) => (it.textToSpeechConfigVoices, it.textToSpeechConfigModels),
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -36,10 +36,11 @@ class _TalkContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(talkScreenViewModelProvider(agentConfig));
-    final speechToText = ref.watch(talkScreenViewModelProvider(agentConfig)
-        .select((it) => it.speechToText));
-    final textToSpeech = ref.watch(talkScreenViewModelProvider(agentConfig)
-        .select((it) => it.textToSpeech));
+    final (speechToText, textToSpeech) = ref.watch(
+      talkScreenViewModelProvider(agentConfig).select(
+        (it) => (it.speechToText, it.textToSpeech),
+      ),
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(t.talk.title),

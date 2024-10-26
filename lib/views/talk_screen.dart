@@ -52,10 +52,18 @@ class _TalkContent extends HookConsumerWidget {
           Text('textToSpeech: $textToSpeech'),
           ElevatedButton(
             onPressed: () async {
-              if (state == TalkScreenViewModelState.initialized) {
-                await viewModel.start();
-              } else {
-                await viewModel.pause();
+              try {
+                if (state == TalkScreenViewModelState.initialized) {
+                  await viewModel.start();
+                } else {
+                  await viewModel.pause();
+                }
+              } catch (e) {
+                if (!context.mounted) return;
+                debugPrint(e.toString());
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(e.toString())),
+                );
               }
             },
             child: Text(state == TalkScreenViewModelState.initialized

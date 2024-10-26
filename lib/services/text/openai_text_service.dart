@@ -39,10 +39,10 @@ class OpenaiTextService extends TextService {
         message: response.choices.first.message.content!,
       );
     } catch (e) {
-      if (!(_cancelCompleter?.isCompleted ?? true)) {
-        throw ServiceException(runtimeType.toString(), 'completions');
+      if (_cancelCompleter?.isCompleted ?? true) {
+        rethrow;
       }
-      rethrow;
+      throw ServiceException(runtimeType.toString(), 'completions');
     } finally {
       _cancelCompleter = null;
     }

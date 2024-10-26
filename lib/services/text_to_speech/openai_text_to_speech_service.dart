@@ -42,10 +42,10 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
       await _player.play(BytesSource(bytes), mode: PlayerMode.mediaPlayer);
       await completer.future;
     } catch (e) {
-      if (!(_cancelCompleter?.isCompleted ?? true)) {
-        throw ServiceException(runtimeType.toString(), 'speech');
+      if (_cancelCompleter?.isCompleted ?? true) {
+        rethrow;
       }
-      rethrow;
+      throw ServiceException(runtimeType.toString(), 'speech');
     } finally {
       listen.cancel();
       _cancelCompleter = null;

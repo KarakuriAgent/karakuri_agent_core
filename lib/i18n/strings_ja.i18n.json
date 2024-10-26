@@ -40,7 +40,11 @@
   "talk": {
     "title": "トーク",
     "start": "トークを開始",
-    "pause": "トークを停止"
+    "pause": "トークを停止",
+    "error": {
+      "startFailed": "トーク中にエラーが発生しました。",
+      "pauseFailed": "トーク終了中にエラーが発生しました。"
+    }
   },
   "settings": {
     "serviceSettings": {

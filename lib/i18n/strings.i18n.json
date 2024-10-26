@@ -40,7 +40,11 @@
   "talk": {
     "title": "Talk",
     "start": "start",
-    "pause": "pause"
+    "pause": "pause",
+    "error": {
+      "startFailed": "An error occurred during talk.",
+      "pauseFailed": "An error occurred while ending the talk."
+    }
   },
   "settings": {
     "serviceSettings": {

@@ -62,7 +62,11 @@ class _TalkContent extends HookConsumerWidget {
                 if (!context.mounted) return;
                 debugPrint(e.toString());
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(e.toString())),
+                  SnackBar(
+                      content: Text(
+                          state == TalkScreenViewModelState.initialized
+                              ? t.talk.error.startFailed
+                              : t.talk.error.pauseFailed)),
                 );
               }
             },

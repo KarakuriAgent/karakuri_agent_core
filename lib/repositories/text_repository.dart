@@ -23,7 +23,7 @@ class TextRepository {
     return await _service.completions(messages);
   }
 
-  Future<void> cancel() async {
+  void cancel() {
     _service.cancel();
   }
 }

@@ -29,7 +29,7 @@ class OpenaiTextService extends TextService {
             temperature: 0,
           ),
         ),
-        _cancelCompleter!.future,
+        _cancelCompleter?.future ?? Future<dynamic>.value(),
       ]);
       if (response == null) {
         throw CancellationException('OpenaiTextToSpeech');

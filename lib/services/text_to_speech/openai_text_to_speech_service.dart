@@ -34,7 +34,7 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
     try {
       final bytes = await Future.any([
         _requestSpeech(text),
-        _cancelCompleter!.future,
+        _cancelCompleter?.future ?? Future<dynamic>.value(),
       ]);
       if (bytes == null) {
         throw CancellationException('OpenaiTextToSpeech');

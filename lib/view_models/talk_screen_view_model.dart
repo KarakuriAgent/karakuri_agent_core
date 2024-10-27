@@ -20,10 +20,12 @@ class TalkScreenViewModel extends ChangeNotifier {
   TalkScreenViewModelState _state = TalkScreenViewModelState.loading;
   String _speechToText = '';
   String _textToSpeech = '';
+  String _emotion = '';
 
   TalkScreenViewModelState get state => _state;
   String get speechToText => _speechToText;
   String get textToSpeech => _textToSpeech;
+  String get emotion => _emotion;
 
   TalkScreenViewModel(this._ref, this._agentConfig);
 
@@ -78,10 +80,13 @@ class TalkScreenViewModel extends ChangeNotifier {
     _state = TalkScreenViewModelState.thinking;
     _speechToText = speechToTextResult;
     notifyListeners();
-    _messages.add(TextMessage(role: Role.user, message: speechToTextResult));
-    final TextMessage message;
+    _messages.add(TextMessage(
+        role: Role.user,
+        emotion: Emotion.neutral,
+        message: speechToTextResult));
+    final List<TextMessage> messages;
     try {
-      message = await _textRepository.completions(_messages);
+      messages = await _textRepository.completions(_messages);
     } on CancellationException {
       _messages.removeLast();
       _state = TalkScreenViewModelState.initialized;
@@ -90,21 +95,24 @@ class TalkScreenViewModel extends ChangeNotifier {
     }
     if (state == TalkScreenViewModelState.disposed) return;
 
-    if (message.message.isEmpty) {
+    if (messages.isEmpty) {
       _messages.removeLast();
       _state = TalkScreenViewModelState.initialized;
       return;
     }
-    _messages.add(message);
-    _state = TalkScreenViewModelState.speaking;
-    _textToSpeech = message.message;
-    notifyListeners();
-    try {
-      await _textToSpeechRepository.speech(message.message);
-    } on CancellationException {
-      _state = TalkScreenViewModelState.initialized;
+    for (var message in messages) {
+      _messages.add(message);
+      _state = TalkScreenViewModelState.speaking;
+      _textToSpeech = message.message;
+      _emotion = message.emotion.name;
       notifyListeners();
-      return;
+      try {
+        await _textToSpeechRepository.speech(message.message);
+      } on CancellationException {
+        _state = TalkScreenViewModelState.initialized;
+        notifyListeners();
+        return;
+      }
     }
     if (state == TalkScreenViewModelState.disposed) return;
 

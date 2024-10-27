@@ -20,7 +20,7 @@ Karakuri Agentは、2D画像を用いたAIとのインタラクティブなコ�
 | OpenAI         | text           |    🟢    |
 |                | text to speech |    🟢    |
 |                | speech to text |    🟢    |
-| VoiceVox       | text to speech |    ❌    |
+| VoiceVox       | text to speech |    🟢    |
 | StyleBertVITS2 | text to speech |    ❌    |
 
 ## 開発環境のセットアップ

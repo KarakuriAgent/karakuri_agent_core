@@ -3,7 +3,7 @@ import 'package:karakuri_agent/services/default_param/default_param_service.dart
 
 class VoicevoxNemoDefaultParamService extends DefaultParamService {
   @override
-  List<KeyValuePair> get textmodels => [];
+  List<KeyValuePair> get textModels => [];
 
   @override
   List<KeyValuePair> get speechToTextModels => [];

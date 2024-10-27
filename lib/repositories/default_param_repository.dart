@@ -25,7 +25,7 @@ class DefaultParamRepository {
     }
   }
 
-  List<KeyValuePair> get textmodels => _defaultParamService.textmodels;
+  List<KeyValuePair> get textModels => _defaultParamService.textModels;
 
   List<KeyValuePair> get speechToTextModels =>
       _defaultParamService.speechToTextModels;

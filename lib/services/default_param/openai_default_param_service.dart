@@ -3,7 +3,7 @@ import 'package:karakuri_agent/services/default_param/default_param_service.dart
 
 class OpenAIDefaultParamService extends DefaultParamService {
   @override
-  List<KeyValuePair> get textmodels => [
+  List<KeyValuePair> get textModels => [
         KeyValuePair(key: 'gpt-4o', value: 'gpt-4o'),
         KeyValuePair(key: 'gpt-4o-mini', value: 'gpt-4o-mini'),
       ];

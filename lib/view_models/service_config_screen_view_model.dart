@@ -70,7 +70,7 @@ class ServiceConfigScreenViewModel extends ChangeNotifier {
   void createTextConfigModels() {
     _textConfigModels = _ref
         .read(defaultParamProvider(serviceType))
-        .textmodels
+        .textModels
         .map((v) => TextEditPair(key: v.key, value: v.value))
         .toList();
     notifyListeners();

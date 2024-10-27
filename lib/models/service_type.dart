@@ -1,4 +1,4 @@
-enum ServiceType { openAI, voiceVox, styleBertVITS2 }
+enum ServiceType { openAI, voicevox, voicevoxNemo, styleBertVITS2 }
 
 class ServiceCapabilities {
   final bool supportsText;
@@ -17,19 +17,23 @@ extension ServiceTypeExtension on ServiceType {
     switch (this) {
       case ServiceType.openAI:
         return 'openAI';
-      case ServiceType.voiceVox:
-        return 'voiceVox';
+      case ServiceType.voicevox:
+        return 'voicevox';
+      case ServiceType.voicevoxNemo:
+        return 'voicevoxNemo';
       case ServiceType.styleBertVITS2:
         return 'styleBertVITS2';
     }
   }
-  
+
   String get displayName {
     switch (this) {
       case ServiceType.openAI:
         return 'OpenAI';
-      case ServiceType.voiceVox:
-        return 'VoiceVox';
+      case ServiceType.voicevox:
+        return 'Voicevox';
+      case ServiceType.voicevoxNemo:
+        return 'VoicevoxNemo';
       case ServiceType.styleBertVITS2:
         return 'StyleBertVITS2';
     }
@@ -43,7 +47,11 @@ extension ServiceTypeExtension on ServiceType {
           supportsTextToSpeech: true,
           supportsSpeechToText: true,
         );
-      case ServiceType.voiceVox:
+      case ServiceType.voicevox:
+        return const ServiceCapabilities(
+          supportsTextToSpeech: true,
+        );
+      case ServiceType.voicevoxNemo:
         return const ServiceCapabilities(
           supportsTextToSpeech: true,
         );
@@ -54,7 +62,7 @@ extension ServiceTypeExtension on ServiceType {
     }
   }
 
-   static ServiceType fromString(String value) {
+  static ServiceType fromString(String value) {
     return ServiceType.values.firstWhere(
       (type) => type.name == value,
     );

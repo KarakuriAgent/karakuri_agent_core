@@ -2,6 +2,7 @@ import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/service_type.dart';
 import 'package:karakuri_agent/services/text_to_speech/openai_text_to_speech_service.dart';
 import 'package:karakuri_agent/services/text_to_speech/text_to_speech_service.dart';
+import 'package:karakuri_agent/services/text_to_speech/voicevox_text_to_speech_service.dart';
 
 class TextToSpeechRepository {
   final AgentConfig _agentConfig;
@@ -11,6 +12,10 @@ class TextToSpeechRepository {
     switch (_agentConfig.textServiceConfig.type) {
       case ServiceType.openAI:
         _service = OpenaiTextToSpeechService(_agentConfig);
+        break;
+      case ServiceType.voicevox:
+      case ServiceType.voicevoxNemo:
+        _service = VoicevoxTextToSpeechService(_agentConfig);
         break;
       default:
         throw Exception(

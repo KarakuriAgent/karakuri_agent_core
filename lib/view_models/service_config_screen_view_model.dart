@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';
 import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/models/service_config.dart';
@@ -6,8 +7,10 @@ import 'package:karakuri_agent/models/service_type.dart';
 import 'package:karakuri_agent/models/speech_to_text_config.dart';
 import 'package:karakuri_agent/models/text_config.dart';
 import 'package:karakuri_agent/models/text_to_speech_config.dart';
+import 'package:karakuri_agent/providers/default_param_provider.dart';
 
 class ServiceConfigScreenViewModel extends ChangeNotifier {
+  final Ref _ref;
   final int? _id;
   final TextEditingController nameController;
   final TextEditingController baseUrlController;
@@ -24,7 +27,7 @@ class ServiceConfigScreenViewModel extends ChangeNotifier {
   List<TextEditPair> get textToSpeechConfigModels => _textToSpeechConfigModels;
   List<TextEditPair> get textToSpeechConfigVoices => _textToSpeechConfigVoices;
 
-  ServiceConfigScreenViewModel({ServiceConfig? serviceConfig})
+  ServiceConfigScreenViewModel(this._ref, {ServiceConfig? serviceConfig})
       : _id = serviceConfig?.id,
         nameController = TextEditingController(text: serviceConfig?.name ?? ''),
         baseUrlController =
@@ -64,8 +67,26 @@ class ServiceConfigScreenViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void createTextConfigModels() {
+    _textConfigModels = _ref
+        .read(defaultParamProvider(serviceType))
+        .textModels
+        .map((v) => TextEditPair(key: v.key, value: v.value))
+        .toList();
+    notifyListeners();
+  }
+
   void addTextConfigModels() {
     _textConfigModels = [...textConfigModels, TextEditPair()];
+    notifyListeners();
+  }
+
+  void createSpeechToTextConfigModels() {
+    _speechToTextConfigModels = _ref
+        .read(defaultParamProvider(serviceType))
+        .speechToTextModels
+        .map((v) => TextEditPair(key: v.key, value: v.value))
+        .toList();
     notifyListeners();
   }
 
@@ -74,8 +95,26 @@ class ServiceConfigScreenViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void createTextToSpeechConfigModels() {
+    _textToSpeechConfigModels = _ref
+        .read(defaultParamProvider(serviceType))
+        .textToSpeechModels
+        .map((v) => TextEditPair(key: v.key, value: v.value))
+        .toList();
+    notifyListeners();
+  }
+
   void addTextToSpeechConfigModels() {
     _textToSpeechConfigModels = [...textToSpeechConfigModels, TextEditPair()];
+    notifyListeners();
+  }
+
+  void createTextToSpeechConfigVoices() {
+    _textToSpeechConfigVoices = _ref
+        .read(defaultParamProvider(serviceType))
+        .textToSpeechVoices
+        .map((v) => TextEditPair(key: v.key, value: v.value))
+        .toList();
     notifyListeners();
   }
 

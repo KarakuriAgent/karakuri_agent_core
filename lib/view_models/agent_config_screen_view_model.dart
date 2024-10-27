@@ -80,32 +80,30 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
 
   void updateTextServiceConfig(ServiceConfig? config) {
     _ensureInitialized();
-    if (selectTextService != config) {
-      _selectTextModel = null;
-    }
+    if (selectTextService == config) return;
     _selectTextService = config;
     _textModels = config?.textConfig?.models ?? [];
+    _selectTextModel = null;
     notifyListeners();
   }
 
   void updateSpeechToTextServiceConfig(ServiceConfig? config) {
     _ensureInitialized();
-    if (selectSpeechToTextService != config) {
-      _selectSpeechToTextModel = null;
-    }
+    if (selectSpeechToTextService == config) return;
     _selectSpeechToTextService = config;
     _speechToTextModels = config?.speechToTextConfig?.models ?? [];
+    _selectSpeechToTextModel = null;
     notifyListeners();
   }
 
   void updateTextToSpeechServiceConfig(ServiceConfig? config) {
     _ensureInitialized();
-    if (selectTextToSpeechService != config) {
-      _selectTextToSpeechVoice = null;
-    }
+    if (selectTextToSpeechService == config) return;
     _selectTextToSpeechService = config;
     _textToSpeechModels = config?.textToSpeechConfig?.models ?? [];
+    _selectTextToSpeechModel = null;
     _textToSpeechVoices = config?.textToSpeechConfig?.voices ?? [];
+    _selectTextToSpeechVoice = null;
     notifyListeners();
   }
 

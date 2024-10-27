@@ -23,7 +23,7 @@ Karakuri Agent is a cross-platform application that enables interactive communic
 | OpenAI         | text           |       🟢       |
 |                | text to speech |       🟢       |
 |                | speech to text |       🟢       |
-| VoiceVox       | text to speech |       ❌       |
+| VoiceVox       | text to speech |       🟢       |
 | StyleBertVITS2 | text to speech |       ❌       |
 
 ## Development Environment Setup

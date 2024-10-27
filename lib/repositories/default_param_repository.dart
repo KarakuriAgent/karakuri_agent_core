@@ -6,24 +6,16 @@ import 'package:karakuri_agent/services/default_param/voicevox_default_param_ser
 import 'package:karakuri_agent/services/default_param/voicevox_nemo_default_param_service.dart';
 
 class DefaultParamRepository {
-  late final DefaultParamService _defaultParamService;
+  final DefaultParamService _defaultParamService;
 
-  DefaultParamRepository(ServiceType serviceType) {
-    switch (serviceType) {
-      case ServiceType.openAI:
-        _defaultParamService = OpenAIDefaultParamService();
-        break;
-      case ServiceType.voicevox:
-        _defaultParamService = VoicevoxDefaultParamService();
-        break;
-      case ServiceType.voicevoxNemo:
-        _defaultParamService = VoicevoxNemoDefaultParamService();
-        break;
-      default:
-        throw Exception(
-            'Unsupported Text-to-Speech service type: $serviceType');
-    }
-  }
+  DefaultParamRepository(ServiceType serviceType)
+      : _defaultParamService = switch (serviceType) {
+          ServiceType.openAI => OpenAIDefaultParamService(),
+          ServiceType.voicevox => VoicevoxDefaultParamService(),
+          ServiceType.voicevoxNemo => VoicevoxNemoDefaultParamService(),
+          _ => throw UnsupportedError(
+              'Service type "$serviceType" does not have a default parameter implementation'),
+        };
 
   List<KeyValuePair> get textModels => _defaultParamService.textModels;
 

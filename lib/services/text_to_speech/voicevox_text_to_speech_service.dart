@@ -69,7 +69,7 @@ class VoicevoxTextToSpeechService extends TextToSpeechService {
     try {
       final response = await http.get(
         Uri.parse(
-            '${serviceConfig.baseUrl}/voicevox/audio/?key=${serviceConfig.apiKey}&speaker=${_agentConfig.textToSpeechVoice.key}&text=$text'),
+            '${serviceConfig.baseUrl}/voicevox/audio/?key=${serviceConfig.apiKey}&speaker=${_agentConfig.textToSpeechVoice.key}&text=${Uri.encodeComponent(text)}'),
       );
       if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
         return response.bodyBytes;
@@ -98,7 +98,7 @@ class VoicevoxTextToSpeechService extends TextToSpeechService {
     try {
       var response = await http.post(
         Uri.parse(
-            '${serviceConfig.baseUrl}/audio_query?text=$text&speaker=${_agentConfig.textToSpeechVoice.key}'),
+            '${serviceConfig.baseUrl}/audio_query?text=${Uri.encodeComponent(text)}&speaker=${_agentConfig.textToSpeechVoice.key}'),
         headers: headers,
       );
       if (response.statusCode == 200 && response.body.isNotEmpty) {

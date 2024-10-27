@@ -3,18 +3,18 @@ import 'package:karakuri_agent/services/default_param/default_param_service.dart
 
 class VoicevoxDefaultParamService extends DefaultParamService {
   @override
-  List<KeyValuePair> get textModels => [];
+  List<KeyValuePair> get textModels => const [];
 
   @override
-  List<KeyValuePair> get speechToTextModels => [];
+  List<KeyValuePair> get speechToTextModels => const [];
 
   @override
-  List<KeyValuePair> get textToSpeechModels => [
+  List<KeyValuePair> get textToSpeechModels => const [
         KeyValuePair(key: 'default', value: 'default'),
       ];
 
   @override
-  List<KeyValuePair> get textToSpeechVoices => [
+  List<KeyValuePair> get textToSpeechVoices => const [
         KeyValuePair(key: '2', value: '四国めたん:ノーマル'),
         KeyValuePair(key: '0', value: '四国めたん:あまあま'),
         KeyValuePair(key: '6', value: '四国めたん:ツンツン'),

@@ -187,7 +187,7 @@ class _TextToSpeechConfigSection extends HookConsumerWidget {
           it.textToSpeechServiceConfigs,
           it.selectTextToSpeechService,
           it.textToSpeechModels,
-          it.selectTextToSpeechVoice,
+          it.selectTextToSpeechModel,
           it.textToSpeechVoices,
           it.selectTextToSpeechVoice
         ),

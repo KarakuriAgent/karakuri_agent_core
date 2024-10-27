@@ -184,12 +184,12 @@ class _ToggleConfigSection extends StatelessWidget {
           }
         } else {
           if (configType == ConfigType.text) {
-            viewModel.addTextConfigModels();
+            viewModel.createTextConfigModels();
           } else if (configType == ConfigType.stt) {
-            viewModel.addSpeechToTextConfigModels();
+            viewModel.createSpeechToTextConfigModels();
           } else if (configType == ConfigType.tts) {
-            viewModel.addTextToSpeechConfigModels();
-            viewModel.addTextToSpeechConfigVoices();
+            viewModel.createTextToSpeechConfigModels();
+            viewModel.createTextToSpeechConfigVoices();
           }
         }
       },

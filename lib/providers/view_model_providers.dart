@@ -52,5 +52,5 @@ final serviceSettingsScreenViewModelProvider =
 
 final serviceConfigScreenViewModelProvider = ChangeNotifierProvider.autoDispose
     .family<ServiceConfigScreenViewModel, ServiceConfig?>((ref, param) {
-  return ServiceConfigScreenViewModel(serviceConfig: param);
+  return ServiceConfigScreenViewModel(ref, serviceConfig: param);
 });

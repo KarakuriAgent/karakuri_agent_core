@@ -36,9 +36,9 @@ class _TalkContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(talkScreenViewModelProvider(agentConfig));
-    final (speechToText, textToSpeech) = ref.watch(
+    final (speechToText, textToSpeech, emotion) = ref.watch(
       talkScreenViewModelProvider(agentConfig).select(
-        (it) => (it.speechToText, it.textToSpeech),
+        (it) => (it.speechToText, it.textToSpeech, it.emotion),
       ),
     );
     return Scaffold(
@@ -50,6 +50,7 @@ class _TalkContent extends HookConsumerWidget {
         children: <Widget>[
           Text('speechToText: $speechToText'),
           Text('textToSpeech: $textToSpeech'),
+          Text('emotion: $emotion'),
           ElevatedButton(
             onPressed: () async {
               try {

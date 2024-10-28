@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/text_message.dart';
 import 'package:karakuri_agent/services/text/text_service.dart';
 import 'package:karakuri_agent/utils/exception.dart';
+import 'package:karakuri_agent/utils/log.dart';
 import 'package:openai_dart/openai_dart.dart';
 
 class OpenaiTextService extends TextService {
@@ -18,7 +20,7 @@ class OpenaiTextService extends TextService {
         );
 
   @override
-  Future<TextMessage> completions(List<TextMessage> messages) async {
+  Future<List<TextMessage>> completions(List<TextMessage> messages) async {
     try {
       _cancelCompleter = Completer();
       final response = await Future.any([
@@ -26,7 +28,9 @@ class OpenaiTextService extends TextService {
           request: CreateChatCompletionRequest(
             model: ChatCompletionModel.modelId(_agentConfig.textModel.key),
             messages: _createOpenAiMessages(messages),
-            temperature: 0,
+            responseFormat: ResponseFormatJsonSchema(
+                jsonSchema: JsonSchemaObject(
+                    name: "message_schema", schema: jsonSchema, strict: true)),
           ),
         ),
         _cancelCompleter?.future ??
@@ -35,13 +39,22 @@ class OpenaiTextService extends TextService {
       if (response == null) {
         throw CancellationException('OpenaiTextToSpeech');
       }
-      return TextMessage(
-        role: Role.assistant,
-        message: response.choices.first.message.content!,
-      );
+      final jsonContent = jsonDecode(response.choices.first.message.content!)
+          as Map<String, dynamic>;
+
+      final responsesList = jsonContent['responses'] as List;
+      return responsesList
+          .map((response) => TextMessage(
+                role: Role.assistant,
+                emotion: Emotion.fromString(response['emotion'] as String),
+                message: response['message'] as String,
+              ))
+          .toList();
     } on CancellationException {
       rethrow;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
       throw ServiceException(runtimeType.toString(), 'completions');
     } finally {
       _cancelCompleter = null;

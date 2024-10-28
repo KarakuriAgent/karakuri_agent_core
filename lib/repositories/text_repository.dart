@@ -19,7 +19,7 @@ class TextRepository {
     }
   }
 
-  Future<TextMessage> completions(List<TextMessage> messages) async {
+  Future<List<TextMessage>> completions(List<TextMessage> messages) async {
     return await _service.completions(messages);
   }
 

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/text_message.dart';
+import 'package:karakuri_agent/models/text_result.dart';
 import 'package:karakuri_agent/providers/speech_to_text_provider.dart';
 import 'package:karakuri_agent/providers/text_provider.dart';
 import 'package:karakuri_agent/providers/text_to_speech_provider.dart';
@@ -18,6 +21,12 @@ class TalkScreenViewModel extends ChangeNotifier {
   late final TextToSpeechRepository _textToSpeechRepository;
   final List<TextMessage> _messages = [];
   TalkScreenViewModelState _state = TalkScreenViewModelState.loading;
+  StreamSubscription? _completionsSubscription;
+  int _currentMessageId = 0;
+  final Map<int, _QueuedAudio> _pendingAudio = {};
+  final List<String> _pendingMessages = [];
+  int _nextPlayMessageId = 0;
+  bool _isPlaying = false;
   String _speechToText = '';
   String _textToSpeech = '';
   String _emotion = '';
@@ -44,6 +53,8 @@ class TalkScreenViewModel extends ChangeNotifier {
   void dispose() {
     if (state == TalkScreenViewModelState.disposed) return;
     _state = TalkScreenViewModelState.disposed;
+    _completionsSubscription?.cancel();
+    _pendingAudio.clear();
     pause().then((_) {
       super.dispose();
     });
@@ -59,6 +70,7 @@ class TalkScreenViewModel extends ChangeNotifier {
   Future<void> pause() async {
     if (state == TalkScreenViewModelState.disposed) return;
     try {
+      _completionsSubscription?.cancel();
       _textRepository.cancel();
       await Future.wait([
         _speechToTextRepository.pauseRecognition(),
@@ -80,43 +92,79 @@ class TalkScreenViewModel extends ChangeNotifier {
     _state = TalkScreenViewModelState.thinking;
     _speechToText = speechToTextResult;
     notifyListeners();
-    _messages.add(TextMessage(
-        role: Role.user,
-        emotion: Emotion.neutral,
-        message: speechToTextResult));
-    final List<TextMessage> messages;
+
+    _messages.add(TextMessage(role: Role.user, message: speechToTextResult));
+
     try {
-      messages = await _textRepository.completions(_messages);
+      _completionsSubscription?.cancel();
+      _pendingMessages.clear();
+      _completionsSubscription =
+          _textRepository.completionsStream(_messages).listen((message) async {
+        if (state == TalkScreenViewModelState.disposed) return;
+
+        _pendingMessages.add(message.message);
+        _state = TalkScreenViewModelState.speaking;
+
+        try {
+          final messageId = _currentMessageId++;
+          _textToSpeechRepository.synthesize(message.message).then((audioData) {
+            if (state == TalkScreenViewModelState.disposed) return;
+            _pendingAudio[messageId] = _QueuedAudio(audioData, message);
+            _processAudioQueue();
+          });
+        } on CancellationException {
+          _state = TalkScreenViewModelState.initialized;
+          notifyListeners();
+          return;
+        }
+      }, onError: (error) {
+        _messages.removeLast();
+        _state = TalkScreenViewModelState.initialized;
+        notifyListeners();
+      }, onDone: () async {
+        if (state == TalkScreenViewModelState.disposed) return;
+        _messages.add(TextMessage(
+            role: Role.assistant,
+            message: _pendingMessages.map((e) => e).join()));
+        _pendingMessages.clear();
+
+        while (_pendingAudio.isNotEmpty || _isPlaying) {
+          await Future.delayed(const Duration(milliseconds: 100));
+        }
+        await start();
+      });
     } on CancellationException {
       _messages.removeLast();
       _state = TalkScreenViewModelState.initialized;
       notifyListeners();
-      return;
     }
-    if (state == TalkScreenViewModelState.disposed) return;
+  }
 
-    if (messages.isEmpty) {
-      _messages.removeLast();
-      _state = TalkScreenViewModelState.initialized;
-      return;
-    }
-    for (var message in messages) {
-      _messages.add(message);
-      _state = TalkScreenViewModelState.speaking;
-      _textToSpeech = message.message;
-      _emotion = message.emotion.name;
-      notifyListeners();
-      try {
-        await _textToSpeechRepository.speech(message.message);
-      } on CancellationException {
-        _state = TalkScreenViewModelState.initialized;
-        notifyListeners();
+  Future<void> _processAudioQueue() async {
+    if (_isPlaying) return;
+
+    _isPlaying = true;
+    while (_pendingAudio.isNotEmpty) {
+      if (state == TalkScreenViewModelState.disposed) break;
+
+      if (!_pendingAudio.containsKey(_nextPlayMessageId)) {
+        _isPlaying = false;
         return;
       }
-    }
-    if (state == TalkScreenViewModelState.disposed) return;
 
-    await start();
+      final audio = _pendingAudio.remove(_nextPlayMessageId)!;
+      _nextPlayMessageId++;
+
+      try {
+        _textToSpeech = audio.message.message;
+        _emotion = audio.message.emotion.name;
+        notifyListeners();
+        await _textToSpeechRepository.play(audio.audioData);
+      } catch (e) {
+        debugPrint('Error playing audio: $e');
+      }
+    }
+    _isPlaying = false;
   }
 }
 
@@ -127,4 +175,11 @@ enum TalkScreenViewModelState {
   thinking,
   speaking,
   disposed
+}
+
+class _QueuedAudio {
+  final Uint8List audioData;
+  final TextResult message;
+
+  _QueuedAudio(this.audioData, this.message);
 }

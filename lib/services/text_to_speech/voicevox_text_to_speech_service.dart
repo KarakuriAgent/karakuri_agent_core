@@ -11,43 +11,52 @@ import 'package:karakuri_agent/utils/exception.dart';
 class VoicevoxTextToSpeechService extends TextToSpeechService {
   final AgentConfig _agentConfig;
   final _player = AudioPlayer();
-  Completer<Uint8List?>? _cancelCompleter;
+  Completer<Uint8List?>? _synthesizeCompleter;
+  Completer<void>? _playCompleter;
 
   VoicevoxTextToSpeechService(this._agentConfig);
 
   @override
-  Future<void> speech(String text) async {
-    final completer = Completer();
-    _cancelCompleter = Completer();
-    final listen = _player.onPlayerComplete.listen((_) {
-      completer.complete();
-    });
+  Future<Uint8List> synthesize(String text) async {
+    _synthesizeCompleter = Completer();
     try {
       final Uint8List? bytes;
       if (_agentConfig.textToSpeechServiceConfig.baseUrl ==
           'https://deprecatedapis.tts.quest/v2') {
         bytes = await Future.any([
           _voicevoxWebApi(text),
-          _cancelCompleter?.future ?? Future<Uint8List?>.value(null),
+          _synthesizeCompleter?.future ?? Future<Uint8List?>.value(null),
         ]);
       } else {
         bytes = await Future.any([
           _voicevoxEngine(text),
-          _cancelCompleter?.future ?? Future<Uint8List?>.value(null),
+          _synthesizeCompleter?.future ?? Future<Uint8List?>.value(null),
         ]);
       }
       if (bytes == null) {
         throw CancellationException('VoicevoxTextToSpeech');
       }
-      await _player.play(BytesSource(bytes), mode: PlayerMode.mediaPlayer);
-      await completer.future;
-    } on CancellationException {
-      rethrow;
-    } catch (e) {
-      throw ServiceException(runtimeType.toString(), 'speech');
+      return bytes;
+    } finally {
+      _synthesizeCompleter = null;
+    }
+  }
+
+  @override
+  Future<void> play(Uint8List audioData) async {
+    _playCompleter = Completer();
+    final listen = _player.onPlayerComplete.listen((_) {
+      _playCompleter?.complete();
+    });
+
+    try {
+      await Future.any([
+        _player.play(BytesSource(audioData), mode: PlayerMode.mediaPlayer),
+        _playCompleter?.future ?? Future<void>.value(null),
+      ]);
     } finally {
       listen.cancel();
-      _cancelCompleter = null;
+      _playCompleter = null;
     }
   }
 
@@ -140,9 +149,13 @@ class VoicevoxTextToSpeechService extends TextToSpeechService {
   }
 
   void _cleanupCancelCompleter() {
-    if (_cancelCompleter?.isCompleted == false) {
-      _cancelCompleter?.complete(null);
+    if (_synthesizeCompleter?.isCompleted == false) {
+      _synthesizeCompleter?.complete(null);
     }
-    _cancelCompleter = null;
+    _synthesizeCompleter = null;
+    if (_playCompleter?.isCompleted == false) {
+      _playCompleter?.complete(null);
+    }
+    _playCompleter = null;
   }
 }

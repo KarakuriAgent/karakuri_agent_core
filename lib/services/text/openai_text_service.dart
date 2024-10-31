@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/text_message.dart';
+import 'package:karakuri_agent/models/text_result.dart';
 import 'package:karakuri_agent/services/text/text_service.dart';
 import 'package:karakuri_agent/utils/exception.dart';
 import 'package:karakuri_agent/utils/log.dart';
@@ -11,7 +11,11 @@ import 'package:openai_dart/openai_dart.dart';
 class OpenaiTextService extends TextService {
   final AgentConfig _agentConfig;
   final OpenAIClient _client;
-  Completer<CreateChatCompletionResponse?>? _cancelCompleter;
+  StreamSubscription? _subscription;
+  final RegExp responsePattern = RegExp(
+    r'\{"emotion":"([^"]+)","message":"([^"]+)"\}',
+    multiLine: true,
+  );
 
   OpenaiTextService(this._agentConfig)
       : _client = OpenAIClient(
@@ -20,59 +24,71 @@ class OpenaiTextService extends TextService {
         );
 
   @override
-  Future<List<TextMessage>> completions(List<TextMessage> messages) async {
-    try {
-      _cancelCompleter = Completer();
-      final response = await Future.any([
-        _client.createChatCompletion(
-          request: CreateChatCompletionRequest(
-            model: ChatCompletionModel.modelId(_agentConfig.textModel.key),
-            messages: _createOpenAiMessages(messages),
-            responseFormat: ResponseFormatJsonSchema(
-                jsonSchema: JsonSchemaObject(
-                    name: "message_schema", schema: jsonSchema, strict: true)),
-          ),
-        ),
-        _cancelCompleter?.future ??
-            Future<CreateChatCompletionResponse?>.value(null),
-      ]);
-      if (response == null) {
-        throw CancellationException('OpenaiTextToSpeech');
-      }
-      final jsonContent = jsonDecode(response.choices.first.message.content!)
-          as Map<String, dynamic>;
+  Stream<TextResult> completionsStream(List<TextMessage> messages) async* {
+    String accumulatedContent = '';
+    final controller = StreamController<TextResult>();
 
-      final responsesList = jsonContent['responses'] as List;
-      return responsesList
-          .map((response) => TextMessage(
-                role: Role.assistant,
-                emotion: Emotion.fromString(response['emotion'] as String),
-                message: response['message'] as String,
-              ))
-          .toList();
-    } on CancellationException {
-      rethrow;
+    try {
+      final stream = _client.createChatCompletionStream(
+        request: CreateChatCompletionRequest(
+          model: ChatCompletionModel.modelId(_agentConfig.textModel.key),
+          messages: _createOpenAiMessages(messages),
+          responseFormat: ResponseFormatJsonSchema(
+              jsonSchema: JsonSchemaObject(
+                  name: "message_schema", schema: jsonSchema, strict: true)),
+        ),
+      );
+
+      _subscription = stream.listen(
+        (response) {
+          final content = response.choices.first.delta.content;
+          if (content != null) {
+            accumulatedContent += content;
+
+            for (final match in responsePattern.allMatches(accumulatedContent)) {
+              final emotion = match.group(1)!;
+              final message = match.group(2)!;
+
+              controller.add(TextResult(
+                emotion: Emotion.fromString(emotion),
+                message: message,
+              ));
+
+              accumulatedContent = accumulatedContent.substring(match.end);
+            }
+          }
+        },
+        onError: (error, stackTrace) {
+          debugPrint(error.toString());
+          debugPrint(stackTrace.toString());
+          controller.addError(ServiceException(runtimeType.toString(), 'completions'));
+        },
+        onDone: () {
+          controller.close();
+        },
+        cancelOnError: true,
+      );
+
+      yield* controller.stream;
     } catch (e, stackTrace) {
       debugPrint(e.toString());
       debugPrint(stackTrace.toString());
       throw ServiceException(runtimeType.toString(), 'completions');
-    } finally {
-      _cancelCompleter = null;
     }
   }
 
   @override
   void cancel() {
-    _cleanupCancelCompleter();
+    _subscription?.cancel();
+    _subscription = null;
   }
 
   @override
   void dispose() {
-    _cleanupCancelCompleter();
+    cancel();
   }
 
-  List<ChatCompletionMessage> _createOpenAiMessages(
-      List<TextMessage> messages) {
+  List<ChatCompletionMessage> _createOpenAiMessages(List<TextMessage> messages) {
     return messages.map((message) => _createOpenAiMessage(message)).toList();
   }
 
@@ -89,12 +105,5 @@ class OpenaiTextService extends TextService {
       default:
         throw Exception('Unhandled role: ${textMessage.role}');
     }
-  }
-
-  void _cleanupCancelCompleter() {
-    if (_cancelCompleter?.isCompleted == false) {
-      _cancelCompleter?.complete(null);
-    }
-    _cancelCompleter = null;
   }
 }

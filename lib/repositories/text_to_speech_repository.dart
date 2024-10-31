@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/service_type.dart';
 import 'package:karakuri_agent/services/text_to_speech/openai_text_to_speech_service.dart';
@@ -23,15 +25,19 @@ class TextToSpeechRepository {
     }
   }
 
-  Future<void> dispose() async {
-    _service.dispose();
+  Future<Uint8List> synthesize(String text) async {
+    return await _service.synthesize(text);
   }
 
-  Future<void> speech(String text) async {
-    await _service.speech(text);
+  Future<void> play(Uint8List audioData) async {
+    await _service.play(audioData);
   }
 
   Future<void> stop() async {
     _service.stop();
+  }
+
+  Future<void> dispose() async {
+    _service.dispose();
   }
 }

@@ -12,7 +12,6 @@ class VoicevoxTextToSpeechService extends TextToSpeechService {
   final AgentConfig _agentConfig;
   final _player = AudioPlayer();
   Completer<Uint8List?>? _synthesizeCompleter;
-  Completer<void>? _playCompleter;
 
   VoicevoxTextToSpeechService(this._agentConfig);
 
@@ -44,19 +43,16 @@ class VoicevoxTextToSpeechService extends TextToSpeechService {
 
   @override
   Future<void> play(Uint8List audioData) async {
-    _playCompleter = Completer();
+    Completer<void>? playCompleter = Completer();
     final listen = _player.onPlayerComplete.listen((_) {
-      _playCompleter?.complete();
+      playCompleter.complete();
     });
 
     try {
-      await Future.any([
-        _player.play(BytesSource(audioData), mode: PlayerMode.mediaPlayer),
-        _playCompleter?.future ?? Future<void>.value(null),
-      ]);
+      await _player.play(BytesSource(audioData), mode: PlayerMode.mediaPlayer);
+      await playCompleter.future;
     } finally {
       listen.cancel();
-      _playCompleter = null;
     }
   }
 
@@ -68,6 +64,7 @@ class VoicevoxTextToSpeechService extends TextToSpeechService {
 
   @override
   void dispose() {
+    _player.stop();
     _player.dispose();
     _cleanupCancelCompleter();
   }
@@ -153,9 +150,5 @@ class VoicevoxTextToSpeechService extends TextToSpeechService {
       _synthesizeCompleter?.complete(null);
     }
     _synthesizeCompleter = null;
-    if (_playCompleter?.isCompleted == false) {
-      _playCompleter?.complete(null);
-    }
-    _playCompleter = null;
   }
 }

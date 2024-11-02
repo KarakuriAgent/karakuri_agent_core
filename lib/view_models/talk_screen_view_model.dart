@@ -83,7 +83,7 @@ class TalkScreenViewModel extends ChangeNotifier {
     }
   }
 
-  void _onResult(String speechToTextResult) async {
+  void _onResult(String speechToTextResult) {
     if (state == TalkScreenViewModelState.disposed) return;
     if (speechToTextResult.isEmpty ||
         state != TalkScreenViewModelState.listening) {

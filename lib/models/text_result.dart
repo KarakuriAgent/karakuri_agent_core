@@ -63,7 +63,7 @@ enum Emotion {
 
   static Emotion fromString(String value) {
     return Emotion.values.firstWhere(
-      (e) => e.key == value,
+      (e) => e.key.toLowerCase() == value.toLowerCase(),
       orElse: () => Emotion.neutral,
     );
   }

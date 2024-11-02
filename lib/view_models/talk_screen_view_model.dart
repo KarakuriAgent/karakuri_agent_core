@@ -107,11 +107,11 @@ class TalkScreenViewModel extends ChangeNotifier {
 
         try {
           final messageId = _currentMessageId++;
-          _textToSpeechRepository.synthesize(message.message).then((audioData) {
-            if (state == TalkScreenViewModelState.disposed) return;
-            _pendingAudio[messageId] = _QueuedAudio(audioData, message);
-            _processAudioQueue();
-          });
+          final audioData =
+              await _textToSpeechRepository.synthesize(message.message);
+          if (state == TalkScreenViewModelState.disposed) return;
+          _pendingAudio[messageId] = _QueuedAudio(audioData, message);
+          _processAudioQueue();
         } on CancellationException {
           _state = TalkScreenViewModelState.initialized;
           notifyListeners();

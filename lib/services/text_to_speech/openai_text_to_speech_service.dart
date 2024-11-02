@@ -27,6 +27,9 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
         throw CancellationException('OpenaiTextToSpeech');
       }
       return bytes;
+    } catch (e) {
+      _synthesizeCompleter?.completeError(e);
+      rethrow;
     } finally {
       _synthesizeCompleter = null;
     }
@@ -42,6 +45,9 @@ class OpenaiTextToSpeechService extends TextToSpeechService {
     try {
       await _player.play(BytesSource(audioData), mode: PlayerMode.mediaPlayer);
       await playCompleter.future;
+    } catch (e) {
+      playCompleter.completeError(e);
+      rethrow;
     } finally {
       listen.cancel();
     }

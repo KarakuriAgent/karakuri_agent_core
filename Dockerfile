@@ -18,6 +18,8 @@ RUN apt-get install -y curl git unzip xz-utils zip libglu1-mesa wget tar
 RUN apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
 # develop Android apps
 RUN apt-get install openjdk-17-jdk -y && update-java-alternatives --set java-1.17.0-openjdk-amd64
+# develop Web apps
+RUN apt-get install nodejs npm -y
 
 # ユーザーとグループのUIDとGIDをホストのものに変更
 # RUN groupmod -g ${HOST_GID} ubuntu \

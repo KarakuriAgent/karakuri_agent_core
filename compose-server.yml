@@ -5,10 +5,7 @@ services:
     tty: true
     command: >
       /bin/sh -c "cd ~/workspace/karakuri_agent && 
-      flutter clean && 
-      flutter pub get && 
-      flutter pub run build_runner build --delete-conflicting-outputs && 
-      flutter run --release -d web-server --web-hostname=0.0.0.0 --web-port=50505"
+      dart run rps run-release web
     network_mode: "host"
     volumes:
       - ./:/home/ubuntu/workspace/karakuri_agent

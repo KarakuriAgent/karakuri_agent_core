@@ -2,13 +2,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
+            "name": "Debug Default",
             "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": ["--debug"]
+        },
+        {
+            "name": "Debug Web",
+            "request": "launch", 
             "type": "dart",
             "program": "lib/main.dart",
             "args": [
                 "--debug",
+                "-d",
+                "web-server",
+                "--web-hostname=0.0.0.0",
+                "--web-port=50505"
             ]
-        },
+        }
     ]
 }

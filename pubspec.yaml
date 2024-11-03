@@ -78,11 +78,12 @@ scripts:
     appbundle: rps build appbundle --debug
     web: rps build web
   build-release:
-    android:
+    apk:
       $before: dart run rps clean-gen default
-      $script:
-        apk: rps build apk --release
-        appbundle: rps build appbundle --release
+      $script: rps build apk --release
+    appbundle:
+      $before: dart run rps clean-gen default
+      $script: rps build appbundle --release
     web: 
       $before: dart run rps clean-gen web
       $script: rps build web

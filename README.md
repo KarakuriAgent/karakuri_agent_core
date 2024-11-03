@@ -60,24 +60,27 @@ Here, as an example, we describe how to build for Web and start the server. For 
 
 ### Initializing the Project
 ```
-flutter pub get
+dart run rsp get default
+
+// for web
+dart run rsp get web
 ```
 
 ### Running the Build Runner
 Generates language files, etc.
 ```
-dart run build_runner build --delete-conflicting-outputs
+dart run rsp gen
 ```
 
 ### Starting the Web Server
 ```
-flutter run --release -d web-server --web-hostname=0.0.0.0 --web-port=50505
+dart run rsp run-release web
 ```
 
 ### Building for Web
 Output to /build.
 ```
-flutter build web
+dart run rsp build-release web
 ```
 
 ### Using Docker Compose

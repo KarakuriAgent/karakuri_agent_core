@@ -8,9 +8,6 @@ permissions:
   issues: write
   pull-requests: write
 
-env:
-  FLUTTER_PATH: /home/ubuntu/flutter/bin
-
 jobs:
   build-android:
     runs-on: ubuntu-latest
@@ -37,10 +34,10 @@ jobs:
           key: ${{ runner.os }}-android-sdk-${{ hashFiles('**/android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-android-sdk-
       - run: echo '${{ secrets.ENCODED_RELEASE_KEYSTORE }}' | base64 --decode > android/playstore.keystore
+      - name: Add Flutter to PATH
+        run: echo "/home/ubuntu/flutter/bin" >> $GITHUB_PATH
       - run: git config --global --add safe.directory /home/ubuntu/flutter
-      - run: $FLUTTER_PATH/flutter pub get
-      - run: $FLUTTER_PATH/flutter pub run build_runner build --delete-conflicting-outputs
-      - run: $FLUTTER_PATH/flutter build apk
+      - run: dart run rps build-release apk
       - uses: actions/upload-artifact@v3
         with:
           path: build/app/outputs
@@ -65,10 +62,10 @@ jobs:
             /home/ubuntu/android-sdk/platforms
           key: ${{ runner.os }}-android-sdk-${{ hashFiles('**/android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-android-sdk-
+      - name: Add Flutter to PATH
+        run: echo "/home/ubuntu/flutter/bin" >> $GITHUB_PATH
       - run: git config --global --add safe.directory /home/ubuntu/flutter
-      - run: $FLUTTER_PATH/flutter pub get
-      - run: $FLUTTER_PATH/flutter pub run build_runner build --delete-conflicting-outputs
-      - run: $FLUTTER_PATH/flutter build web
+      - run: dart run rps build-release web
       - uses: actions/upload-artifact@v3
         with:
           path: build/web

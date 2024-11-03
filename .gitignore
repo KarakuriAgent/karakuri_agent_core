@@ -47,3 +47,7 @@ app.*.map.json
 *.g.kt
 /android/app/src/main/java/io/flutter/plugins/Messages.java
 .crashlytics/dump_syms.bin
+
+# flutter for web
+node_modules/
+web/vad-web/

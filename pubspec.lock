@@ -418,6 +418,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.2"
+  http_api:
+    dependency: transitive
+    description:
+      name: http_api
+      sha256: a89d7dc95269e09179501c895b0688734351e3b8c8613c8215116d3948a494e0
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.0"
   http_multi_server:
     dependency: transitive
     description:
@@ -547,13 +555,13 @@ packages:
     source: hosted
     version: "0.11.1"
   meta:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: meta
-      sha256: bdb68674043280c3428e9ec998512fb681678676b3c54e773629ffe74419f8c7
+      sha256: e3641ec5d63ebf0d9b41bd43201a66e3fc79a65db5f61fc181f04cd27aab950c
       url: "https://pub.dev"
     source: hosted
-    version: "1.15.0"
+    version: "1.16.0"
   mime:
     dependency: transitive
     description:
@@ -562,6 +570,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  objectid:
+    dependency: transitive
+    description:
+      name: objectid
+      sha256: "22fa972000d3256f10d06323a9dcbf4b564fb03fdb9024399e3a6c1d9902f914"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   openai_dart:
     dependency: "direct main"
     description:
@@ -714,6 +730,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.3"
+  rps:
+    dependency: "direct dev"
+    description:
+      name: rps
+      sha256: eceae515b4f4c147017a347260440a43902b03d276b6dd860d06cd55a1c7bed3
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.1"
   shared_preferences:
     dependency: "direct main"
     description:

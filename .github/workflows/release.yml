@@ -8,11 +8,8 @@ on:
 permissions:
   contents: write
 
-env:
-  FLUTTER_PATH: /home/ubuntu/flutter/bin
-
 jobs:
-  build:
+  release-android:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
@@ -26,12 +23,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - run: echo '${{ secrets.ENCODED_RELEASE_KEYSTORE }}' | base64 --decode > android/playstore.keystore
+      - name: Add Flutter to PATH
+        run: echo "/home/ubuntu/flutter/bin" >> $GITHUB_PATH
       - run: git config --global --add safe.directory /home/ubuntu/flutter
-      - run: $FLUTTER_PATH/flutter pub get
-      - run: $FLUTTER_PATH/flutter pub run build_runner build --delete-conflicting-outputs
-      - run: $FLUTTER_PATH/flutter build apk --obfuscate --split-debug-info=obfuscate/android
-      - run: $FLUTTER_PATH/flutter build web
-      - run: zip -r build/web.zip build/web
+      - run: dart run rps build-release apk
       - run: zip -r build/mapping.zip build/app/outputs/mapping/release
       - run: zip -r build/debugSymbols.zip build/app/intermediates/merged_native_libs/release/out/lib
       - run: zip -r build/dartDebugSymbols.zip obfuscate/android
@@ -43,14 +38,6 @@ jobs:
           asset_path: build/app/outputs/apk/release/app-release.apk
           asset_name: app-release.apk
           asset_content_type: application/apk
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: build/web.zip
-          asset_name: web.zip
-          asset_content_type: application/zip
       - uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -74,4 +61,26 @@ jobs:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: build/dartDebugSymbols.zip
           asset_name: dartDebugSymbols.zip
+          asset_content_type: application/zip
+  release-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/0235-jp/karkuri-agent-dev:latest
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Add Flutter to PATH
+        run: echo "/home/ubuntu/flutter/bin" >> $GITHUB_PATH
+      - run: git config --global --add safe.directory /home/ubuntu/flutter
+      - run: dart run rps build-release web
+      - run: zip -r build/web.zip build/web
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: build/web.zip
+          asset_name: web.zip
           asset_content_type: application/zip

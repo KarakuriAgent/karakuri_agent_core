@@ -40,6 +40,12 @@ dev_dependencies:
   slang_build_runner: ^3.32.0
   freezed: ^2.5.7
   json_serializable: ^6.8.0
+  rps: ^0.9.1
+
+dependency_overrides:
+  # TODO rps override
+  meta: ^1.16.0 
+  http: ^1.2.2
 
 flutter:
   uses-material-design: true
@@ -47,3 +53,47 @@ flutter:
     - assets/images/
     - assets/sounds/
     - assets/silero_models/
+
+scripts:
+  clean: flutter clean && rm -rf web/node_modules
+  get: 
+    default: flutter pub get
+    web: |
+      flutter pub get
+      npm install @ricky0123/vad-web@0.0.19 onnxruntime-web@1.20.0 --save-dev
+      mv node_modules/ web/node_modules
+  gen: dart run build_runner build --delete-conflicting-outputs
+  clean-gen: 
+    default: dart run rps clean && dart run rps get default && dart run rps gen
+    web: dart run rps clean && dart run rps get web && dart run rps gen
+  build:  
+    apk: flutter build apk ${0} --obfuscate --split-debug-info=obfuscate/android
+    appbundle: flutter build appbundle ${0} --obfuscate --split-debug-info=obfuscate/android
+    web: flutter build web
+  flutter-run:
+    default: flutter run ${0} 
+    web: flutter run -d web-server --web-hostname=0.0.0.0 --web-port=50505 ${0} 
+  build-debug:
+    apk: rps build apk --debug
+    appbundle: rps build appbundle --debug
+    web: rps build web
+  build-release:
+    apk:
+      $before: dart run rps clean-gen default
+      $script: rps build apk --release
+    appbundle:
+      $before: dart run rps clean-gen default
+      $script: rps build appbundle --release
+    web: 
+      $before: dart run rps clean-gen web
+      $script: rps build web
+  run-release:
+    default:
+      $before: dart run rps clean-gen default
+      $script: dart run rps flutter-run default --release
+    web:
+      $before: dart run rps clean-gen web
+      $script: dart run rps flutter-run web --release
+  run-debug:
+    default: dart run rps flutter-run default --debug
+    web: dart run rps flutter-run web --debug

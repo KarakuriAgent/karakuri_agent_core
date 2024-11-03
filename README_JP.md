@@ -56,24 +56,27 @@ docker compose -f compose-dev.yml up -d
 
 ### プロジェクトの初期化
 ```
-flutter pub get
+dart run rps get default
+
+// for web
+dart run rps get web
 ```
 
 ### ビルドランナーの実行
 言語ファイル等を生成します。
 ```
-dart run build_runner build --delete-conflicting-outputs
+dart run rps gen
 ```
 
 ### Webサーバーの起動
 ```
-flutter run --release -d web-server --web-hostname=0.0.0.0 --web-port=50505
+dart run rps run-release web
 ```
 
 ### Webのビルド
 /buildに出力されます。
 ```
-flutter build web
+dart run rps build-release web
 ```
 
 ### Docker Composeの使用

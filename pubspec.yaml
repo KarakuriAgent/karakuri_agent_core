@@ -85,7 +85,7 @@ scripts:
         appbundle: rps build appbundle --release
     web: 
       $before: dart run rps clean-gen web
-      $script: flutter build web
+      $script: rps build web
   run-release:
     default:
       $before: dart run rps clean-gen default

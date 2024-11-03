@@ -21,7 +21,7 @@ jobs:
       - name: Add Flutter to PATH
         run: echo "/home/ubuntu/flutter/bin" >> $GITHUB_PATH
       - run: git config --global --add safe.directory /home/ubuntu/flutter
-      - run: dart run rsp clean-gen web
+      - run: dart run rps clean-gen web
       - run: flutter build web --base-href "/karakuri_agent/"
       - uses: actions/upload-pages-artifact@v1
         with:

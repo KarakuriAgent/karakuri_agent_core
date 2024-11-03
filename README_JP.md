@@ -56,27 +56,27 @@ docker compose -f compose-dev.yml up -d
 
 ### プロジェクトの初期化
 ```
-dart run rsp get default
+dart run rps get default
 
 // for web
-dart run rsp get web
+dart run rps get web
 ```
 
 ### ビルドランナーの実行
 言語ファイル等を生成します。
 ```
-dart run rsp gen
+dart run rps gen
 ```
 
 ### Webサーバーの起動
 ```
-dart run rsp run-release web
+dart run rps run-release web
 ```
 
 ### Webのビルド
 /buildに出力されます。
 ```
-dart run rsp build-release web
+dart run rps build-release web
 ```
 
 ### Docker Composeの使用

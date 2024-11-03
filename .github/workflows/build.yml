@@ -37,7 +37,7 @@ jobs:
       - name: Add Flutter to PATH
         run: echo "/home/ubuntu/flutter/bin" >> $GITHUB_PATH
       - run: git config --global --add safe.directory /home/ubuntu/flutter
-      - run: dart run rsp build-release android apk
+      - run: dart run rps build-release android apk
       - uses: actions/upload-artifact@v3
         with:
           path: build/app/outputs
@@ -65,7 +65,7 @@ jobs:
       - name: Add Flutter to PATH
         run: echo "/home/ubuntu/flutter/bin" >> $GITHUB_PATH
       - run: git config --global --add safe.directory /home/ubuntu/flutter
-      - run: dart run rsp build-release web
+      - run: dart run rps build-release web
       - uses: actions/upload-artifact@v3
         with:
           path: build/web

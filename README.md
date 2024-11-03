@@ -60,27 +60,27 @@ Here, as an example, we describe how to build for Web and start the server. For 
 
 ### Initializing the Project
 ```
-dart run rsp get default
+dart run rps get default
 
 // for web
-dart run rsp get web
+dart run rps get web
 ```
 
 ### Running the Build Runner
 Generates language files, etc.
 ```
-dart run rsp gen
+dart run rps gen
 ```
 
 ### Starting the Web Server
 ```
-dart run rsp run-release web
+dart run rps run-release web
 ```
 
 ### Building for Web
 Output to /build.
 ```
-dart run rsp build-release web
+dart run rps build-release web
 ```
 
 ### Using Docker Compose

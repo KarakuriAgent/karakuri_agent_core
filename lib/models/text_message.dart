@@ -19,6 +19,7 @@ enum Role { system, user, assistant }
 
 enum Emotion {
   // Basic emotions
+  normal,
   happy,
   sad,
   angry,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/providers/view_model_providers.dart';
@@ -36,9 +37,10 @@ class _TalkContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(talkScreenViewModelProvider(agentConfig));
-    final (speechToText, textToSpeech, emotion) = ref.watch(
+    final (speechToText, textToSpeech, emotion, karakuriImage) = ref.watch(
       talkScreenViewModelProvider(agentConfig).select(
-        (it) => (it.speechToText, it.textToSpeech, it.emotion),
+        (it) =>
+            (it.speechToText, it.textToSpeech, it.emotion, it.karakuriImage),
       ),
     );
     return Scaffold(
@@ -51,6 +53,19 @@ class _TalkContent extends HookConsumerWidget {
           Text('speechToText: $speechToText'),
           Text('textToSpeech: $textToSpeech'),
           Text('emotion: $emotion'),
+          karakuriImage == null
+              ? Container()
+              : karakuriImage.extension.toLowerCase() == 'svg'
+                  ? SvgPicture.memory(
+                      karakuriImage.image,
+                      width: 100,
+                      height: 100,
+                    )
+                  : Image.memory(
+                      karakuriImage.image,
+                      width: 100,
+                      height: 100,
+                    ),
           ElevatedButton(
             onPressed: () async {
               try {

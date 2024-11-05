@@ -24,6 +24,7 @@ class TableName {
 class ColumnName {
   static const id = 'id';
   static const name = 'name';
+  static const imageKey = 'image_key';
   static const type = 'type';
   static const baseUrl = 'base_url';
   static const apiKey = 'api_key';
@@ -151,6 +152,7 @@ class SqfliteHelper {
       CREATE TABLE ${TableName.agentConfig} (
         ${ColumnName.id} INTEGER PRIMARY KEY AUTOINCREMENT,
         ${ColumnName.name} TEXT NOT NULL,
+        ${ColumnName.imageKey} TEXT NOT NULL,
         ${ColumnName.textServiceId} INTEGER NOT NULL,
         ${ColumnName.textModelId} INTEGER NOT NULL,
         ${ColumnName.textToSpeechServiceId} INTEGER NOT NULL,
@@ -698,6 +700,7 @@ class SqfliteHelper {
     SELECT 
       ac.${ColumnName.id} AS ${ColumnName.id},
       ac.${ColumnName.name} AS ${ColumnName.name},
+      ac.${ColumnName.imageKey} AS ${ColumnName.imageKey},
       tsc.${ColumnName.id} AS  ${ColumnName.textServiceId},
       tmodel.${ColumnName.id} AS ${ColumnName.textModelId},
       stsc.${ColumnName.id} AS ${ColumnName.speechToTextServiceId},
@@ -743,6 +746,7 @@ class SqfliteHelper {
       final agentConfig = AgentConfig(
         id: row[ColumnName.id] as int,
         name: row[ColumnName.name] as String,
+        imagekey: row[ColumnName.imageKey] as String,
         textServiceConfig: textServiceConfig,
         textModel: textModel,
         speechToTextServiceConfig: speechToTextServiceConfig,

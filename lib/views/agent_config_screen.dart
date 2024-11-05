@@ -50,6 +50,7 @@ class _AgentConfigContent extends HookConsumerWidget {
             decoration:
                 InputDecoration(labelText: t.home.agent.agentConfig.name),
           ),
+          _ImageKeySection(initialConfig: initialConfig),
           _TextConfigSection(initialConfig: initialConfig),
           _SpeechToTextConfigSection(initialConfig: initialConfig),
           _TextToSpeechConfigSection(initialConfig: initialConfig),
@@ -78,6 +79,43 @@ class _AgentConfigContent extends HookConsumerWidget {
       return;
     }
     Navigator.of(context).pop(viewModel.createAgentConfig());
+  }
+}
+
+class _ImageKeySection extends HookConsumerWidget {
+  final AgentConfig? initialConfig;
+  const _ImageKeySection({
+    required this.initialConfig,
+  });
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final viewmodel =
+        ref.read(agentConfigScreenViewModelProvider(initialConfig));
+    final (imageKeys, selectImageKey) = ref.watch(
+      agentConfigScreenViewModelProvider(initialConfig).select(
+        (it) => (
+          it.imageKeys,
+          it.selectImageKey,
+        ),
+      ),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // TODO
+        Text(t.home.agent.agentConfig.textService),
+        DropdownButton<String>(
+          value: selectImageKey,
+          onChanged: (String? newValue) => viewmodel.updateImageKey(newValue),
+          items: imageKeys.map<DropdownMenuItem<String>>((String item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(item),
+            );
+          }).toList(),
+        ),
+      ],
+    );
   }
 }
 

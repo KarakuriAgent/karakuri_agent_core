@@ -4,11 +4,13 @@ import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/repositories/config_storage_repository.dart';
+import 'package:karakuri_agent/repositories/image_storage_repository.dart';
 import 'package:karakuri_agent/utils/exception.dart';
 
 class AgentConfigScreenViewModel extends ChangeNotifier {
   final ConfigStorageRepository _configStorage;
   final int? _id;
+  final List<String> _imageKeys = [];
   final TextEditingController nameController;
   final List<ServiceConfig> textServiceConfigs = [];
   List<KeyValuePair> _textModels;
@@ -19,6 +21,7 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
   List<KeyValuePair> _textToSpeechVoices;
 
   bool _initialized = false;
+  String? _selectImageKey;
   ServiceConfig? _selectTextService;
   KeyValuePair? _selectTextModel;
   ServiceConfig? _selectSpeechToTextService;
@@ -27,12 +30,14 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
   KeyValuePair? _selectTextToSpeechModel;
   KeyValuePair? _selectTextToSpeechVoice;
 
+  List<String> get imageKeys => _imageKeys;
   List<KeyValuePair> get textModels => _textModels;
   List<KeyValuePair> get speechToTextModels => _speechToTextModels;
   List<KeyValuePair> get textToSpeechModels => _textToSpeechModels;
   List<KeyValuePair> get textToSpeechVoices => _textToSpeechVoices;
 
   bool get initialized => _initialized;
+  String? get selectImageKey => _selectImageKey;
   ServiceConfig? get selectTextService => _selectTextService;
   KeyValuePair? get selectTextModel => _selectTextModel;
   ServiceConfig? get selectSpeechToTextService => _selectSpeechToTextService;
@@ -62,7 +67,8 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
                 [],
         _selectTextToSpeechVoice = agentConfig?.textToSpeechVoice;
 
-  Future<void> initialize() async {
+  Future<void> initialize(ImageStorageRepository imageStorage) async {
+    _imageKeys.addAll(await imageStorage.getImageNames());
     textServiceConfigs.addAll(await _configStorage.loadTextServiceConfigs());
     speechToTextServiceConfigs
         .addAll(await _configStorage.loadSpeechToTextServiceConfigs());
@@ -76,6 +82,13 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
   void dispose() {
     nameController.dispose();
     super.dispose();
+  }
+
+  void updateImageKey(String? imageKey) {
+    _ensureInitialized();
+    if (selectImageKey == imageKey) return;
+    _selectImageKey = imageKey;
+    notifyListeners();
   }
 
   void updateTextServiceConfig(ServiceConfig? config) {
@@ -136,6 +149,10 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
     if (nameController.text.isEmpty) {
       return t.home.agent.error.nameIsRequired;
     }
+    if (selectImageKey == null) {
+      // TODO
+      return t.home.agent.error.textServiceRequired;
+    }
     if (selectTextService == null) {
       return t.home.agent.error.textServiceRequired;
     }
@@ -165,6 +182,7 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
     return AgentConfig(
       id: _id,
       name: nameController.text,
+      imagekey: selectImageKey!,
       textServiceConfig: selectTextService!,
       textModel: selectTextModel!,
       speechToTextServiceConfig: selectSpeechToTextService!,

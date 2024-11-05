@@ -29,6 +29,10 @@ dependencies:
   http_parser: ^4.0.2
   openai_dart: ^0.4.2+2
   audioplayers: ^6.1.0
+  idb_shim: ^2.6.1+7
+  archive: ^3.6.1
+  flutter_svg: ^2.0.14
+  image: ^4.3.0
 
 dev_dependencies:
   flutter_test:

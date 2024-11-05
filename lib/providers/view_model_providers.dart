@@ -2,6 +2,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/service_config.dart';
 import 'package:karakuri_agent/providers/config_storage_provider.dart';
+import 'package:karakuri_agent/providers/image_storage_provider.dart';
 import 'package:karakuri_agent/view_models/agent_config_screen_view_model.dart';
 import 'package:karakuri_agent/view_models/home_screen_view_model.dart';
 import 'package:karakuri_agent/view_models/service_config_screen_view_model.dart';
@@ -23,7 +24,8 @@ final agentConfigScreenViewModelProvider = ChangeNotifierProvider.autoDispose
   final viewModel =
       AgentConfigScreenViewModel(configStorage, agentConfig: param);
   Future.microtask(() async {
-    await viewModel.initialize();
+  final imageStorage = await ref.watch(imageStorageProvider.future);
+    await viewModel.initialize(imageStorage);
   });
   return viewModel;
 });

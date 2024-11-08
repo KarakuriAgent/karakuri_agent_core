@@ -46,8 +46,8 @@ class TalkScreenViewModel extends ChangeNotifier {
     _imageStorageRepository = await _ref.watch(imageStorageProvider.future);
     _karakuriImages =
         await _imageStorageRepository.getKarakuriImages(_agentConfig.imageKey);
-    _karakuriImage = _karakuriImages.firstWhere(
-        (element) => element.emotion == Emotion.normal);
+    _karakuriImage = _karakuriImages
+        .firstWhere((element) => element.emotion == Emotion.normal);
     _state = TalkScreenViewModelState.initialized;
     notifyListeners();
   }
@@ -118,7 +118,9 @@ class TalkScreenViewModel extends ChangeNotifier {
       _textToSpeech = message.message;
       _emotion = message.emotion.name;
       _karakuriImage = _karakuriImages.firstWhere(
-          (element) => element.emotion == message.emotion);
+          (element) => element.emotion == message.emotion,
+          orElse: () => _karakuriImages
+              .firstWhere((element) => element.emotion == Emotion.normal));
       notifyListeners();
       try {
         await _textToSpeechRepository.speech(message.message);

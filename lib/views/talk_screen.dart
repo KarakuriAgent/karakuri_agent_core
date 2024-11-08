@@ -53,19 +53,31 @@ class _TalkContent extends HookConsumerWidget {
           Text('speechToText: $speechToText'),
           Text('textToSpeech: $textToSpeech'),
           Text('emotion: $emotion'),
-          karakuriImage == null
-              ? Container()
-              : karakuriImage.extension.toLowerCase() == 'svg'
-                  ? SvgPicture.memory(
-                      karakuriImage.image,
-                      width: 100,
-                      height: 100,
-                    )
-                  : Image.memory(
-                      karakuriImage.image,
-                      width: 100,
-                      height: 100,
-                    ),
+          if (karakuriImage != null)
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.3,
+                maxHeight: MediaQuery.of(context).size.width * 0.3,
+              ),
+              child: Builder(
+                builder: (context) {
+                  try {
+                    return karakuriImage.extension.toLowerCase() == 'svg'
+                        ? SvgPicture.memory(
+                            karakuriImage.image,
+                            fit: BoxFit.contain,
+                          )
+                        : Image.memory(
+                            karakuriImage.image,
+                            fit: BoxFit.contain,
+                          );
+                  } catch (e) {
+                    debugPrint('Error loading image: $e');
+                    return const Icon(Icons.error);
+                  }
+                },
+              ),
+            ),
           ElevatedButton(
             onPressed: () async {
               try {

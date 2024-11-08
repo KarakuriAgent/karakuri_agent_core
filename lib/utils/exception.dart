@@ -33,3 +33,12 @@ class RepositoryException implements Exception {
   @override
   String toString() => "RepositoryException: $className.$methodName: $message";
 }
+
+class ProviderException implements Exception {
+  final String providerName;
+  final String message;
+  ProviderException(this.providerName, {this.message = ""});
+
+  @override
+  String toString() => "ProviderException: $providerName: $message";
+}

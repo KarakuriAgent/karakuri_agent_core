@@ -47,51 +47,53 @@ class ImageStorageService extends ImageStorageServiceInterface {
     required String key,
     required List<int> file,
   }) async {
+    final db = await _openDatabase();
     try {
-      final db = await _openDatabase();
       final transaction = db.transaction(storeName, idbModeReadWrite);
       final store = transaction.objectStore(storeName);
 
       await store.put(file, key);
       await transaction.completed;
-      db.close();
     } catch (e) {
       throw ServiceException(runtimeType.toString(), 'saveImageZip',
           message: 'Failed to save file: $e');
+    } finally {
+      db.close();
     }
   }
 
   @override
   Future<List<int>> getImageZip(String key) async {
+    final db = await _openDatabase();
     try {
-      final db = await _openDatabase();
       final transaction = db.transaction(storeName, idbModeReadOnly);
       final store = transaction.objectStore(storeName);
 
       final data = await store.getObject(key);
-      db.close();
-
       return data as List<int>;
     } catch (e) {
       throw ServiceException(runtimeType.toString(), 'getImageZip',
           message: 'Failed to load file: $e');
+    } finally {
+      db.close();
     }
   }
 
   @override
   Future<List<String>> getImageNames() async {
+    final db = await _openDatabase();
     try {
-      final db = await _openDatabase();
       final transaction = db.transaction(storeName, idbModeReadOnly);
       final store = transaction.objectStore(storeName);
 
       final List<dynamic> keys = await store.getAllKeys();
-      db.close();
 
       return keys.map((key) => key.toString()).toList();
     } catch (e) {
       throw ServiceException(runtimeType.toString(), 'getImageNames',
           message: 'Failed to get keys: $e');
+    } finally {
+      db.close();
     }
   }
 }

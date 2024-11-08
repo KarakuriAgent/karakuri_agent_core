@@ -9,7 +9,7 @@ class ImageStorageService extends ImageStorageServiceInterface {
   static const int dbVersion = 1;
   static const String storeName = 'files';
   static const String aiRoboImageName = 'ai_robo';
-  static const String assetPath = 'images/$aiRoboImageName.zip';
+  static const String assetPath = 'assets/images/$aiRoboImageName.zip';
 
   late IdbFactory _idbFactory;
 

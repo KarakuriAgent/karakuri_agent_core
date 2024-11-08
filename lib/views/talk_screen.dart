@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/providers/view_model_providers.dart';
@@ -36,9 +37,10 @@ class _TalkContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(talkScreenViewModelProvider(agentConfig));
-    final (speechToText, textToSpeech, emotion) = ref.watch(
+    final (speechToText, textToSpeech, emotion, karakuriImage) = ref.watch(
       talkScreenViewModelProvider(agentConfig).select(
-        (it) => (it.speechToText, it.textToSpeech, it.emotion),
+        (it) =>
+            (it.speechToText, it.textToSpeech, it.emotion, it.karakuriImage),
       ),
     );
     return Scaffold(
@@ -51,6 +53,31 @@ class _TalkContent extends HookConsumerWidget {
           Text('speechToText: $speechToText'),
           Text('textToSpeech: $textToSpeech'),
           Text('emotion: $emotion'),
+          if (karakuriImage != null)
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.3,
+                maxHeight: MediaQuery.of(context).size.width * 0.3,
+              ),
+              child: Builder(
+                builder: (context) {
+                  try {
+                    return karakuriImage.extension.toLowerCase() == 'svg'
+                        ? SvgPicture.memory(
+                            karakuriImage.image,
+                            fit: BoxFit.contain,
+                          )
+                        : Image.memory(
+                            karakuriImage.image,
+                            fit: BoxFit.contain,
+                          );
+                  } catch (e) {
+                    debugPrint('Error loading image: $e');
+                    return const Icon(Icons.error);
+                  }
+                },
+              ),
+            ),
           ElevatedButton(
             onPressed: () async {
               try {

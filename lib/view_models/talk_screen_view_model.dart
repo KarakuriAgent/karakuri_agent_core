@@ -1,10 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
+import 'package:karakuri_agent/models/karakuri_image.dart';
 import 'package:karakuri_agent/models/text_message.dart';
+import 'package:karakuri_agent/providers/image_storage_provider.dart';
 import 'package:karakuri_agent/providers/speech_to_text_provider.dart';
 import 'package:karakuri_agent/providers/text_provider.dart';
 import 'package:karakuri_agent/providers/text_to_speech_provider.dart';
+import 'package:karakuri_agent/repositories/image_storage_repository.dart';
 import 'package:karakuri_agent/repositories/speech_to_text_repository.dart';
 import 'package:karakuri_agent/repositories/text_repository.dart';
 import 'package:karakuri_agent/repositories/text_to_speech_repository.dart';
@@ -13,19 +16,23 @@ import 'package:karakuri_agent/utils/exception.dart';
 class TalkScreenViewModel extends ChangeNotifier {
   final AutoDisposeRef _ref;
   final AgentConfig _agentConfig;
+  late final List<KarakuriImage> _karakuriImages;
   late final SpeechToTextRepository _speechToTextRepository;
   late final TextRepository _textRepository;
   late final TextToSpeechRepository _textToSpeechRepository;
+  late final ImageStorageRepository _imageStorageRepository;
   final List<TextMessage> _messages = [];
   TalkScreenViewModelState _state = TalkScreenViewModelState.loading;
   String _speechToText = '';
   String _textToSpeech = '';
   String _emotion = '';
+  KarakuriImage? _karakuriImage;
 
   TalkScreenViewModelState get state => _state;
   String get speechToText => _speechToText;
   String get textToSpeech => _textToSpeech;
   String get emotion => _emotion;
+  KarakuriImage? get karakuriImage => _karakuriImage;
 
   TalkScreenViewModel(this._ref, this._agentConfig);
 
@@ -36,6 +43,11 @@ class TalkScreenViewModel extends ChangeNotifier {
         .future);
     _textRepository = _ref.watch(textProvider(_agentConfig));
     _textToSpeechRepository = _ref.watch(textToSpeechProvider(_agentConfig));
+    _imageStorageRepository = await _ref.watch(imageStorageProvider.future);
+    _karakuriImages =
+        await _imageStorageRepository.getKarakuriImages(_agentConfig.imageKey);
+    _karakuriImage = _karakuriImages
+        .firstWhere((element) => element.emotion == Emotion.normal);
     _state = TalkScreenViewModelState.initialized;
     notifyListeners();
   }
@@ -105,6 +117,10 @@ class TalkScreenViewModel extends ChangeNotifier {
       _state = TalkScreenViewModelState.speaking;
       _textToSpeech = message.message;
       _emotion = message.emotion.name;
+      _karakuriImage = _karakuriImages.firstWhere(
+          (element) => element.emotion == message.emotion,
+          orElse: () => _karakuriImages
+              .firstWhere((element) => element.emotion == Emotion.normal));
       notifyListeners();
       try {
         await _textToSpeechRepository.speech(message.message);

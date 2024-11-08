@@ -2,7 +2,7 @@ name: karakuri_agent
 description: "Karakuri agent."
 publish_to: 'none'
 
-version: 0.1.0+5
+version: 0.1.1+6
 
 environment:
   sdk: ^3.5.3

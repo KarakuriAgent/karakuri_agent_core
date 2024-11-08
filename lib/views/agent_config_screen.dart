@@ -102,8 +102,7 @@ class _ImageKeySection extends HookConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // TODO
-        Text(t.home.agent.agentConfig.textService),
+        Text(t.home.agent.agentConfig.karakuriImage),
         DropdownButton<String>(
           value: selectImageKey,
           onChanged: (String? newValue) => viewmodel.updateImageKey(newValue),

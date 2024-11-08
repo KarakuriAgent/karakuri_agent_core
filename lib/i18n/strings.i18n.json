@@ -17,6 +17,7 @@
         "agentEdit": "Edit Agent",
         "name": "Name",
         "save": "Save",
+        "karakuriImage": "Krarakuri Image",
         "textService": "TEXT Service",
         "textModel": "TEXT Model",
         "speechToTextService": "SPEECH TO TEXT Service",
@@ -27,6 +28,7 @@
       },
       "error": {
         "nameIsRequired": "Name is required",
+        "karakuriIageRequired": "Karakuri Image is required.",
         "textServiceRequired": "TEXT Service is required",
         "textModelRequired": "TEXT Model is required",
         "speechToTextServiceRequired": "SPEECH TO TEXT Service is required",

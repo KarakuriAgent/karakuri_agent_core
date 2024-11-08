@@ -17,6 +17,7 @@
         "agentEdit": "エージェントを編集",
         "name": "名前",
         "save": "保存",
+        "karakuriImage": "からくり画像",
         "textService": "TEXTサービス",
         "textModel": "TEXTモデル",
         "speechToTextService": "SPEECH TO TEXTサービス",
@@ -27,6 +28,7 @@
       },
       "error": {
         "nameIsRequired": "名前は必須です",
+        "karakuriIageRequired": "からくり画像は必須です。",
         "textServiceRequired": "TEXTサービスは必須です。",
         "textModelRequired": "TEXTモデルは必須です",
         "speechToTextServiceRequired": "SPEECH TO TEXTサービスは必須です。",

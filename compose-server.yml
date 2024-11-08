@@ -4,8 +4,7 @@ services:
     container_name: "karakuri_agent"
     tty: true
     command: >
-      /bin/sh -c "cd ~/workspace/karakuri_agent && 
-      dart run rps run-release web"
+      /bin/sh -c "cd ~/workspace/karakuri_agent && flutter pub get &&  dart run rps run-release web"
     network_mode: "host"
     volumes:
       - ./:/home/ubuntu/workspace/karakuri_agent

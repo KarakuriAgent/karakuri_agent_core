@@ -24,7 +24,7 @@ class ImageStorageService extends ImageStorageServiceInterface {
     }
     final ByteData data = await rootBundle.load(assetPath);
     final List<int> bytes = data.buffer.asUint8List();
-    await saveImagZip(key: aiRoboImageName, file: bytes);
+    await saveImageZip(key: aiRoboImageName, file: bytes);
   }
 
   Future<Database> _openDatabase() async {
@@ -42,7 +42,7 @@ class ImageStorageService extends ImageStorageServiceInterface {
   }
 
   @override
-  Future<void> saveImagZip({
+  Future<void> saveImageZip({
     required String key,
     required List<int> file,
   }) async {

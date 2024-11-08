@@ -5,7 +5,7 @@ class ImageStorageService extends ImageStorageServiceInterface {
   Future<void> init() async {}
 
   @override
-  Future<void> saveImagZip({
+  Future<void> saveImageZip({
     required String key,
     required List<int> file,
   }) async {}

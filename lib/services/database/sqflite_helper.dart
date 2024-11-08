@@ -746,7 +746,7 @@ class SqfliteHelper {
       final agentConfig = AgentConfig(
         id: row[ColumnName.id] as int,
         name: row[ColumnName.name] as String,
-        imagekey: row[ColumnName.imageKey] as String,
+        imageKey: row[ColumnName.imageKey] as String,
         textServiceConfig: textServiceConfig,
         textModel: textModel,
         speechToTextServiceConfig: speechToTextServiceConfig,

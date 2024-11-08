@@ -16,7 +16,7 @@ import 'package:karakuri_agent/utils/exception.dart';
 class TalkScreenViewModel extends ChangeNotifier {
   final AutoDisposeRef _ref;
   final AgentConfig _agentConfig;
-  late final List<KarakuriImage> _KarakuriImages;
+  late final List<KarakuriImage> _karakuriImages;
   late final SpeechToTextRepository _speechToTextRepository;
   late final TextRepository _textRepository;
   late final TextToSpeechRepository _textToSpeechRepository;
@@ -44,9 +44,9 @@ class TalkScreenViewModel extends ChangeNotifier {
     _textRepository = _ref.watch(textProvider(_agentConfig));
     _textToSpeechRepository = _ref.watch(textToSpeechProvider(_agentConfig));
     _imageStorageRepository = await _ref.watch(imageStorageProvider.future);
-    _KarakuriImages =
-        await _imageStorageRepository.getKarakuriImages(_agentConfig.imagekey);
-    _karakuriImage = _KarakuriImages.firstWhere(
+    _karakuriImages =
+        await _imageStorageRepository.getKarakuriImages(_agentConfig.imageKey);
+    _karakuriImage = _karakuriImages.firstWhere(
         (element) => element.emotion == Emotion.normal);
     _state = TalkScreenViewModelState.initialized;
     notifyListeners();
@@ -117,7 +117,7 @@ class TalkScreenViewModel extends ChangeNotifier {
       _state = TalkScreenViewModelState.speaking;
       _textToSpeech = message.message;
       _emotion = message.emotion.name;
-      _karakuriImage = _KarakuriImages.firstWhere(
+      _karakuriImage = _karakuriImages.firstWhere(
           (element) => element.emotion == message.emotion);
       notifyListeners();
       try {

@@ -182,7 +182,7 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
     return AgentConfig(
       id: _id,
       name: nameController.text,
-      imagekey: selectImageKey!,
+      imageKey: selectImageKey!,
       textServiceConfig: selectTextService!,
       textModel: selectTextModel!,
       speechToTextServiceConfig: selectSpeechToTextService!,

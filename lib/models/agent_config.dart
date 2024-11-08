@@ -12,7 +12,7 @@ class AgentConfig with _$AgentConfig {
   const factory AgentConfig({
     @JsonKey(name: ColumnName.id) int? id,
     @JsonKey(name: ColumnName.name) required String name,
-    @JsonKey(name: ColumnName.imageKey) required String imagekey,
+    @JsonKey(name: ColumnName.imageKey) required String imageKey,
     required ServiceConfig textServiceConfig,
     required KeyValuePair textModel,
     required ServiceConfig speechToTextServiceConfig,
@@ -28,7 +28,7 @@ class AgentConfig with _$AgentConfig {
   Map<String, dynamic> toDatabaseMap() {
     final map = <String, dynamic>{
       ColumnName.name: name,
-      ColumnName.imageKey: imagekey,
+      ColumnName.imageKey: imageKey,
       ColumnName.textServiceId: textServiceConfig.id,
       ColumnName.textModelId: textModel.id,
       ColumnName.speechToTextServiceId: speechToTextServiceConfig.id,

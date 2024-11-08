@@ -44,9 +44,9 @@ class ImageStorageRepository {
       throw RepositoryException(runtimeType.toString(), '_loadImages',
           message: 'images is empty');
     }
-    List<KarakuriImage> karakuriIamges = [];
+    List<KarakuriImage> karakuriImages = [];
     for (var emotion in settings.keys) {
-      karakuriIamges.add(
+      karakuriImages.add(
         KarakuriImage(
           emotion: Emotion.fromString(emotion),
           extension: (settings[emotion]! as String).split('.').last,
@@ -54,6 +54,6 @@ class ImageStorageRepository {
         ),
       );
     }
-    return karakuriIamges;
+    return karakuriImages;
   }
 }

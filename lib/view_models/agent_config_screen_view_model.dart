@@ -150,7 +150,7 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
       return t.home.agent.error.nameIsRequired;
     }
     if (selectImageKey == null) {
-      return t.home.agent.error.karakuriIageRequired;
+      return t.home.agent.error.karakuriImageRequired;
     }
     if (selectTextService == null) {
       return t.home.agent.error.textServiceRequired;

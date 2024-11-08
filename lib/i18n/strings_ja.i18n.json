@@ -28,7 +28,7 @@
       },
       "error": {
         "nameIsRequired": "名前は必須です",
-        "karakuriIageRequired": "からくり画像は必須です。",
+        "karakuriImageRequired": "からくり画像は必須です。",
         "textServiceRequired": "TEXTサービスは必須です。",
         "textModelRequired": "TEXTモデルは必須です",
         "speechToTextServiceRequired": "SPEECH TO TEXTサービスは必須です。",

@@ -5,7 +5,7 @@ abstract class TextService {
   void cancel();
   void dispose();
 
-final jsonSchema = {
+  final jsonSchema = {
     "type": "object",
     "properties": {
       "responses": {
@@ -17,12 +17,9 @@ final jsonSchema = {
             "emotion": {
               "type": "string",
               "description": "Emotion expressed in the message",
-              "enum": Emotion.values.map((e) => e.key).toList(),
+              "enum": Emotion.toRequestValues(),
             },
-            "message": {
-              "type": "string",
-              "description": "The message content"
-            }
+            "message": {"type": "string", "description": "The message content"}
           },
           "required": ["emotion", "message"],
           "additionalProperties": false

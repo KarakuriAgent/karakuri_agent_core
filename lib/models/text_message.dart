@@ -18,8 +18,9 @@ class TextMessage with _$TextMessage {
 enum Role { system, user, assistant }
 
 enum Emotion {
+  noticed,
+  progress,
   // Basic emotions
-  normal,
   happy,
   sad,
   angry,
@@ -70,5 +71,12 @@ enum Emotion {
       (e) => e.key == value,
       orElse: () => Emotion.neutral,
     );
+  }
+
+  static List<String> toRequestValues() {
+    return Emotion.values
+        .where((e) => e != Emotion.noticed && e != Emotion.progress)
+        .map((e) => e.key)
+        .toList();
   }
 }

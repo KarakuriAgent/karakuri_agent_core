@@ -47,7 +47,7 @@ class OpenaiTextService extends TextService {
           .map((response) => TextMessage(
                 role: Role.assistant,
                 emotion: Emotion.fromString(response['emotion'] as String),
-                message: response['message'] as String,
+                message: response['divided_message'] as String,
               ))
           .toList();
     } on CancellationException {

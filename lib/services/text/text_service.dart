@@ -10,18 +10,18 @@ abstract class TextService {
     "properties": {
       "responses": {
         "type": "array",
-        "description": "List of responses with emotions",
+        "description": "List of messages divided into meaningful units",
         "items": {
           "type": "object",
           "properties": {
             "emotion": {
               "type": "string",
-              "description": "Emotion expressed in the message",
+              "description": "Emotion expressed in the divided message",
               "enum": Emotion.toRequestValues(),
             },
-            "message": {"type": "string", "description": "The message content"}
+            "divided_message": {"type": "string", "description": "The divided message"}
           },
-          "required": ["emotion", "message"],
+          "required": ["emotion", "divided_message"],
           "additionalProperties": false
         }
       }

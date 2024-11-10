@@ -23,6 +23,10 @@ Karakuri Agentは、2D画像を用いたAIとのインタラクティブなコ�
 | VoiceVox       | text to speech |    🟢    |
 | StyleBertVITS2 | text to speech |    ❌    |
 
+## Quick Start
+[![Open in IDX](https://cdn.idx.dev/btn/open_purple_32.svg)](https://idx.google.com/import?url=https://github.com/0235-jp/karakuri_agent)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/0235-jp/karakuri_agent)
+
 ## 開発環境のセットアップ
 Flutter環境があれば開発可能です。
 https://docs.flutter.dev/get-started/install

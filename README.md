@@ -2,7 +2,6 @@
 
 日本語版はこちら [README_JP.md](README_JP.md).
 
-
 Karakuri Agent is a cross-platform application that enables interactive communication with AI using 2D images.
 
 ## Supported Platforms
@@ -25,6 +24,10 @@ Karakuri Agent is a cross-platform application that enables interactive communic
 |                | speech to text |       🟢       |
 | VoiceVox       | text to speech |       🟢       |
 | StyleBertVITS2 | text to speech |       ❌       |
+
+## Quick Start
+[![Open in IDX](https://cdn.idx.dev/btn/open_purple_32.svg)](https://idx.google.com/import?url=https://github.com/0235-jp/karakuri_agent)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/0235-jp/karakuri_agent)
 
 ## Development Environment Setup
 Development is possible with a Flutter environment.

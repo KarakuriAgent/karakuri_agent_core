@@ -16,7 +16,6 @@
     extensions = [
       "Dart-Code.flutter"
       "Dart-Code.dart-code"
-      "vscode-eclipse-keybindings"
     ];
     workspace = {
       # Runs when a workspace is first created with this `dev.nix` file
@@ -24,7 +23,7 @@
         build-flutter = ''
           flutter upgrade
           flutter pub get
-          dart run build_runner build --delete-conflicting-outputs
+          dart run rps clean-gen web
           cd /home/user/myapp/android
 
           ./gradlew \
@@ -56,11 +55,7 @@
       enable = true;
       previews = {
         web = {
-          command = ["flutter" "run" "--machine" "-d" "web-server" "--web-hostname" "0.0.0.0" "--web-port" "$PORT"];
-          manager = "flutter";
-        };
-        android = {
-          command = ["flutter" "run" "--machine" "-d" "android" "-d" "localhost:5555"];
+          command = ["dart" "run" "rps" "run-debug" "web"];
           manager = "flutter";
         };
       };

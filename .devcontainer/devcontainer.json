@@ -1,6 +1,7 @@
 {
-    "name": "Flutter Android",
+    "name": "karakuri_agent",
     "image": "ghcr.io/0235-jp/karkuri-agent-dev:latest",
+    "postCreateCommand": "dart run rps clean-gen web && dart run rps run-debug web",
     "customizations": {
       "vscode": {
         "extensions": ["dart-code.flutter", "dart-code.dart-code"]

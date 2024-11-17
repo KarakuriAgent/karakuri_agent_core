@@ -8,6 +8,7 @@ import 'package:flutter_silero_vad/flutter_silero_vad.dart';
 import 'package:karakuri_agent/services/silero_vad/silero_vad_service_interface.dart';
 import 'package:karakuri_agent/utils/audio_util.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 // TODO パーミッションチェック
 class SileroVadService extends SileroVadServiceInterface {
@@ -50,7 +51,31 @@ class SileroVadService extends SileroVadServiceInterface {
   bool isCreated() => _created;
 
   @override
-  Future<void> start() async {
+  Future<bool> start() async {
+   return await _requestPermission();
+  }
+
+  Future<bool> _requestPermission() async {
+    var status = await Permission.microphone.status;
+    if (status.isGranted) {
+      _startRecording();
+    } else {
+      Map<Permission, PermissionStatus> statuses = await [
+        Permission.microphone,
+      ].request();
+      if (statuses[Permission.microphone] == PermissionStatus.granted) {
+        _startRecording();
+      } else if (await Permission.speech.isPermanentlyDenied) {
+        openAppSettings();
+        return false;
+      } else {
+        return await _requestPermission();
+      }
+    }
+    return true;
+  }
+
+  Future<void> _startRecording() async {
     if (_isListening || !_created) return;
 
     _isListening = true;

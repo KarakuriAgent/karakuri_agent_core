@@ -42,9 +42,9 @@ class SpeechToTextRepository {
     _speechToTextResult = null;
   }
 
-  Future<void> startRecognition() async {
+  Future<bool> startRecognition() async {
     await _ensureInitialized();
-    await _voiceActivityDetectionRepository.start();
+    return await _voiceActivityDetectionRepository.start();
   }
 
   Future<void> pauseRecognition() async {

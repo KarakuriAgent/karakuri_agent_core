@@ -65,7 +65,11 @@ class TalkScreenViewModel extends ChangeNotifier {
     if (state == TalkScreenViewModelState.disposed) return;
     _state = TalkScreenViewModelState.listening;
     notifyListeners();
-    await _speechToTextRepository.startRecognition();
+    bool isStarted = await _speechToTextRepository.startRecognition();
+    if (!isStarted) {
+      _state = TalkScreenViewModelState.initialized;
+      notifyListeners();
+    }
   }
 
   Future<void> pause() async {

@@ -11,7 +11,7 @@ class VoiceActivityDetectionRepository {
     await _service.create(((audio) => end(audio)));
   }
 
-  Future<void> start() async => await _service.start();
+  Future<bool> start() async => await _service.start();
 
   bool listening() => _service.listening();
 

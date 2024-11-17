@@ -44,12 +44,12 @@ class SpeechToTextRepository {
 
   Future<void> startRecognition() async {
     await _ensureInitialized();
-    _voiceActivityDetectionRepository.start();
+    await _voiceActivityDetectionRepository.start();
   }
 
   Future<void> pauseRecognition() async {
     await _ensureInitialized();
-    _voiceActivityDetectionRepository.pause();
+    await _voiceActivityDetectionRepository.pause();
   }
 
   Future<void> _createTranscription(Uint8List audio) async {

@@ -26,22 +26,22 @@ external void destroyVad();
 
 class SileroVadService extends SileroVadServiceInterface {
   @override
-  Future<void> create(Function(Uint8List) end) async =>
+  Future<void> create(Function(Uint8List) onResult) async =>
       await promiseToFuture(createVad(
-          allowInterop((audio) => end(AudioUtil.float32ListToWav(audio)))));
+          allowInterop((audio) => onResult(AudioUtil.float32ListToWav(audio)))));
 
   @override
   bool isCreated() => isVadCreated();
 
   @override
-  void start() => startVad();
+  Future<void> start() async => startVad();
 
   @override
   bool listening() => listeningVad();
 
   @override
-  void pause() => pauseVad();
+  Future<void> pause() async => pauseVad();
 
   @override
-  void destroy() => destroyVad();
+  Future<void> destroy() async => destroyVad();
 }

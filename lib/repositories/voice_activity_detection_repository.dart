@@ -11,11 +11,11 @@ class VoiceActivityDetectionRepository {
     await _service.create(((audio) => end(audio)));
   }
 
-  void start() => _service.start();
+  Future<void> start() async => await _service.start();
 
   bool listening() => _service.listening();
 
-  void pause() => _service.pause();
+  Future<void> pause() async => await _service.pause();
 
-  void destroy() => _service.destroy();
+  Future<void> destroy() async => await _service.destroy();
 }

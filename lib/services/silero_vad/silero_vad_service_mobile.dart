@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_silero_vad/flutter_silero_vad.dart';
 import 'package:karakuri_agent/services/silero_vad/silero_vad_service_interface.dart';
 import 'package:karakuri_agent/utils/audio_util.dart';
+import 'package:karakuri_agent/utils/exception.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -35,7 +36,12 @@ class SileroVadService extends SileroVadServiceInterface {
   @override
   Future<void> create(Function(Uint8List) onResult) async {
     _onResult = onResult;
-    await _copyOnnxModelToLocal();
+    try {
+      await _copyOnnxModelToLocal();
+    } catch (e) {
+      throw ServiceException(runtimeType.toString(), 'create',
+          message: 'Failed to copy VAD model: $e');
+    }
     await _vad.initialize(
       modelPath: await _modelPath,
       sampleRate: _sampleRate,
@@ -52,7 +58,7 @@ class SileroVadService extends SileroVadServiceInterface {
 
   @override
   Future<bool> start() async {
-   return await _requestPermission();
+    return await _requestPermission();
   }
 
   Future<bool> _requestPermission() async {

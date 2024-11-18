@@ -13,14 +13,26 @@ class ImageStorageService extends ImageStorageServiceInterface {
 
   @override
   Future<void> init() async {
-    if (await getImageNames().then((keys) =>
-        keys.contains(ImageStorageServiceInterface.aiRoboImageName))) {
-      return;
+    try {
+      final keys = await getImageNames();
+      if (keys.contains(ImageStorageServiceInterface.aiRoboImageName)) {
+        return;
+      }
+      final data =
+          await rootBundle.load(ImageStorageServiceInterface.assetPath);
+      final bytes =
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      await saveImageZip(
+        key: ImageStorageServiceInterface.aiRoboImageName,
+        file: bytes,
+      );
+    } catch (e) {
+      throw ServiceException(
+        runtimeType.toString(),
+        'init',
+        message: 'Failed to initialize default image: $e',
+      );
     }
-    final data = await rootBundle.load(ImageStorageServiceInterface.assetPath);
-    final bytes =
-        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-    await saveImageZip(key: ImageStorageServiceInterface.aiRoboImageName, file: bytes);
   }
 
   @override

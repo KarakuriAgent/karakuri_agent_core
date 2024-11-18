@@ -11,7 +11,6 @@ import 'package:karakuri_agent/utils/exception.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-// TODO パーミッションチェック
 class SileroVadService extends SileroVadServiceInterface {
   static const int _sampleRate = 16000;
   static const int _frameSize = 40;

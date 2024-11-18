@@ -119,6 +119,7 @@ class SileroVadService extends SileroVadServiceInterface {
     _recordingDataSubscription = null;
     _onResult = null;
     _isListening = false;
+    _created = false;
   }
 
   int get _frameByteSize => _frameSize * 2 * _sampleRate ~/ 1000;

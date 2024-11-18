@@ -53,7 +53,7 @@ class SpeechToTextRepository {
   }
 
   Future<void> _createTranscription(Uint8List audio) async {
-    pauseRecognition();
+    await pauseRecognition();
     final text = await _service.createTranscription(audio);
     _speechToTextResult?.call(text);
   }

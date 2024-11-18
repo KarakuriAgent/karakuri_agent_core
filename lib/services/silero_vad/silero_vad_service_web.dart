@@ -5,6 +5,7 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:karakuri_agent/services/silero_vad/silero_vad_service_interface.dart';
 import 'package:karakuri_agent/utils/audio_util.dart';
+import 'package:karakuri_agent/utils/exception.dart';
 
 @JS('createVad')
 external Object createVad(Function end);
@@ -26,22 +27,31 @@ external void destroyVad();
 
 class SileroVadService extends SileroVadServiceInterface {
   @override
-  Future<void> create(Function(Uint8List) end) async =>
-      await promiseToFuture(createVad(
-          allowInterop((audio) => end(AudioUtil.float32ListToWav(audio)))));
+  Future<void> create(Function(Uint8List) onResult) async {
+    try {
+      await promiseToFuture(createVad(allowInterop(
+          (audio) => onResult(AudioUtil.float32ListToWav(audio)))));
+    } catch (e) {
+      throw ServiceException(runtimeType.toString(), 'create',
+          message: 'Failed to create VAD: $e');
+    }
+  }
 
   @override
   bool isCreated() => isVadCreated();
 
   @override
-  void start() => startVad();
+  Future<bool> start() async {
+    startVad();
+    return true;
+  }
 
   @override
   bool listening() => listeningVad();
 
   @override
-  void pause() => pauseVad();
+  Future<void> pause() async => pauseVad();
 
   @override
-  void destroy() => destroyVad();
+  Future<void> destroy() async => destroyVad();
 }

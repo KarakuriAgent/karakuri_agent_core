@@ -15,8 +15,8 @@ final voiceActivityDetectionProvider = FutureProvider.autoDispose
   final voiceActivityDetection =
       VoiceActivityDetectionRepository(sileroVadService);
   await voiceActivityDetection.init(onAudio);
-  ref.onDispose(() {
-    voiceActivityDetection.destroy();
+  ref.onDispose(() async {
+    await voiceActivityDetection.destroy();
   });
   return voiceActivityDetection;
 });

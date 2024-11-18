@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
 abstract class SileroVadServiceInterface {
-  Future<void> create(Function(Uint8List) end);
+  Future<void> create(Function(Uint8List) onResult);
   bool isCreated();
   bool listening();
-  void start();
-  void pause();
-  void destroy();
+  Future<bool> start();
+  Future<void> pause();
+  Future<void> destroy();
 }

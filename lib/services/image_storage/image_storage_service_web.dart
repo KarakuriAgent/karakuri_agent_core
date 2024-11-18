@@ -8,8 +8,6 @@ class ImageStorageService extends ImageStorageServiceInterface {
   static const String dbName = 'ImageStorage';
   static const int dbVersion = 1;
   static const String storeName = 'files';
-  static const String aiRoboImageName = 'ai_robo';
-  static const String assetPath = 'assets/images/$aiRoboImageName.zip';
 
   late IdbFactory _idbFactory;
 
@@ -19,12 +17,15 @@ class ImageStorageService extends ImageStorageServiceInterface {
 
   @override
   Future<void> init() async {
-    if (await getImageNames().then((keys) => keys.contains(aiRoboImageName))) {
+    if (await getImageNames().then((keys) =>
+        keys.contains(ImageStorageServiceInterface.aiRoboImageName))) {
       return;
     }
-    final ByteData data = await rootBundle.load(assetPath);
+    final ByteData data =
+        await rootBundle.load(ImageStorageServiceInterface.assetPath);
     final List<int> bytes = data.buffer.asUint8List();
-    await saveImageZip(key: aiRoboImageName, file: bytes);
+    await saveImageZip(
+        key: ImageStorageServiceInterface.aiRoboImageName, file: bytes);
   }
 
   Future<Database> _openDatabase() async {

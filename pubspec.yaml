@@ -33,6 +33,16 @@ dependencies:
   archive: ^3.6.1
   flutter_svg: ^2.0.14
   image: ^4.3.0
+  flutter_silero_vad:
+    git: 
+      url: https://github.com/0235-jp/flutter_silero_vad.git
+      ref: 8657bc06515b98c38b56734341ffe57a8855e994
+  audio_streamer:
+    git: 
+      url: https://github.com/0235-jp/audio_streamer.git
+      ref: 2b87feba15abbd0531e18eede1943c87e102f8bd
+  path_provider: ^2.1.5
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:

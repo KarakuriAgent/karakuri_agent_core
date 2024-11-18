@@ -8,7 +8,7 @@ Karakuri Agent is a cross-platform application that enables interactive communic
 
 | Platform       | Support Status |
 |----------------|:--------------:|
-| Android        |       ❌       |
+| Android        |       🟢       |
 | iOS            |       ❌       |
 | Web            |       🟢       |
 | macOS          |       ❌       |

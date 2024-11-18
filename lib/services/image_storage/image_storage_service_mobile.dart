@@ -41,10 +41,7 @@ class ImageStorageService extends ImageStorageServiceInterface {
     required List<int> file,
   }) async {
     try {
-      final folder = Directory(await _imagesPath);
-      if (!await folder.exists()) {
-        await folder.create(recursive: true);
-      }
+      await _ensureDirectoryExists();
       await File('${await _imagesPath}/$key.zip').writeAsBytes(file);
     } catch (e) {
       throw ServiceException(runtimeType.toString(), 'saveImageZip',
@@ -55,10 +52,7 @@ class ImageStorageService extends ImageStorageServiceInterface {
   @override
   Future<List<int>> getImageZip(String key) async {
     try {
-      final folder = Directory(await _imagesPath);
-      if (!await folder.exists()) {
-        await folder.create(recursive: true);
-      }
+      await _ensureDirectoryExists();
       return await File('${await _imagesPath}/$key.zip').readAsBytes();
     } catch (e) {
       throw ServiceException(runtimeType.toString(), 'getImageZip',
@@ -68,13 +62,19 @@ class ImageStorageService extends ImageStorageServiceInterface {
 
   @override
   Future<List<String>> getImageNames() async {
+    final folder = await _ensureDirectoryExists();
+    return await folder
+        .list()
+        .where((file) => file.path.endsWith('.zip'))
+        .map((file) => p.basenameWithoutExtension(file.path))
+        .toList();
+  }
+
+  Future<Directory> _ensureDirectoryExists() async {
     final folder = Directory(await _imagesPath);
     if (!await folder.exists()) {
       await folder.create(recursive: true);
     }
-    return await folder
-        .list()
-        .map((file) => p.basenameWithoutExtension(file.path))
-        .toList();
+    return folder;
   }
 }

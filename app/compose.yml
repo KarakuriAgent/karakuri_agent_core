@@ -1,7 +1,7 @@
 services:
-  krakuri-dev:
+  krakuri-agent-app-dev:
     build: .
-    container_name: "krakuri-dev"
+    container_name: "krakuri-agent-app-dev"
     tty: true
     command: sleep infinity
     network_mode: "host"

@@ -37,7 +37,7 @@ RUN cd ~ \
 RUN ~/flutter/bin/flutter precache
 
 # add Flutter PATH
-ENV PATH="/home/ubuntu/flutter/bin:${PATH}"
+ENV PATH="/home/ubuntu/flutter/bin:/home/ubuntu/.pub-cache/bin:${PATH}"
 RUN chmod -R 755 ~/flutter/bin
 
 # Install AndroidSDK

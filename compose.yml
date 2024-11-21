@@ -1,0 +1,24 @@
+services:
+  karakuri-agent-app:
+    build: ./app
+    container_name: "karakuri-agent-app"
+    tty: true
+    command: >
+      /bin/sh -c "cd ~/workspace/karakuri_agent && flutter pub get &&  dart run rps run-release web"
+    ports:
+      - 50505:50505
+    volumes:
+      - ./app:/home/ubuntu/workspace/karakuri_agent
+  karakuri-agent-server:
+    container_name: "karakuri-agent-server"
+    volumes:
+      - ./server:/home/karakuri/workspace/server
+    build: ./server
+    ports:
+      - 8080:8080
+    environment:
+      - PATH=/home/karakuri/.local/bin:${PATH}  
+    command: >
+      sh -c "pip install --user --upgrade pip &&
+             pip install --user --no-cache-dir --upgrade -r requirements.txt &&
+             ./start.sh"

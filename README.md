@@ -95,5 +95,5 @@ dart run rps build-release web
 ## Using Docker Compose
 You can start the Web server in a Docker environment using the following command:
 ```
-docker compose -f compose-server.yml up -d
+docker compose up -d
 ```

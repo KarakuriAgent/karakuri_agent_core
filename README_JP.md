@@ -92,5 +92,5 @@ dart run rps build-release web
 ## Docker Composeの使用
 以下のコマンドを使用して、Docker環境でWebサーバーを起動できます。
 ```
-docker compose -f compose-server.yml up -d
+docker compose up -d
 ```

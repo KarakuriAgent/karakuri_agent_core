@@ -8,12 +8,16 @@ on:
 permissions:
   contents: write
 
+defaults:
+  run:
+    working-directory: app
+
 jobs:
-  release-android:
+  release-android-app:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: ghcr.io/0235-jp/karkuri-agent-dev:latest
+      image: ghcr.io/0235-jp/karkuri-agent-app-dev:latest
       options: --user root
     env:
       KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
@@ -62,11 +66,11 @@ jobs:
           asset_path: build/dartDebugSymbols.zip
           asset_name: dartDebugSymbols.zip
           asset_content_type: application/zip
-  release-web:
+  release-web-app:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: ghcr.io/0235-jp/karkuri-agent-dev:latest
+      image: ghcr.io/0235-jp/karkuri-agent-app-dev:latest
       options: --user root
     steps:
       - name: Checkout

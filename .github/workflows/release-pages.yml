@@ -8,12 +8,16 @@ on:
 permissions:
   contents: write
 
+defaults:
+  run:
+    working-directory: app
+
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: ghcr.io/0235-jp/karkuri-agent-dev:latest
+      image: ghcr.io/0235-jp/karkuri-agent-app-dev:latest
       options: --user root
     steps:
       - name: Checkout

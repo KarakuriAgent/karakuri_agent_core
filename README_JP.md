@@ -58,7 +58,7 @@ cd app
 docker compose up -d
 
 // for server
-cd serer 
+cd server 
 docker compose up -d
 ```
 ## appコマンド例

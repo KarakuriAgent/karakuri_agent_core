@@ -102,7 +102,7 @@ class VoicevoxTextToSpeechService extends TextToSpeechService {
         headers: headers,
       );
       if (response.statusCode == 200 && response.body.isNotEmpty) {
-        return response.body;
+        return utf8.decode(response.bodyBytes);
       } else {
         final errorResponse = response.body;
         final errorMessage = json.decode(errorResponse)['error']['message'];

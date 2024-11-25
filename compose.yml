@@ -1,6 +1,8 @@
 services:
   karakuri-agent-app:
-    build: ./app
+    build:
+      context: .
+      dockerfile: Dockerfile_app_web
     container_name: "karakuri-agent-app"
     tty: true
     command: >
@@ -12,13 +14,9 @@ services:
   karakuri-agent-server:
     container_name: "karakuri-agent-server"
     volumes:
-      - ./server:/home/karakuri/workspace/server
-    build: ./server
+      - ./server:/app
+    build: 
+      context: .
+      dockerfile: Dockerfile_server
     ports:
       - 8080:8080
-    environment:
-      - PATH=/home/karakuri/.local/bin:${PATH}  
-    command: >
-      sh -c "pip install --user --upgrade pip &&
-             pip install --user --no-cache-dir --upgrade -r requirements.txt &&
-             ./start.sh"

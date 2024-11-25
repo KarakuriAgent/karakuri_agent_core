@@ -8,12 +8,16 @@ permissions:
   issues: write
   pull-requests: write
 
+defaults:
+  run:
+    working-directory: app
+
 jobs:
-  build-android:
+  build-android-app:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: ghcr.io/0235-jp/karkuri-agent-dev:latest
+      image: ghcr.io/0235-jp/karkuri-agent-app-dev:latest
       options: --user root
     env:
       KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
@@ -42,11 +46,11 @@ jobs:
         with:
           path: build/app/outputs
           retention-days: 1
-  build-web:
+  build-web-app:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: ghcr.io/0235-jp/karkuri-agent-dev:latest
+      image: ghcr.io/0235-jp/karkuri-agent-app-dev:latest
       options: --user root
     steps:
       - uses: actions/checkout@v3

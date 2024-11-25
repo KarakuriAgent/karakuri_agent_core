@@ -1,0 +1,20 @@
+services:
+  karakuri-agent-server-dev:
+    container_name: "karakuri-agent-server-dev"
+    volumes:
+      - ./:/home/karakuri/workspace/server
+      - pip-cache:/home/karakuri/.cache/pip
+      - pip-local:/home/karakuri/.local
+    build: .
+    ports:
+     - "8081:8080"
+    tty: true
+    environment:
+      - PATH=/home/karakuri/.local/bin:${PATH}
+    command: >
+      bash -c "pip install --user --upgrade pip &&
+             pip install --user --no-cache-dir --upgrade -r requirements.txt &&
+             sleep infinity"
+volumes:
+  pip-cache:
+  pip-local:

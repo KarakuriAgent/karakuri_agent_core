@@ -48,5 +48,6 @@ app.*.map.json
 /android/app/src/main/java/io/flutter/plugins/Messages.java
 .crashlytics/dump_syms.bin
 
-# melos
-pubspec_overrides.yaml
+# flutter for web
+node_modules/
+web/vad-web/

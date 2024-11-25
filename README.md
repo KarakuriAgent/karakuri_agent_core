@@ -55,10 +55,16 @@ sudo reboot
 
 ### You can launch the image with the following command, and access it with Visual Studio Code's development container, etc., to develop as if in a local environment:
 ```
-docker compose -f compose-dev.yml up -d
+// for app
+cd app
+docker compose up -d
+
+// for server
+cd server 
+docker compose up -d
 ```
 
-## Command Examples
+## app Command Examples
 Here, as an example, we describe how to build for Web and start the server. For building on each platform, please modify and execute the commands accordingly.
 
 ### Initializing the Project
@@ -86,8 +92,8 @@ Output to /build.
 dart run rps build-release web
 ```
 
-### Using Docker Compose
+## Using Docker Compose
 You can start the Web server in a Docker environment using the following command:
 ```
-docker compose -f compose-server.yml up -d
+docker compose up -d
 ```

@@ -1,9 +1,10 @@
 services:
-  krakuri-dev:
+  karakuri-agent-app-dev:
     build: .
-    container_name: "krakuri-dev"
+    container_name: "karakuri-agent-app-dev"
     tty: true
     command: sleep infinity
-    network_mode: "host"
+    ports:
+     - "50505:50505"
     volumes:
       - ./:/home/ubuntu/workspace/karakuri_agent

@@ -1,0 +1,22 @@
+services:
+  karakuri-agent-app:
+    build:
+      context: .
+      dockerfile: Dockerfile_app_web
+    container_name: "karakuri-agent-app"
+    tty: true
+    command: >
+      /bin/sh -c "cd ~/workspace/karakuri_agent && flutter pub get &&  dart run rps run-release web"
+    ports:
+      - 50505:50505
+    volumes:
+      - ./app:/home/ubuntu/workspace/karakuri_agent
+  karakuri-agent-server:
+    container_name: "karakuri-agent-server"
+    volumes:
+      - ./server:/app
+    build: 
+      context: .
+      dockerfile: Dockerfile_server
+    ports:
+      - 8080:8080

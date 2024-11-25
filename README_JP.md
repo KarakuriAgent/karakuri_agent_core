@@ -53,9 +53,15 @@ sudo reboot
 
 ### 次のコマンドでイメージを立ち上げることができ、Visual Studio Codeの開発コンテナ等でアクセスするとローカル環境と同様に開発ができます。
 ```
-docker compose -f compose-dev.yml up -d
+// for app
+cd app
+docker compose up -d
+
+// for server
+cd server 
+docker compose up -d
 ```
-## コマンド例
+## appコマンド例
 ここでは例としてWebのビルド及びサーバーの起動の方法をきしします。各プラットフォームのビルド等は各自コマンドを変更して実行してください。
 
 ### プロジェクトの初期化
@@ -83,8 +89,8 @@ dart run rps run-release web
 dart run rps build-release web
 ```
 
-### Docker Composeの使用
+## Docker Composeの使用
 以下のコマンドを使用して、Docker環境でWebサーバーを起動できます。
 ```
-docker compose -f compose-server.yml up -d
+docker compose up -d
 ```

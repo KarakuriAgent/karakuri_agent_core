@@ -123,7 +123,7 @@ class VoicevoxTextToSpeechService extends TextToSpeechService {
     try {
       final response = await http.post(
         Uri.parse(
-            '${serviceConfig.baseUrl}/cancellable_synthesis?speaker=${_agentConfig.textToSpeechVoice.key}'),
+            '${serviceConfig.baseUrl}/synthesis?speaker=${_agentConfig.textToSpeechVoice.key}'),
         headers: headers,
         body: accentPhrases,
       );

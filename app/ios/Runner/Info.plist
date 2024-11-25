@@ -50,5 +50,7 @@
    		<string>en</string>
    		<string>ja</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Used for conversations with AI.</string>
 </dict>
 </plist>

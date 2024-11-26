@@ -2,6 +2,7 @@ import 'package:karakuri_agent/models/key_value_pair.dart';
 import 'package:karakuri_agent/models/service_type.dart';
 import 'package:karakuri_agent/services/default_param/default_param_service.dart';
 import 'package:karakuri_agent/services/default_param/openai_default_param_service.dart';
+import 'package:karakuri_agent/services/default_param/sbv2_default_param_service.dart';
 import 'package:karakuri_agent/services/default_param/voicevox_default_param_service.dart';
 import 'package:karakuri_agent/services/default_param/voicevox_nemo_default_param_service.dart';
 
@@ -13,8 +14,7 @@ class DefaultParamRepository {
           ServiceType.openAI => OpenAIDefaultParamService(),
           ServiceType.voicevox => VoicevoxDefaultParamService(),
           ServiceType.voicevoxNemo => VoicevoxNemoDefaultParamService(),
-          _ => throw UnsupportedError(
-              'Service type "$serviceType" does not have a default parameter implementation'),
+          ServiceType.styleBertVITS2 => Sbv2DefaultParamService(),
         };
 
   List<KeyValuePair> get textModels => _defaultParamService.textModels;

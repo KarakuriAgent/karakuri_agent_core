@@ -21,7 +21,7 @@ Karakuri Agentは、2D画像を用いたAIとのインタラクティブなコ�
 |                | text to speech |    🟢    |
 |                | speech to text |    🟢    |
 | VoiceVox       | text to speech |    🟢    |
-| StyleBertVITS2 | text to speech |    ❌    |
+| StyleBertVITS2 | text to speech |    🟢    |
 
 ## Quick Start
 [![Open in IDX](https://cdn.idx.dev/btn/open_purple_32.svg)](https://idx.google.com/import?url=https://github.com/0235-jp/karakuri_agent)

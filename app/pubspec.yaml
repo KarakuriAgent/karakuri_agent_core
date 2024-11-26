@@ -2,7 +2,7 @@ name: karakuri_agent
 description: "Karakuri agent."
 publish_to: 'none'
 
-version: 0.1.4+9
+version: 0.1.5+10
 
 environment:
   sdk: ^3.5.3
@@ -24,14 +24,14 @@ dependencies:
   json_annotation: ^4.9.0
   path: ^1.9.0
   sqflite: ^2.4.1
-  sqflite_common_ffi_web: ^0.4.5+3
+  sqflite_common_ffi_web: ^0.4.5+4
   http: ^1.2.2
   http_parser: ^4.0.2
   openai_dart: ^0.4.4
   audioplayers: ^6.1.0
   idb_shim: ^2.6.1+7
   archive: ^3.6.1
-  flutter_svg: ^2.0.14
+  flutter_svg: ^2.0.15
   image: ^4.3.0
   flutter_silero_vad:
     git: 
@@ -50,10 +50,10 @@ dev_dependencies:
   dart_style: ^2.3.7
   flutter_lints: ^5.0.0
   build_runner: ^2.4.13
-  riverpod_generator: ^2.6.2
+  riverpod_generator: ^2.6.3
   slang_build_runner: ^4.2.0
   freezed: ^2.5.7
-  json_serializable: ^6.8.0
+  json_serializable: ^6.9.0
   rps: ^0.9.1
 
 dependency_overrides:

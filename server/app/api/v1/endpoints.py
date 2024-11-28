@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
+from app.auth.api_key import get_api_key
 from app.core.agent_manager import get_agent_manager
 from app.core.llm_service import LLMService
 from app.core.tts_service import TTSService
@@ -9,7 +10,7 @@ llm_service = LLMService()
 tts_service = TTSService()
 
 @router.post("/chat")
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, api_key: str = Depends(get_api_key)):
     """
     チャットエンドポイント
     音声データ（WAV形式）を返します
@@ -45,7 +46,7 @@ async def chat(request: ChatRequest):
         )
 
 @router.get("/agents")
-async def list_agents():
+async def list_agents(api_key: str = Depends(get_api_key)):
     """
     登録されているエージェントの一覧を返します
     """

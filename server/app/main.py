@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from app.auth.api_key import get_api_key
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import endpoints
 from app.core.config import get_settings
@@ -31,6 +32,6 @@ app.include_router(
 )
 
 @app.get("/health")
-async def health_check():
+async def health_check(api_key: str = Depends(get_api_key)):
     """ヘルスチェックエンドポイント"""
     return {"status": "healthy"}

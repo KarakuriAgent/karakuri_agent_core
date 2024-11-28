@@ -37,10 +37,10 @@ class _TalkContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(talkScreenViewModelProvider(agentConfig));
-    final (speechToText, textToSpeech, emotion, karakuriImage) = ref.watch(
+    final (speechToText, karakuriImage) = ref.watch(
       talkScreenViewModelProvider(agentConfig).select(
         (it) =>
-            (it.speechToText, it.textToSpeech, it.emotion, it.karakuriImage),
+            (it.speechToText, it.karakuriImage),
       ),
     );
     return Scaffold(
@@ -51,8 +51,6 @@ class _TalkContent extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text('speechToText: $speechToText'),
-          Text('textToSpeech: $textToSpeech'),
-          Text('emotion: $emotion'),
           if (karakuriImage != null)
             ConstrainedBox(
               constraints: BoxConstraints(

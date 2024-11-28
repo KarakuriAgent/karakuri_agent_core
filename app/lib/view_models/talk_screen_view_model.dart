@@ -6,11 +6,9 @@ import 'package:karakuri_agent/models/text_message.dart';
 import 'package:karakuri_agent/providers/image_storage_provider.dart';
 import 'package:karakuri_agent/providers/speech_to_text_provider.dart';
 import 'package:karakuri_agent/providers/text_provider.dart';
-import 'package:karakuri_agent/providers/text_to_speech_provider.dart';
 import 'package:karakuri_agent/repositories/image_storage_repository.dart';
 import 'package:karakuri_agent/repositories/speech_to_text_repository.dart';
 import 'package:karakuri_agent/repositories/text_repository.dart';
-import 'package:karakuri_agent/repositories/text_to_speech_repository.dart';
 import 'package:karakuri_agent/utils/exception.dart';
 
 class TalkScreenViewModel extends ChangeNotifier {
@@ -19,7 +17,6 @@ class TalkScreenViewModel extends ChangeNotifier {
   late final List<KarakuriImage> _karakuriImages;
   late final SpeechToTextRepository _speechToTextRepository;
   late final TextRepository _textRepository;
-  late final TextToSpeechRepository _textToSpeechRepository;
   late final ImageStorageRepository _imageStorageRepository;
   final List<TextMessage> _messages = [];
   TalkScreenViewModelState _state = TalkScreenViewModelState.loading;
@@ -42,7 +39,6 @@ class TalkScreenViewModel extends ChangeNotifier {
                 agentConfig: _agentConfig, onResult: _onResult))
         .future);
     _textRepository = _ref.watch(textProvider(_agentConfig));
-    _textToSpeechRepository = _ref.watch(textToSpeechProvider(_agentConfig));
     _imageStorageRepository = await _ref.watch(imageStorageProvider.future);
     _karakuriImages =
         await _imageStorageRepository.getKarakuriImages(_agentConfig.imageKey);
@@ -75,10 +71,9 @@ class TalkScreenViewModel extends ChangeNotifier {
   Future<void> pause() async {
     if (state == TalkScreenViewModelState.disposed) return;
     try {
-      _textRepository.cancel();
       await Future.wait([
         _speechToTextRepository.pauseRecognition(),
-        _textToSpeechRepository.stop(),
+        _textRepository.stop(),
       ]);
       _state = TalkScreenViewModelState.initialized;
       notifyListeners();
@@ -96,44 +91,44 @@ class TalkScreenViewModel extends ChangeNotifier {
     _state = TalkScreenViewModelState.thinking;
     _speechToText = speechToTextResult;
     notifyListeners();
-    _messages.add(TextMessage(
-        role: Role.user,
-        emotion: Emotion.neutral,
-        message: speechToTextResult));
-    final List<TextMessage> messages;
+    
+    // _messages.add(TextMessage(
+    //     role: Role.user,
+    //     emotion: Emotion.neutral,
+    //     message: speechToTextResult));
     try {
-      messages = await _textRepository.completions(_messages);
+      await _textRepository.chat(speechToTextResult);
     } on CancellationException {
-      _messages.removeLast();
+      // _messages.removeLast();
       _state = TalkScreenViewModelState.initialized;
       notifyListeners();
       return;
     }
     if (state == TalkScreenViewModelState.disposed) return;
 
-    if (messages.isEmpty) {
-      _messages.removeLast();
-      _state = TalkScreenViewModelState.initialized;
-      return;
-    }
-    for (var message in messages) {
-      _messages.add(message);
-      _state = TalkScreenViewModelState.speaking;
-      _textToSpeech = message.message;
-      _emotion = message.emotion.name;
-      _karakuriImage = _karakuriImages.firstWhere(
-          (element) => element.emotion == message.emotion,
-          orElse: () => _karakuriImages
-              .firstWhere((element) => element.emotion == Emotion.neutral));
-      notifyListeners();
-      try {
-        await _textToSpeechRepository.speech(message.message);
-      } on CancellationException {
-        _state = TalkScreenViewModelState.initialized;
-        notifyListeners();
-        return;
-      }
-    }
+    // if (messages.isEmpty) {
+    //   _messages.removeLast();
+    //   _state = TalkScreenViewModelState.initialized;
+    //   return;
+    // }
+    // for (var message in messages) {
+    //   _messages.add(message);
+    //   _state = TalkScreenViewModelState.speaking;
+    //   _textToSpeech = message.message;
+    //   _emotion = message.emotion.name;
+    //   _karakuriImage = _karakuriImages.firstWhere(
+    //       (element) => element.emotion == message.emotion,
+    //       orElse: () => _karakuriImages
+    //           .firstWhere((element) => element.emotion == Emotion.neutral));
+    //   notifyListeners();
+    //   try {
+    //     await _textToSpeechRepository.speech(message.message);
+    //   } on CancellationException {
+    //     _state = TalkScreenViewModelState.initialized;
+    //     notifyListeners();
+    //     return;
+    //   }
+    // }
     if (state == TalkScreenViewModelState.disposed) return;
 
     await start();

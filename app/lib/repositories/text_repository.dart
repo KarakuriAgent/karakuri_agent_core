@@ -1,17 +1,16 @@
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/service_type.dart';
 import 'package:karakuri_agent/models/text_message.dart';
-import 'package:karakuri_agent/services/text/openai_text_service.dart';
-import 'package:karakuri_agent/services/text/text_service.dart';
+import 'package:karakuri_agent/services/text/karakuri_service.dart';
 
 class TextRepository {
   final AgentConfig _agentConfig;
-  late final TextService _service;
+  late final KarakuriService _service;
 
   TextRepository(this._agentConfig) {
     switch (_agentConfig.textServiceConfig.type) {
       case ServiceType.openAI:
-        _service = OpenaiTextService(_agentConfig);
+        _service = KarakuriService(_agentConfig);
         break;
       default:
         throw Exception(
@@ -19,15 +18,15 @@ class TextRepository {
     }
   }
 
-  Future<List<TextMessage>> completions(List<TextMessage> messages) async {
-    return await _service.completions(messages);
+  Future<void> chat(String message) async {
+    return await _service.chat(message);
   }
 
-  void cancel() {
-    _service.cancel();
-  }
-
-  void dispose() {
+  Future<void> dispose() async {
     _service.dispose();
+  }
+
+  Future<void> stop() async {
+    _service.stop();
   }
 }

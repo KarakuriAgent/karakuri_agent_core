@@ -12,6 +12,7 @@ class Settings:
             for key in os.getenv("API_KEYS", "").split(",") 
             if key.strip()
         ]
+        self.line_max_audio_files = int(os.getenv("LINE_MAX_AUDIO_FILES", "5"))
     
     def get_agent_env(self, agent_id: int, key: str) -> str:
         return os.getenv(f"AGENT_{agent_id}_{key}")

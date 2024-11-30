@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 class LLMService:
     @staticmethod
     async def generate_response(
+        message_type: str,
         message: str,
         agent_config: AgentConfig,
         conversation_history: Optional[list] = None

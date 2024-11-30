@@ -13,14 +13,6 @@ class AgentConfig(BaseModel):
     tts_speaker_model: str
     tts_speaker_id: int
 
-class ChatRequest(BaseModel):
-    agent_id: str
-    message: str
-
-class ChatResponse(BaseModel):
-    text: str
-    audio: bytes
-
 class AgentResponse(BaseModel):
     agent_id: str
     agent_name: str

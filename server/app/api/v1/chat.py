@@ -67,7 +67,7 @@ async def chat_text_to_voice(
             message, 
             agent_config
         )
-        message = llm_response["message"]
+        message = llm_response["message"].rstrip('\n')
 
         audio_data = await tts_service.generate_speech(
             message, 
@@ -161,7 +161,7 @@ async def chat_voice_to_voice(
             text_message, 
             agent_config
         )
-        message = llm_response["message"]
+        message = llm_response["message"].rstrip('\n')
 
         audio_data = await tts_service.generate_speech(
             message, 

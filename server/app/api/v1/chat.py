@@ -32,7 +32,6 @@ async def chat_text_to_text(
             message, 
             agent_config
         )
-
         return Response(content=llm_response)
     except Exception as e:
         raise HTTPException(

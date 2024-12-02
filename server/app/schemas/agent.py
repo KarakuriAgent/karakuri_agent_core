@@ -3,9 +3,12 @@ from pydantic import BaseModel
 class AgentConfig(BaseModel):
     id: str
     name: str
-    llm_base_url: str
-    llm_api_key: str
-    llm_model: str
+    message_generate_llm_base_url: str
+    message_generate_llm_api_key: str
+    message_generate_llm_model: str
+    emotion_generate_llm_base_url: str
+    emotion_generate_llm_api_key: str
+    emotion_generate_llm_model: str
     llm_system_prompt: str
     tts_base_url: str
     tts_api_key: str

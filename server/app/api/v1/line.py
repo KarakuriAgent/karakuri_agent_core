@@ -50,6 +50,7 @@ async def handle_line_callback(
         agent_config = agent_manager.get_agent(agent_id)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Agent with ID '{agent_id}' not found.")
+    
     configuration = Configuration(
         access_token=agent_config.line_channel_access_token
     )
@@ -64,38 +65,45 @@ async def handle_line_callback(
 
     try:
         for event in events:
-         if not isinstance(event, MessageEvent):
-             continue
-         if not isinstance(event.message, TextMessageContent):
-             continue
+            if not isinstance(event, MessageEvent):
+                continue
+            if not isinstance(event.message, TextMessageContent):
+                continue
 
-        llm_response = await llm_service.generate_response(
-            "line",
-            event.message.text, 
-            agent_config
+            llm_response = await llm_service.generate_response(
+                "line",
+                event.message.text, 
+                agent_config
             )
-        message = llm_response["message"].rstrip('\n')
+            message = llm_response["message"].rstrip('\n')
 
-        audio_data = await tts_service.generate_speech(
-            message, 
-            agent_config
-        )
+            audio_data = await tts_service.generate_speech(
+                message, 
+                agent_config
+            )
 
-        scheme = request.headers.get('X-Forwarded-Proto', 'http')
-        server_host = request.headers.get('X-Forwarded-Host', request.base_url.hostname)
-        base_url = f"{scheme}://{server_host}"
+            scheme = request.headers.get('X-Forwarded-Proto', 'http')
+            server_host = request.headers.get('X-Forwarded-Host', request.base_url.hostname)
+            base_url = f"{scheme}://{server_host}"
 
-        audio_url = await upload_to_storage(base_url, audio_data)
-        duration = calculate_audio_duration(audio_data)
-        await line_bot_api.reply_message(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=message),
-                           AudioMessage(original_content_url=audio_url, duration=duration)]
+            audio_url = await upload_to_storage(base_url, audio_data)
+            duration = calculate_audio_duration(audio_data)
+            
+            await line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[
+                        TextMessage(text=message),
+                        AudioMessage(original_content_url=audio_url, duration=duration)
+                    ]
                 )
             )
+            
+        await line_async_api_client.close()
         return 'OK'
+        
     except Exception as e:
+        await line_async_api_client.close()
         logger.exception("Error in handle_line_callback:", exc_info=True)
         raise HTTPException(
             status_code=500,

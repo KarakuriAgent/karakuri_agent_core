@@ -59,7 +59,6 @@ class LLMService:
         message: str,
         agent_config: AgentConfig,
     ) -> dict:
-        logger.info(message)
         emotion_prompt = self.create_emotion_analysis_prompt(message)
 
         emotion_messages = [

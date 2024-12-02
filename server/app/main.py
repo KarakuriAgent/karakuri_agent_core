@@ -1,9 +1,8 @@
 from fastapi import FastAPI, Depends
 from app.auth.api_key import get_api_key
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import endpoints
+from app.api.v1 import chat, line, agents
 from app.core.config import get_settings
-
 import logging
 
 logging.basicConfig(
@@ -26,9 +25,21 @@ app.add_middleware(
 )
 
 app.include_router(
-    endpoints.router,
+    chat.router,
+    prefix="/v1/chat",
+    tags=["chat"]
+)
+
+app.include_router(
+    line.router,
+    prefix="/v1/line",
+    tags=["line"]
+)
+
+app.include_router(
+    agents.router,
     prefix="/v1",
-    tags=["v1"]
+    tags=["agents"]
 )
 
 @app.get("/health")

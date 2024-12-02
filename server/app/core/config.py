@@ -13,6 +13,7 @@ class Settings:
             if key.strip()
         ]
         self.line_max_audio_files = int(os.getenv("LINE_MAX_AUDIO_FILES", "5"))
+        self.line_audio_files_dir = str(os.getenv("LINE_AUDIO_FILES_DIR", "audio_files"))
     
     def get_agent_env(self, agent_id: int, key: str) -> str:
         return os.getenv(f"AGENT_{agent_id}_{key}")

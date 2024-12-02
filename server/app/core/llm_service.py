@@ -12,20 +12,16 @@ class LLMService:
 
     def create_emotion_analysis_prompt(self, text: str) -> str:
             emotions = Emotion.to_request_values()
-            return f"""Analyze the following text by dividing it into meaningful units and identifying the emotions expressed in each part.
-    Respond ONLY in the specified JSON format without any additional explanation.
+            return f"""analyze the following text emotion.
+            Respond ONLY in the specified JSON format without any additional explanation.
 
     Input text: {text}
 
     Required JSON format:
     {{
-        "responses": [
-            {{
-                "emotion": One of these emotions: {', '.join(emotions)},
-                "divided_message": "A meaningful segment of the text"
-            }},
-            ... (repeat for each segment)
-        ]
+        {{
+            "emotion": One of these emotions: {', '.join(emotions)},
+        }}
     }}"""
 
     async def generate_response(
@@ -34,7 +30,7 @@ class LLMService:
         message: str,
         agent_config: AgentConfig,
         conversation_history: Optional[list] = None
-    ) -> str:
+    ) -> dict:
         messages = []
         
         if agent_config.llm_system_prompt:
@@ -62,7 +58,7 @@ class LLMService:
         self, 
         message: str,
         agent_config: AgentConfig,
-    ) -> str:
+    ) -> dict:
         logger.info(message)
         emotion_prompt = self.create_emotion_analysis_prompt(message)
 
@@ -85,13 +81,19 @@ class LLMService:
             )
 
         try:
-            json.loads(emotion_response.choices[0].message.content)
-            return emotion_response.choices[0].message.content
-        except json.JSONDecodeError:
-            fallback_response = {
-                "responses": [{
+            parsed_response = json.loads(emotion_response.choices[0].message.content)
+            if not isinstance(parsed_response, dict) or "emotion" not in parsed_response:
+                raise ValueError("Invalid JSON structure")
+            
+            if parsed_response["emotion"] not in Emotion.to_request_values():
+                raise ValueError(f"Invalid emotion value: {parsed_response['emotion']}")
+            return {
+                    "emotion": parsed_response["emotion"],
+                    "message": message
+                }
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.error(f"Error parsing emotion response: {str(e)}")
+            return {
                     "emotion": Emotion.NEUTRAL,
-                    "divided_message": message
-                }]
-            }
-            return json.dumps(fallback_response)
+                    "message": message
+                }

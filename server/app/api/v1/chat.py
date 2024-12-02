@@ -3,6 +3,7 @@ from app.dependencies import get_llm_service, get_tts_service, get_stt_service
 from app.auth.api_key import get_api_key
 from app.core.agent_manager import get_agent_manager
 import logging
+import json
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ async def chat_text_to_text(
             message, 
             agent_config
         )
-        return Response(content=llm_response)
+        return Response(content=json.dumps(llm_response, ensure_ascii=False))
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -45,7 +46,6 @@ async def chat_text_to_voice(
     message: str, 
     api_key: str = Depends(get_api_key),
     llm_service = Depends(get_llm_service),
-    stt_service = Depends(get_stt_service),
     tts_service = Depends(get_tts_service)
 ):
     """
@@ -67,9 +67,10 @@ async def chat_text_to_voice(
             message, 
             agent_config
         )
+        message = llm_response["message"]
 
         audio_data = await tts_service.generate_speech(
-            llm_response, 
+            message, 
             agent_config
         )
 
@@ -89,8 +90,7 @@ async def chat_voice_to_text(
     audio_file: UploadFile = File(...),
     api_key: str = Depends(get_api_key),
     llm_service = Depends(get_llm_service),
-    stt_service = Depends(get_stt_service),
-    tts_service = Depends(get_tts_service)
+    stt_service = Depends(get_stt_service)
 ):
     """
     チャットエンドポイント
@@ -119,7 +119,7 @@ async def chat_voice_to_text(
             agent_config
         )
 
-        return Response(content=llm_response)
+        return Response(content=json.dumps(llm_response, ensure_ascii=False))
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -161,9 +161,10 @@ async def chat_voice_to_voice(
             text_message, 
             agent_config
         )
+        message = llm_response["message"]
 
         audio_data = await tts_service.generate_speech(
-            llm_response, 
+            message, 
             agent_config
         )
 

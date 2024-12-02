@@ -74,9 +74,10 @@ async def handle_line_callback(
             event.message.text, 
             agent_config
             )
+        message = llm_response["message"]
 
         audio_data = await tts_service.generate_speech(
-            llm_response, 
+            message, 
             agent_config
         )
 
@@ -89,7 +90,7 @@ async def handle_line_callback(
         await line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[TextMessage(text=llm_response),
+                messages=[TextMessage(text=message),
                            AudioMessage(original_content_url=audio_url, duration=duration)]
                 )
             )

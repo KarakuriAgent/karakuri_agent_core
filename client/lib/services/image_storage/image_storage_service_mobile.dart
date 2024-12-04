@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 
-import 'package:karakuri_agent/services/image_storage/image_storage_service_interface.dart';
+import 'package:karakuri_agent/services/image_storage/image_storage_service.dart';
 import 'package:karakuri_agent/utils/exception.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
-class ImageStorageService extends ImageStorageServiceInterface {
+class ImageStorageServiceImpl extends ImageStorageService {
   Future<String> get _imagesPath async =>
       '${(await getApplicationSupportDirectory()).path}/images';
 
@@ -15,15 +15,15 @@ class ImageStorageService extends ImageStorageServiceInterface {
   Future<void> init() async {
     try {
       final keys = await getImageNames();
-      if (keys.contains(ImageStorageServiceInterface.aiRoboImageName)) {
+      if (keys.contains(ImageStorageService.aiRoboImageName)) {
         return;
       }
       final data =
-          await rootBundle.load(ImageStorageServiceInterface.assetPath);
+          await rootBundle.load(ImageStorageService.assetPath);
       final bytes =
           data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
       await saveImageZip(
-        key: ImageStorageServiceInterface.aiRoboImageName,
+        key: ImageStorageService.aiRoboImageName,
         file: bytes,
       );
     } catch (e) {

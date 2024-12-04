@@ -1,31 +1,31 @@
 import 'package:flutter/services.dart';
 import 'package:idb_shim/idb_browser.dart';
+import 'package:karakuri_agent/services/image_storage/image_storage_service.dart';
 
-import 'package:karakuri_agent/services/image_storage/image_storage_service_interface.dart';
 import 'package:karakuri_agent/utils/exception.dart';
 
-class ImageStorageService extends ImageStorageServiceInterface {
+class ImageStorageServiceImpl extends ImageStorageService {
   static const String dbName = 'ImageStorage';
   static const int dbVersion = 1;
   static const String storeName = 'files';
 
   late IdbFactory _idbFactory;
 
-  ImageStorageService() {
+  ImageStorageServiceImpl() {
     _idbFactory = getIdbFactory()!;
   }
 
   @override
   Future<void> init() async {
     if (await getImageNames().then((keys) =>
-        keys.contains(ImageStorageServiceInterface.aiRoboImageName))) {
+        keys.contains(ImageStorageService.aiRoboImageName))) {
       return;
     }
     final ByteData data =
-        await rootBundle.load(ImageStorageServiceInterface.assetPath);
+        await rootBundle.load(ImageStorageService.assetPath);
     final List<int> bytes = data.buffer.asUint8List();
     await saveImageZip(
-        key: ImageStorageServiceInterface.aiRoboImageName, file: bytes);
+        key: ImageStorageService.aiRoboImageName, file: bytes);
   }
 
   Future<Database> _openDatabase() async {

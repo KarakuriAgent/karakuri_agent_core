@@ -1,5 +1,8 @@
-import 'dart:typed_data';
+import 'dart:async';
 
 abstract class SpeechToTextService {
-  Future<String> createTranscription(Uint8List audio);
+  Future<void> init();
+  Future<String> start();
+  Future<void> stop();
+  Future<void> dispose();
 }

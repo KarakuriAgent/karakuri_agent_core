@@ -78,5 +78,5 @@ jobs:
       - name: Add Flutter to PATH
         run: echo "/home/ubuntu/flutter/bin" >> $GITHUB_PATH
       - run: git config --global --add safe.directory /home/ubuntu/flutter
-      - run: dart run rps clean-gen default
+      - run: dart run rps clean-gen
       - run: flutter test

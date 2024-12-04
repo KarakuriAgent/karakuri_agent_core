@@ -37,10 +37,10 @@ class _TalkContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(talkScreenViewModelProvider(agentConfig));
-    final (speechToText, karakuriImage) = ref.watch(
+    final (agentImage, userMessage, agentMessage, emotion) = ref.watch(
       talkScreenViewModelProvider(agentConfig).select(
         (it) =>
-            (it.speechToText, it.karakuriImage),
+            (it.agentImage, it.userMessage, it.agentMessage, it.emotion),
       ),
     );
     return Scaffold(
@@ -50,8 +50,10 @@ class _TalkContent extends HookConsumerWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('speechToText: $speechToText'),
-          if (karakuriImage != null)
+          Text("User: $userMessage"),
+          Text("Agent: $agentMessage"),
+          Text("Emotion: $emotion"),
+          if (agentImage != null)
             ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width * 0.3,
@@ -60,13 +62,13 @@ class _TalkContent extends HookConsumerWidget {
               child: Builder(
                 builder: (context) {
                   try {
-                    return karakuriImage.extension.toLowerCase() == 'svg'
+                    return agentImage.extension.toLowerCase() == 'svg'
                         ? SvgPicture.memory(
-                            karakuriImage.image,
+                            agentImage.image,
                             fit: BoxFit.contain,
                           )
                         : Image.memory(
-                            karakuriImage.image,
+                            agentImage.image,
                             fit: BoxFit.contain,
                           );
                   } catch (e) {
@@ -82,7 +84,7 @@ class _TalkContent extends HookConsumerWidget {
                 if (state == TalkScreenViewModelState.initialized) {
                   await viewModel.start();
                 } else {
-                  await viewModel.pause();
+                  await viewModel.stop();
                 }
               } catch (e) {
                 if (!context.mounted) return;

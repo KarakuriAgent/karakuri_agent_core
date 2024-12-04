@@ -52,14 +52,15 @@ class LLMService:
             model=agent_config.message_generate_llm_model,
             messages=messages
         )
-        return await self.generate_emotion_response(response.choices[0].message.content, agent_config)
+        return await self.generate_emotion_response(message, response.choices[0].message.content, agent_config)
 
     async def generate_emotion_response(
         self, 
-        message: str,
+        user_message: str,
+        agent_message: str,
         agent_config: AgentConfig,
     ) -> dict:
-        emotion_prompt = self.create_emotion_analysis_prompt(message)
+        emotion_prompt = self.create_emotion_analysis_prompt(agent_message)
 
         emotion_messages = [
                 {
@@ -88,11 +89,13 @@ class LLMService:
                 raise ValueError(f"Invalid emotion value: {parsed_response['emotion']}")
             return {
                     "emotion": parsed_response["emotion"],
-                    "message": message
+                    "user_message": user_message,
+                    "agent_message": agent_message
                 }
         except (json.JSONDecodeError, ValueError) as e:
             logger.error(f"Error parsing emotion response: {str(e)}")
             return {
                     "emotion": Emotion.NEUTRAL,
-                    "message": message
+                    "user_message": user_message,
+                    "agent_message": agent_message
                 }

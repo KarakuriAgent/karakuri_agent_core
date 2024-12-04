@@ -5,9 +5,7 @@ import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/providers/view_model_providers.dart';
 import 'package:karakuri_agent/view_models/home_screen_view_model.dart';
 import 'package:karakuri_agent/views/agent_config_screen.dart';
-import 'package:karakuri_agent/views/custom_view/link_text.dart';
 import 'package:karakuri_agent/i18n/strings.g.dart';
-import 'package:karakuri_agent/views/service_settings_screen.dart';
 import 'package:karakuri_agent/views/talk_screen.dart';
 
 class HomeScreen extends HookConsumerWidget {
@@ -32,17 +30,6 @@ class HomeScreen extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  LinkText(
-                    text: t.settings.serviceSettings.title,
-                    onTap: () async {
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => const ServiceSettingsScreen(),
-                        ),
-                      );
-                    },
-                  ),
                   _AgentContent(viewModel: viewModel)
                 ],
               ),
@@ -103,26 +90,6 @@ class _AgentCard extends HookConsumerWidget {
           children: [
             Text(
               t.home.agent.name(name: config.name),
-            ),
-            Text(
-              t.home.agent.textModel(
-                  name:
-                      '${config.textServiceConfig.name}:${config.textModel.value}'),
-            ),
-            Text(
-              t.home.agent.speechToTextModel(
-                  name:
-                      '${config.speechToTextServiceConfig.name}:${config.speechToTextModel.value}'),
-            ),
-            Text(
-              t.home.agent.textToSpeechModel(
-                  name:
-                      '${config.textToSpeechServiceConfig.name}:${config.textToSpeechModel.value}'),
-            ),
-            Text(
-              t.home.agent.textToSpeechVoice(
-                  name:
-                      '${config.textToSpeechServiceConfig.name}:${config.textToSpeechVoice.value}'),
             ),
             Row(
               children: [

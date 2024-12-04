@@ -1,48 +1,49 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
-import 'package:karakuri_agent/models/karakuri_image.dart';
-import 'package:karakuri_agent/models/text_message.dart';
+import 'package:karakuri_agent/models/agent_image.dart';
+import 'package:karakuri_agent/models/agent_responce.dart';
 import 'package:karakuri_agent/providers/image_storage_provider.dart';
+import 'package:karakuri_agent/providers/speech_provider.dart';
 import 'package:karakuri_agent/providers/speech_to_text_provider.dart';
-import 'package:karakuri_agent/providers/text_provider.dart';
+import 'package:karakuri_agent/providers/agent_provider.dart';
 import 'package:karakuri_agent/repositories/image_storage_repository.dart';
+import 'package:karakuri_agent/repositories/speech_repository.dart';
 import 'package:karakuri_agent/repositories/speech_to_text_repository.dart';
-import 'package:karakuri_agent/repositories/text_repository.dart';
-import 'package:karakuri_agent/utils/exception.dart';
+import 'package:karakuri_agent/repositories/agent_repository.dart';
 
 class TalkScreenViewModel extends ChangeNotifier {
-  final AutoDisposeRef _ref;
+  final Ref _ref;
   final AgentConfig _agentConfig;
-  late final List<KarakuriImage> _karakuriImages;
+  late final List<AgentImage> _agentImages;
   late final SpeechToTextRepository _speechToTextRepository;
-  late final TextRepository _textRepository;
+  late final AgentRepository _chatRepository;
+  late final SpeechRepository _speechRepository;
   late final ImageStorageRepository _imageStorageRepository;
-  final List<TextMessage> _messages = [];
   TalkScreenViewModelState _state = TalkScreenViewModelState.loading;
-  String _speechToText = '';
-  String _textToSpeech = '';
-  String _emotion = '';
-  KarakuriImage? _karakuriImage;
+  AgentImage? _agentImage;
+  String? _userMessage;
+  String? _agentMessage;
+  String? _emotion;
 
   TalkScreenViewModelState get state => _state;
-  String get speechToText => _speechToText;
-  String get textToSpeech => _textToSpeech;
-  String get emotion => _emotion;
-  KarakuriImage? get karakuriImage => _karakuriImage;
+  AgentImage? get agentImage => _agentImage;
+  String? get userMessage => _userMessage;
+  String? get agentMessage => _agentMessage;
+  String? get emotion => _emotion;
 
   TalkScreenViewModel(this._ref, this._agentConfig);
 
   Future<void> initialize() async {
-    _speechToTextRepository = await _ref.watch(speechToTextProvider(
-            SpeechToTextProviderParam(
-                agentConfig: _agentConfig, onResult: _onResult))
-        .future);
-    _textRepository = _ref.watch(textProvider(_agentConfig));
+    _speechToTextRepository = await _ref.watch(speechToTextProvider.future);
+    _chatRepository = _ref.watch(chatProvider(_agentConfig));
+    _speechRepository = _ref.watch(speechProvier);
     _imageStorageRepository = await _ref.watch(imageStorageProvider.future);
-    _karakuriImages =
-        await _imageStorageRepository.getKarakuriImages(_agentConfig.imageKey);
-    _karakuriImage = _karakuriImages
+    _agentImages =
+        await _imageStorageRepository.getAgentImages(_agentConfig.imageKey);
+    _agentImage = _agentImages
         .firstWhere((element) => element.emotion == Emotion.neutral);
     _state = TalkScreenViewModelState.initialized;
     notifyListeners();
@@ -52,86 +53,71 @@ class TalkScreenViewModel extends ChangeNotifier {
   void dispose() {
     if (state == TalkScreenViewModelState.disposed) return;
     _state = TalkScreenViewModelState.disposed;
-    pause().then((_) {
+    stop().then((_) {
       super.dispose();
     });
   }
 
   Future<void> start() async {
     if (state == TalkScreenViewModelState.disposed) return;
-    _state = TalkScreenViewModelState.listening;
-    notifyListeners();
-    bool isStarted = await _speechToTextRepository.startRecognition();
-    if (!isStarted) {
-      _state = TalkScreenViewModelState.initialized;
-      notifyListeners();
+
+    _changeState(TalkScreenViewModelState.listening, "", "", Emotion.neutral);
+
+    String message = await _speechToTextRepository.start();
+    if (message.isEmpty) {
+      _changeState(
+          TalkScreenViewModelState.initialized, "", "", Emotion.neutral);
+      return;
+    }
+
+    _changeState(
+        TalkScreenViewModelState.thinking, message, "", Emotion.progress);
+    final agentResponce = await _chatRepository.sendMessage(message);
+    if (agentResponce == null) {
+      _changeState(
+          TalkScreenViewModelState.initialized, "", "", Emotion.neutral);
+      return;
+    }
+    _agentImage = _agentImages.firstWhere(
+        (element) => element.emotion == agentResponce.emotion,
+        orElse: () => _agentImages
+            .firstWhere((element) => element.emotion == Emotion.neutral));
+
+    _changeState(TalkScreenViewModelState.speaking, message,
+        agentResponce.agentMessage, agentResponce.emotion);
+    bool isSpeechCompleted =
+        await _speechRepository.play(agentResponce.audioUrl);
+
+    _changeState(TalkScreenViewModelState.initialized, "", "", Emotion.neutral);
+    if (isSpeechCompleted) {
+      await start();
     }
   }
 
-  Future<void> pause() async {
+  Future<void> stop() async {
     if (state == TalkScreenViewModelState.disposed) return;
     try {
-      await Future.wait([
-        _speechToTextRepository.pauseRecognition(),
-        _textRepository.stop(),
-      ]);
-      _state = TalkScreenViewModelState.initialized;
-      notifyListeners();
+      await _speechToTextRepository.stop();
+      _chatRepository.cancel();
+      await _speechRepository.stop();
+      _changeState(
+          TalkScreenViewModelState.initialized, "", "", Emotion.neutral);
     } catch (e) {
       debugPrint('Error during pause: $e');
     }
   }
 
-  void _onResult(String speechToTextResult) async {
-    if (state == TalkScreenViewModelState.disposed) return;
-    if (speechToTextResult.isEmpty ||
-        state != TalkScreenViewModelState.listening) {
-      return;
-    }
-    _state = TalkScreenViewModelState.thinking;
-    _speechToText = speechToTextResult;
+  void _changeState(TalkScreenViewModelState state, String userMessage,
+      String agentMessage, Emotion emotion) {
+    _userMessage = userMessage;
+    _agentMessage = agentMessage;
+    _emotion = emotion.name;
+    _agentImage = _agentImages.firstWhere(
+        (element) => element.emotion == emotion,
+        orElse: () => _agentImages
+            .firstWhere((element) => element.emotion == Emotion.neutral));
+    _state = state;
     notifyListeners();
-    
-    // _messages.add(TextMessage(
-    //     role: Role.user,
-    //     emotion: Emotion.neutral,
-    //     message: speechToTextResult));
-    try {
-      await _textRepository.chat(speechToTextResult);
-    } on CancellationException {
-      // _messages.removeLast();
-      _state = TalkScreenViewModelState.initialized;
-      notifyListeners();
-      return;
-    }
-    if (state == TalkScreenViewModelState.disposed) return;
-
-    // if (messages.isEmpty) {
-    //   _messages.removeLast();
-    //   _state = TalkScreenViewModelState.initialized;
-    //   return;
-    // }
-    // for (var message in messages) {
-    //   _messages.add(message);
-    //   _state = TalkScreenViewModelState.speaking;
-    //   _textToSpeech = message.message;
-    //   _emotion = message.emotion.name;
-    //   _karakuriImage = _karakuriImages.firstWhere(
-    //       (element) => element.emotion == message.emotion,
-    //       orElse: () => _karakuriImages
-    //           .firstWhere((element) => element.emotion == Emotion.neutral));
-    //   notifyListeners();
-    //   try {
-    //     await _textToSpeechRepository.speech(message.message);
-    //   } on CancellationException {
-    //     _state = TalkScreenViewModelState.initialized;
-    //     notifyListeners();
-    //     return;
-    //   }
-    // }
-    if (state == TalkScreenViewModelState.disposed) return;
-
-    await start();
   }
 }
 

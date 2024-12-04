@@ -1,4 +1,4 @@
-abstract class ImageStorageServiceInterface {
+abstract class ImageStorageService {
   static const String aiRoboImageName = 'ai_robo';
   static const String assetPath = 'assets/images/$aiRoboImageName.zip';
   Future<void> init();

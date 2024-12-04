@@ -15,16 +15,6 @@ Karakuri Agent is a cross-platform application that enables interactive communic
 | Linux          |       ❌       |
 | Windows        |       ❌       |
 
-## Supported Services and Endpoints
-
-| Service        | Endpoint       | Support Status |
-|----------------|----------------|:--------------:|
-| OpenAI         | text           |       🟢       |
-|                | text to speech |       🟢       |
-|                | speech to text |       🟢       |
-| VoiceVox       | text to speech |       🟢       |
-| StyleBertVITS2 | text to speech |       🟢       |
-
 ## Quick Start
 [![Open in IDX](https://cdn.idx.dev/btn/open_purple_32.svg)](https://idx.google.com/import?url=https://github.com/0235-jp/karakuri_agent)
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/0235-jp/karakuri_agent)

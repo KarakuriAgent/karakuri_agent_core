@@ -1,21 +1,21 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'text_message.freezed.dart';
-part 'text_message.g.dart';
+part 'agent_responce.freezed.dart';
+part 'agent_responce.g.dart';
 
 @freezed
-class TextMessage with _$TextMessage {
-  const TextMessage._();
-  const factory TextMessage({
-    required Role role,
-    required Emotion emotion,
-    required String message,
-  }) = _TextMessage;
-  factory TextMessage.fromJson(Map<String, dynamic> json) =>
-      _$TextMessageFromJson(json);
+class AgentResponce with _$AgentResponce {
+  const AgentResponce._();
+  const factory AgentResponce({
+    @JsonKey(name: "audio_url") required String audioUrl,
+    @JsonKey(name: "dulation") required int duration,
+    @JsonKey(name: "user_message") required String userMessage,
+    @JsonKey(name: "agent_message") required String agentMessage,
+    @JsonKey(name: "emotion") required Emotion emotion,
+  }) = _AgentResponce;
+  factory AgentResponce.fromJson(Map<String, dynamic> json) =>
+      _$AgentResponceFromJson(json);
 }
-
-enum Role { system, user, assistant }
 
 enum Emotion {
   noticed,

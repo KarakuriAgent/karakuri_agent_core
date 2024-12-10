@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:karakuri_agent/models/agent_response.dart';
 import 'package:karakuri_agent/services/agent/agent_service.dart';
 
@@ -9,7 +10,12 @@ class AgentRepository {
   AgentRepository(this._service);
 
   Future<AgentResponse?> sendMessage(String message) async {
-    return await _service.sendMessage(message);
+     try {
+     return await _service.sendMessage(message);
+   } catch (e) {
+     debugPrint('send message error: $e');
+     return null;
+   }
   }
 
   Future<void> cancel() async {

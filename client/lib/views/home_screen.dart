@@ -76,7 +76,7 @@ class _AgentContent extends HookConsumerWidget {
 class _AgentCard extends HookConsumerWidget {
   final AgentConfig config;
 
-  const _AgentCard({super.key, required this.config});
+  const _AgentCard({required this.config});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

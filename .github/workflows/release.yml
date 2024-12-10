@@ -39,7 +39,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: app/build/app/outputs/apk/release/app-release.apk
+          asset_path: client/build/app/outputs/apk/release/app-release.apk
           asset_name: app-release.apk
           asset_content_type: application/apk
       - uses: actions/upload-release-asset@v1
@@ -47,7 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: app/build/mapping.zip
+          asset_path: client/build/mapping.zip
           asset_name: mapping.zip
           asset_content_type: application/zip
       - uses: actions/upload-release-asset@v1
@@ -55,7 +55,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: app/build/debugSymbols.zip
+          asset_path: client/build/debugSymbols.zip
           asset_name: debugSymbols.zip
           asset_content_type: application/zip
       - uses: actions/upload-release-asset@v1
@@ -63,7 +63,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: app/build/dartDebugSymbols.zip
+          asset_path: client/build/dartDebugSymbols.zip
           asset_name: dartDebugSymbols.zip
           asset_content_type: application/zip
   release-web-app:
@@ -85,6 +85,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: app/build/web.zip
+          asset_path: client/build/web.zip
           asset_name: web.zip
           asset_content_type: application/zip

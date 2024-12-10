@@ -16,7 +16,7 @@ settings = get_settings()
 app = FastAPI(
     title="Karakuri_agentAPI",
     description="Karakuri_agentAPI",
-    version="0.1.5+10"
+    version="0.2.0+11"
 )
 
 app.add_middleware(

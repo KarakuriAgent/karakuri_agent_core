@@ -4,7 +4,7 @@ import 'package:karakuri_agent/models/agent_response.dart';
 import 'package:karakuri_agent/services/agent/agent_service.dart';
 
 class AgentRepository {
-  late final AgentService _service;
+  final AgentService _service;
 
   AgentRepository(this._service);
 

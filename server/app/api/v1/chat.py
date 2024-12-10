@@ -103,7 +103,7 @@ async def chat_text_to_voice(
         duration = calculate_audio_duration(audio_data)
         return Response(content=json.dumps({
             "audio_url": audio_url,
-            "dulation": duration,
+            "duration": duration,
             "user_message": message,
             "agent_message": agent_message,
             "emotion": emotion,
@@ -209,7 +209,7 @@ async def chat_voice_to_voice(
         duration = calculate_audio_duration(audio_data)
         return Response(content=json.dumps({
             "audio_url": audio_url,
-            "dulation": duration,
+            "duration": duration,
             "user_message": text_message,
             "agent_message": agent_message,
             "emotion": emotion,

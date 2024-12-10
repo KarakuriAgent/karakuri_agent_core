@@ -226,10 +226,20 @@ AGENT_1_LINE_CHANNEL_ACCESS_TOKEN=LINE channel access token (required if LINE in
 2. Create a working branch from `main` and open a Pull Request.  
 3. Feature proposals and questions are also welcome in [Discussions](https://github.com/0235-jp/karakuri_agent/discussions).
 
-## 📜 License
+## 📜 About the License
 
-This project uses a custom license with restrictions on commercial use and redistribution.  
-For details, please see the [LICENSE](LICENSE) file.
+This project is provided under a custom license agreement.
+
+- **Non-Commercial Use**: Non-commercial use, such as personal learning, research, or hobby projects, is permitted free of charge. If you redistribute modified versions, please retain the original copyright notice and the full text of the license.
+  
+- **Commercial Use**: If you wish to use this software or its derivatives for commercial purposes or to generate revenue, you must obtain a commercial license from 0235 Inc. in advance.  
+  If you have any questions or need to acquire a commercial license, please contact us at [karakuri-agent-support@0235.co.jp](mailto:karakuri-agent-support@0235.co.jp).
+
+For more details, please see the [LICENSE](LICENSE) file.
+
+## 🛠️ Support for setup, configuration, and ongoing operation
+
+We also offer paid support for setup, configuration, and ongoing operation. Fees depend on your requirements. For more information, please contact us at [karakuri-agent-support@0235.co.jp](mailto:karakuri-agent-support@0235.co.jp)
 
 ## 🔗 Related Projects / References
 

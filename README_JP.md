@@ -4,7 +4,7 @@
 多種多様なエンドポイントやサービスとの統合により、**1つのエージェント** へ **どこからでもアクセス可能** な世界を実現します。  
 複数のエージェントを同時に定義し、それぞれに異なる役割・性格・音声・モデルを割り当てることも可能です。
 
-## ディレクトリ構成 (Project Structure)
+## ディレクトリ構成
 
 ```
 .
@@ -20,7 +20,7 @@
 └─ compose.yml
 ```
 
-## 技術概要 (Technical Overview)
+## 技術概要
 
 ### 🚀 **サーバーサイド**:
 - フレームワーク: FastAPI
@@ -64,7 +64,7 @@ VoicevoxEngineはローカルで稼働させる必要があります。
 
 `faster-whisper`はPythonライブラリを通じて動作しますが、特別な外部サービス起動は不要です。（`requirements.txt`をインストールすることで利用可能になります）
 
-### **エンドポイント (Endpoints)** 
+### **エンドポイント** 
 
 | Endpoint        | Support Status             |
 |-----------------|----------------------------|
@@ -78,7 +78,7 @@ VoicevoxEngineはローカルで稼働させる必要があります。
 | video to voice  | ❌ 未対応(将来対応予定)   |
 | video to video  | ❌ 未対応(将来対応予定)   |
 
-### **サービス統合 (Services Integration)**
+### **サービス統合**
 
 | Service | Support Status             |
 |---------|----------------------------|
@@ -88,7 +88,7 @@ VoicevoxEngineはローカルで稼働させる必要があります。
 
 ※ 未対応機能・サービスについては、[Projectタブ](https://github.com/0235-jp/karakuri_agent/projects)や[Discussions](https://github.com/0235-jp/karakuri_agent/discussions)で開発状況・ロードマップをご確認ください。
 
-## ⚡ 特徴 (Features)
+## ⚡ 特徴
 
 - **幅広いエンドポイント対応**  
   - 📝 Text to Text  
@@ -105,12 +105,12 @@ VoicevoxEngineはローカルで稼働させる必要があります。
 - **サービス連携**  
   現在は **LINE** に対応。将来的には他のメッセージングサービスや音声インターフェースとの連携も予定。
 
-## 🎥 デモ・スクリーンショット (Demo / Screenshots)
+## 🎥 デモ・スクリーンショット
 
 *開発中のため、後日更新予定！*  
 Flutterクライアントの画面や音声インタラクションのGIFを公開予定です。
 
-## 📦 環境要件 (Requirements)
+## 📦 環境要件
 
 - **サーバーサイド**  
   - Python 3.8以上  
@@ -128,7 +128,7 @@ Flutterクライアントの画面や音声インタラクションのGIFを公�
 - **Ollamaモデル利用時**  
   - Ollamaをローカルで起動する必要があります。
 
-## 🛠️ インストール方法 (Installation)
+## 🛠️ インストール方法
 
 ### Docker Composeを利用する場合
 
@@ -184,14 +184,14 @@ docker compose up
    ```
    → `http://localhost:5050` でFlutterのWebアプリが起動します。
 
-## 💡 使い方 (Usage)
+## 💡 使い方
 
 - Swagger UIでAPIのフォーマットを確認および実行  
   `http://localhost:8080/docs`
 
 - `http://localhost:5050` でFlutterアプリにアクセスし、APIサーバーの情報を入力するとAIエージェントとのやり取りが可能
 
-## ⚙️ 設定・カスタマイズ (Configuration)
+## ⚙️ 設定・カスタマイズ
 
 `.env` や環境変数で設定可能です。例:  
 ```
@@ -220,18 +220,27 @@ AGENT_1_LINE_CHANNEL_ACCESS_TOKEN=LINEチャンネルアクセストークン(LI
 # AGENT_2_... と接頭辞を増やすことで、複数エージェントが定義可能
 ```
 
-## 🤝 コントリビュート方法 (Contributing)
+## 🤝 コントリビュート方法
 
 1. Issueでバグ報告・改善提案を歓迎します！  
 2. `main`ブランチから作業用ブランチを作成し、Pull Requestをお送りください。  
 3. 機能提案や質問は[Discussions](https://github.com/0235-jp/karakuri_agent/discussions)でも受け付けています。
 
-## 📜 ライセンス (License)
+## 📜 ライセンスについて
 
-本プロジェクトは独自のライセンス規約に基づいています。商用利用や再配布に関する制限があります。  
+本プロジェクトは独自のライセンス規約に基づいています。
+
+- **非商用利用**: 個人による学習・研究・趣味目的などの非商用利用は無料で可能です。改変物を再配布する場合は、著作権表示と本ライセンス全文を保持してください。
+- **商用利用**: 本ソフトウェアまたはその改変物を用いて収益を得る、商業的目的での利用には、事前に株式会社0235との商用ライセンス契約が必要です。
+不明な点や商用利用のライセンス取得については、[karakuri-agent-support@0235.co.jp](mailto:karakuri-agent-support@0235.co.jp) までお問い合わせください。
+
 詳細は [LICENSE](LICENSE_JP) ファイルをご確認ください。
 
-## 🔗 関連プロジェクト・参考資料 (Related Projects / References)
+## 🛠️ 構築・運用サポート
+
+本プロジェクトの構築・運用に関する有償でのサポートも承ります。料金は要件に応じてお見積りとなりますので、詳細は [karakuri-agent-support@0235.co.jp](mailto:karakuri-agent-support@0235.co.jp) までお問い合わせください。
+
+## 🔗 関連プロジェクト・参考資料
 
 - [FastAPI公式ドキュメント](https://fastapi.tiangolo.com/)  
 - [Flutter公式ドキュメント](https://docs.flutter.dev/)  

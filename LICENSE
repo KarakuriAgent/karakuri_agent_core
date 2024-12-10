@@ -23,7 +23,7 @@ Indirectly commercial use cases (e.g., free distribution that is clearly part of
 3.1 To engage in commercial use, or to create and offer derivative works for commercial purposes, you must first sign a separate commercial license agreement in writing with 0235 Inc.
 3.2 If a third party uses a non-commercially distributed derivative for commercial purposes, this section also applies.
 3.3 If you are uncertain, please contact the following address in advance:
-Email: license@0235.co.jp
+Email: karakuri-agent-support@0235.co.jp
 
 4. Additional Criteria
 4.1 If it is unclear whether a use case is commercial or non-commercial (e.g., involves donations, ad-supported distribution, related product sales, or corporate internal use), it is recommended that users consider the possibility that a commercial license might be needed and contact the address above.
@@ -43,11 +43,20 @@ Email: license@0235.co.jp
 8. Compliance and Remedies for Breach
 8.1 Violating any term of this license immediately terminates your right to use the Software and its derivatives. 0235 Inc. reserves the right to seek cessation of violations, recovery of damages, and any other appropriate legal remedies.
 8.2 If a well-intentioned user appears to have breached this license due to misunderstanding or minor mistakes, 0235 Inc. may consider engaging in good-faith discussions to resolve the issue.
-8.3 If it is discovered that you have engaged in commercial use without obtaining a commercial license, 0235 Inc. reserves the right to retroactively charge commercial licensing fees for the period of unauthorized use. The fees will be calculated according to the fee schedule set forth by 0235 Inc. (available on the company’s website or by negotiation). For details, please refer to Our Website (https://0235.co.jp/karakuri-agent-license-policy).
+8.3 If it is discovered that you have engaged in commercial use without a proper commercial license, 0235 Inc. reserves the right to retroactively charge commercial license fees for the unauthorized usage period. The fees will be calculated according to the fee structure determined by 0235 Inc.
+
+[Reference Guidelines for Commercial License Fees]
+・The standard commercial license fee is JPY 10,000 per user per month.
+・For annual contracts, the standard fee is JPY 100,000 per user per year.
+・If 0235 Inc. determines that granting a free or discounted license could help promote and expand the use of the software or related agent technology (e.g., through client implementations or efforts that increase market presence), the company may, at its sole discretion, offer such licenses at no charge or at a discounted rate. Please contact us in advance for inquiries.
+・In cases where the Software or modified works are distributed to an unspecified number of users (e.g., as a web service, SaaS, or widely accessible application), the above fee structure may not apply, and separate negotiations or estimates are required. Please contact us prior to such use.
+
+For more details, please refer to our website (https://0235.co.jp/karakuri-agent-license-policy) or contact:
+Email: karakuri-agent-support@0235.co.jp
 
 9. Severability
 9.1 If any provision of this license is found to be invalid or unenforceable, the remaining provisions remain valid and effective.
 
 10. Contact for Commercial Licenses
 10.1 For inquiries about commercial use or any doubts regarding this license, please contact:
-Email: license@0235.co.jp
+Email: karakuri-agent-support@0235.co.jp

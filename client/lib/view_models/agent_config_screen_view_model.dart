@@ -23,7 +23,7 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
   bool get initialized => _initialized;
   String? get selectImageKey => _selectImageKey;
 
-  AgentConfigScreenViewModel( {AgentConfig? agentConfig})
+  AgentConfigScreenViewModel({AgentConfig? agentConfig})
       : _id = agentConfig?.id,
         nameController = TextEditingController(text: agentConfig?.name ?? ''),
         baseUrlController =
@@ -43,6 +43,9 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
   @override
   void dispose() {
     nameController.dispose();
+    baseUrlController.dispose();
+    apiKeyController.dispose();
+    agentIdController.dispose();
     super.dispose();
   }
 

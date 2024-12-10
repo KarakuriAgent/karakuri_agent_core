@@ -12,10 +12,10 @@ class SpeechRepository {
   }
 
   Future<void> dispose() async {
-    _service.dispose();
+    await _service.dispose();
   }
 
   Future<void> stop() async {
-    _service.stop();
+    await _service.stop();
   }
 }

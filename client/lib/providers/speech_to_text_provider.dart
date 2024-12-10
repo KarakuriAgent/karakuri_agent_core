@@ -6,8 +6,8 @@ final speechToTextProvider =
     FutureProvider.autoDispose<SpeechToTextRepository>((ref) async {
   final speechToTextRepository = SpeechToTextRepository(SpeechToTextDeviceService());
   await speechToTextRepository.init();
-  ref.onDispose(() {
-    speechToTextRepository.dispose();
+  ref.onDispose(() async {
+    await speechToTextRepository.dispose();
   });
   return speechToTextRepository;
 });

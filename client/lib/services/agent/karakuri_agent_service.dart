@@ -31,14 +31,14 @@ class KarakuriAgentService extends AgentService {
   }
 
   @override
-  void cancel() {
-    _chatOperation?.cancel();
+  Future<void> cancel() async {
+    await _chatOperation?.cancel();
     _chatOperation = null;
   }
 
   @override
-  void dispose() {
-    cancel();
+  Future<void> dispose() async {
+    await cancel();
   }
 
   Future<AgentResponse?> _chat(String message) async {

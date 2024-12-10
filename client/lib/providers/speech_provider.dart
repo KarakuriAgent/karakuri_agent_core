@@ -4,8 +4,8 @@ import 'package:karakuri_agent/services/speech/speech_audio_player_service.dart'
 
 final speechProvider = Provider.autoDispose<SpeechRepository>((ref) {
   final speechRepository = SpeechRepository(SpeechAudioPlayerService());
-  ref.onDispose(() {
-    speechRepository.dispose();
+  ref.onDispose(() async {
+    await speechRepository.dispose();
   });
   return speechRepository;
 });

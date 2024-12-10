@@ -4,8 +4,8 @@ import 'package:karakuri_agent/services/database/local_datasource.dart';
 
 final _localStolageProvider = Provider.autoDispose((ref) {
   final datasource = LocalDatasource();
- ref.onDispose(() {
-    datasource.close();
+ ref.onDispose(() async {
+    await datasource.close();
   });
   return datasource;
 });

@@ -98,7 +98,7 @@ class TalkScreenViewModel extends ChangeNotifier {
     if (state == TalkScreenViewModelState.disposed) return;
     try {
       await _speechToTextRepository.stop();
-      _chatRepository.cancel();
+      await _chatRepository.cancel();
       await _speechRepository.stop();
       _changeState(
           TalkScreenViewModelState.initialized, "", "", Emotion.neutral);

@@ -12,11 +12,11 @@ class AgentRepository {
     return await _service.sendMessage(message);
   }
 
-  void cancel() {
-    _service.cancel();
+  Future<void> cancel() async {
+    await _service.cancel();
   }
 
   Future<void> dispose() async {
-    _service.dispose();
+    await _service.dispose();
   }
 }

@@ -6,8 +6,8 @@ import 'package:karakuri_agent/services/agent/karakuri_agent_service.dart';
 final chatProvider = Provider.autoDispose
     .family<AgentRepository, AgentConfig>((ref, agentConfig) {
   final textRepository = AgentRepository(KarakuriAgentService(agentConfig));
-  ref.onDispose(() {
-    textRepository.dispose();
+  ref.onDispose(() async {
+    await textRepository.dispose();
   });
   return textRepository;
 });

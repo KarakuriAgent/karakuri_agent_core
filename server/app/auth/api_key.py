@@ -1,3 +1,6 @@
+# Copyright (c) 0235 Inc.
+# This file is licensed under the karakuri_agent Personal Use & No Warranty License.
+# Please see the LICENSE file in the project root.
 from fastapi import Security, HTTPException, Depends
 from fastapi.security.api_key import APIKeyHeader
 from starlette.status import HTTP_403_FORBIDDEN

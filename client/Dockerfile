@@ -1,3 +1,7 @@
+# Copyright (c) 0235 Inc.
+# This file is licensed under the karakuri_agent Personal Use & No Warranty License.
+# Please see the LICENSE file in the project root.
+
 FROM --platform=linux/amd64 ubuntu:24.10
 SHELL ["/bin/bash", "-c"]
 

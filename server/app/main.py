@@ -1,3 +1,6 @@
+# Copyright (c) 0235 Inc.
+# This file is licensed under the karakuri_agent Personal Use & No Warranty License.
+# Please see the LICENSE file in the project root.
 from fastapi import FastAPI, Depends
 from app.auth.api_key import get_api_key
 from fastapi.middleware.cors import CORSMiddleware

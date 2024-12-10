@@ -1,3 +1,6 @@
+// Copyright (c) 0235 Inc.
+// This file is licensed under the karakuri_agent Personal Use & No Warranty License.
+// Please see the LICENSE file in the project root.
 import 'package:flutter/services.dart';
 import 'package:idb_shim/idb_browser.dart';
 import 'package:karakuri_agent/services/image_storage/image_storage_service.dart';

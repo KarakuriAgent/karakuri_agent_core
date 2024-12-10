@@ -1,3 +1,6 @@
+# Copyright (c) 0235 Inc.
+# This file is licensed under the karakuri_agent Personal Use & No Warranty License.
+# Please see the LICENSE file in the project root.
 from faster_whisper import WhisperModel
 from app.schemas.agent import AgentConfig
 import numpy as np

@@ -1,3 +1,6 @@
+# Copyright (c) 0235 Inc.
+# This file is licensed under the karakuri_agent Personal Use & No Warranty License.
+# Please see the LICENSE file in the project root.
 from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, File, Request
 from app.dependencies import get_llm_service, get_tts_service, get_stt_service
 from app.auth.api_key import get_api_key

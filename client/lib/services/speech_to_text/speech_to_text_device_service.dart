@@ -56,6 +56,7 @@ class SpeechToTextDeviceService extends SpeechToTextService {
     if (_completer != null && !_completer!.isCompleted) {
       _completer!.complete("");
     }
+    _completer = null;
     await _speech.stop();
   }
 

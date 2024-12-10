@@ -16,17 +16,17 @@ async def get_api_key(
 ) -> str:
     if api_key_header is None:
         raise HTTPException(
-            status_code=HTTP_403_FORBIDDEN, detail="API キーが必要です"
+            status_code=HTTP_403_FORBIDDEN, detail="API key is required"
         )
     
     if not settings.api_keys:
         raise HTTPException(
-            status_code=HTTP_403_FORBIDDEN, detail="API キーが設定されていません"
+            status_code=HTTP_403_FORBIDDEN, detail="No API keys configured"
         )
     
     if not settings.is_valid_api_key(api_key_header):
         raise HTTPException(
-            status_code=HTTP_403_FORBIDDEN, detail="無効なAPI キーです"
+            status_code=HTTP_403_FORBIDDEN, detail="Invalid API key"
         )
     
     return api_key_header

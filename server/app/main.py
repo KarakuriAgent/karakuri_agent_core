@@ -47,5 +47,4 @@ app.include_router(
 
 @app.get("/health")
 async def health_check(api_key: str = Depends(get_api_key)):
-    """ヘルスチェックエンドポイント"""
     return {"status": "healthy"}

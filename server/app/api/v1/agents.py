@@ -12,9 +12,6 @@ logger = logging.getLogger(__name__)
 
 @router.get("/agents")
 async def list_agents(api_key: str = Depends(get_api_key)):
-    """
-    登録されているエージェントの一覧を返します
-    """
     try:
         agent_manager = get_agent_manager()
         agents = agent_manager.get_all_agents()

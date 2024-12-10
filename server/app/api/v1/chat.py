@@ -29,10 +29,6 @@ async def chat_text_to_text(
     api_key: str = Depends(get_api_key),
     llm_service = Depends(get_llm_service),
 ):
-    """
-    チャットエンドポイント
-    音声データ（WAV形式）を返します
-    """
     agent_id = request_body.agent_id
     message = request_body.message
 
@@ -65,10 +61,6 @@ async def chat_text_to_voice(
     llm_service = Depends(get_llm_service),
     tts_service = Depends(get_tts_service)
 ):
-    """
-    チャットエンドポイント
-    音声データ（WAV形式）を返します
-    """
     agent_id = request_body.agent_id
     message = request_body.message
 
@@ -122,10 +114,6 @@ async def chat_voice_to_text(
     llm_service = Depends(get_llm_service),
     stt_service = Depends(get_stt_service)
 ):
-    """
-    チャットエンドポイント
-    音声データ（WAV形式）を返します
-    """
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
     
@@ -166,10 +154,6 @@ async def chat_voice_to_voice(
     stt_service = Depends(get_stt_service),
     tts_service = Depends(get_tts_service)
 ):
-    """
-    チャットエンドポイント
-    音声データ（WAV形式）を返します
-    """
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
     

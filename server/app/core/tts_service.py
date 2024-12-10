@@ -38,8 +38,6 @@ class VoicevoxProvider(TTSProvider):
 
 class OtherServiceProvider(TTSProvider):
     async def generate_speech(self, text: str, agent_config: AgentConfig) -> bytes:
-        # 他のTTSサービスの実装
-        # このサンプルでは空のバイト列を返します
         return b""
 
 class TTSService:

@@ -11,7 +11,7 @@ class AgentResponse with _$AgentResponse {
   const AgentResponse._();
   const factory AgentResponse({
     @JsonKey(name: "audio_url") required String audioUrl,
-    @JsonKey(name: "dulation") required int duration,
+    @JsonKey(name: "duration") required int duration,
     @JsonKey(name: "user_message") required String userMessage,
     @JsonKey(name: "agent_message") required String agentMessage,
     @JsonKey(name: "emotion") required Emotion emotion,

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart';
 import 'package:karakuri_agent/models/agent_image.dart';
-import 'package:karakuri_agent/models/agent_responce.dart';
+import 'package:karakuri_agent/models/agent_response.dart';
 import 'package:karakuri_agent/services/image_storage/image_storage_service.dart';
 import 'package:karakuri_agent/utils/exception.dart';
 

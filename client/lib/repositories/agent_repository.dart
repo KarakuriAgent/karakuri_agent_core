@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:karakuri_agent/models/agent_responce.dart';
+import 'package:karakuri_agent/models/agent_response.dart';
 import 'package:karakuri_agent/services/agent/agent_service.dart';
 
 class AgentRepository {
@@ -8,7 +8,7 @@ class AgentRepository {
 
   AgentRepository(this._service);
 
-  Future<AgentResponce?> sendMessage(String message) async {
+  Future<AgentResponse?> sendMessage(String message) async {
     return await _service.sendMessage(message);
   }
 

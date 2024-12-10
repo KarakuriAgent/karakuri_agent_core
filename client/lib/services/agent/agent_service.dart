@@ -1,7 +1,7 @@
-import 'package:karakuri_agent/models/agent_responce.dart';
+import 'package:karakuri_agent/models/agent_response.dart';
 
 abstract class AgentService {
-  Future<AgentResponce?> sendMessage(String message);
+  Future<AgentResponse?> sendMessage(String message);
   void cancel();
   void dispose();
 }

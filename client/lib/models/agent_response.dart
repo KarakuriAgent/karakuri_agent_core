@@ -1,20 +1,20 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'agent_responce.freezed.dart';
-part 'agent_responce.g.dart';
+part 'agent_response.freezed.dart';
+part 'agent_response.g.dart';
 
 @freezed
-class AgentResponce with _$AgentResponce {
-  const AgentResponce._();
-  const factory AgentResponce({
+class AgentResponse with _$AgentResponse {
+  const AgentResponse._();
+  const factory AgentResponse({
     @JsonKey(name: "audio_url") required String audioUrl,
     @JsonKey(name: "dulation") required int duration,
     @JsonKey(name: "user_message") required String userMessage,
     @JsonKey(name: "agent_message") required String agentMessage,
     @JsonKey(name: "emotion") required Emotion emotion,
-  }) = _AgentResponce;
-  factory AgentResponce.fromJson(Map<String, dynamic> json) =>
-      _$AgentResponceFromJson(json);
+  }) = _AgentResponse;
+  factory AgentResponse.fromJson(Map<String, dynamic> json) =>
+      _$AgentResponseFromJson(json);
 }
 
 enum Emotion {

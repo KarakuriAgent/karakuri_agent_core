@@ -23,7 +23,7 @@
       "nameIsRequired": "名前は必須です",
       "baseUrlRequired": "URLは必須です。",
       "apiKeyRequired": "APIキーは必須です。",
-      "agentIdequired": "エージェントIDは必須です。",
+      "agentIdRequired": "エージェントIDは必須です。",
       "agentImageRequired": "エージェント画像は必須です。"
     }
   },

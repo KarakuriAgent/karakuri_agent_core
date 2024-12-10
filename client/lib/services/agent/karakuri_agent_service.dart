@@ -3,21 +3,21 @@ import 'dart:convert';
 import 'package:async/async.dart';
 
 import 'package:karakuri_agent/models/agent_config.dart';
-import 'package:karakuri_agent/models/agent_responce.dart';
+import 'package:karakuri_agent/models/agent_response.dart';
 import 'package:http/http.dart' as http;
 import 'package:karakuri_agent/services/agent/agent_service.dart';
 import 'package:karakuri_agent/utils/log.dart';
 
 class KarakuriAgentService extends AgentService {
   final AgentConfig _agentConfig;
-  CancelableOperation<AgentResponce?>? _chatOperation;
+  CancelableOperation<AgentResponse?>? _chatOperation;
 
   KarakuriAgentService(this._agentConfig);
 
   @override
-  Future<AgentResponce?> sendMessage(String message) async {
+  Future<AgentResponse?> sendMessage(String message) async {
     try {
-      _chatOperation = CancelableOperation<AgentResponce?>.fromFuture(
+      _chatOperation = CancelableOperation<AgentResponse?>.fromFuture(
         _chat(message),
       );
       await _chatOperation?.valueOrCancellation();
@@ -41,7 +41,7 @@ class KarakuriAgentService extends AgentService {
     cancel();
   }
 
-  Future<AgentResponce?> _chat(String message) async {
+  Future<AgentResponse?> _chat(String message) async {
     final uri = Uri.parse('${_agentConfig.baseUrl}/v1/chat/text/voice');
 
     final headers = {
@@ -59,7 +59,7 @@ class KarakuriAgentService extends AgentService {
           encoding: Encoding.getByName('utf-8'));
       if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
         final decodedBody = utf8.decode(response.bodyBytes);
-        return AgentResponce.fromJson(json.decode(decodedBody));
+        return AgentResponse.fromJson(json.decode(decodedBody));
       } else {
         final errorResponse = response.body;
         final errorMessage = json.decode(errorResponse)['error']['message'];

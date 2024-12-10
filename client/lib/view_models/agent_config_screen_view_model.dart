@@ -62,7 +62,7 @@ class AgentConfigScreenViewModel extends ChangeNotifier {
       return t.agentConfig.error.apiKeyRequired;
     }
     if (agentIdController.text.isEmpty) {
-      return t.agentConfig.error.agentIdequired;
+      return t.agentConfig.error.agentIdRequired;
     }
     if (selectImageKey == null) {
       return t.agentConfig.error.agentImageRequired;

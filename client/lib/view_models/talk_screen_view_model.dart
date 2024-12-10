@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:karakuri_agent/models/agent_config.dart';
 import 'package:karakuri_agent/models/agent_image.dart';
-import 'package:karakuri_agent/models/agent_responce.dart';
+import 'package:karakuri_agent/models/agent_response.dart';
 import 'package:karakuri_agent/providers/image_storage_provider.dart';
 import 'package:karakuri_agent/providers/speech_provider.dart';
 import 'package:karakuri_agent/providers/speech_to_text_provider.dart';
@@ -39,7 +39,7 @@ class TalkScreenViewModel extends ChangeNotifier {
   Future<void> initialize() async {
     _speechToTextRepository = await _ref.watch(speechToTextProvider.future);
     _chatRepository = _ref.watch(chatProvider(_agentConfig));
-    _speechRepository = _ref.watch(speechProvier);
+    _speechRepository = _ref.watch(speechProvider);
     _imageStorageRepository = await _ref.watch(imageStorageProvider.future);
     _agentImages =
         await _imageStorageRepository.getAgentImages(_agentConfig.imageKey);
@@ -72,21 +72,21 @@ class TalkScreenViewModel extends ChangeNotifier {
 
     _changeState(
         TalkScreenViewModelState.thinking, message, "", Emotion.progress);
-    final agentResponce = await _chatRepository.sendMessage(message);
-    if (agentResponce == null) {
+    final agentResponse = await _chatRepository.sendMessage(message);
+    if (agentResponse == null) {
       _changeState(
           TalkScreenViewModelState.initialized, "", "", Emotion.neutral);
       return;
     }
     _agentImage = _agentImages.firstWhere(
-        (element) => element.emotion == agentResponce.emotion,
+        (element) => element.emotion == agentResponse.emotion,
         orElse: () => _agentImages
             .firstWhere((element) => element.emotion == Emotion.neutral));
 
     _changeState(TalkScreenViewModelState.speaking, message,
-        agentResponce.agentMessage, agentResponce.emotion);
+        agentResponse.agentMessage, agentResponse.emotion);
     bool isSpeechCompleted =
-        await _speechRepository.play(agentResponce.audioUrl);
+        await _speechRepository.play(agentResponse.audioUrl);
 
     _changeState(TalkScreenViewModelState.initialized, "", "", Emotion.neutral);
     if (isSpeechCompleted) {

@@ -23,7 +23,7 @@
       "nameIsRequired": "Name is required.",
       "baseUrlRequired": "URL is required.",
       "apiKeyRequired": "API Key is required.",
-      "agentIdequired": "Agent ID is required.",
+      "agentIdRequired": "Agent ID is required.",
       "agentImageRequired": "Agent image is required."
     }
   },

@@ -1,3 +1,7 @@
+# Copyright (c) 0235 Inc.
+# This file is licensed under the karakuri_agent Personal Use & No Warranty License.
+# Please see the LICENSE file in the project root.
+
 name: build
 
 on:
@@ -10,7 +14,7 @@ permissions:
 
 defaults:
   run:
-    working-directory: app
+    working-directory: client
 
 jobs:
   build-android-app:
@@ -44,7 +48,7 @@ jobs:
       - run: dart run rps build-release apk
       - uses: actions/upload-artifact@v3
         with:
-          path: app/build/app/outputs
+          path: client/build/app/outputs
           retention-days: 1
   build-web-app:
     runs-on: ubuntu-latest
@@ -72,5 +76,5 @@ jobs:
       - run: dart run rps build-release web
       - uses: actions/upload-artifact@v3
         with:
-          path: app/build/web
+          path: client/build/web
           retention-days: 1

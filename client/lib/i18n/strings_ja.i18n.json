@@ -1,0 +1,39 @@
+{
+  "appName": "からくりエージェント",
+  "home": {
+    "title": "からくりエージェント",
+    "agent": {
+      "name": "名前:${name}",
+      "startTalk": "トークを開始",
+      "addAgent": "+ エージェントを追加",
+      "editAgent": "エージェントを編集",
+      "deleteAgent": "エージェントを削除する"
+    }
+  },
+  "agentConfig": {
+    "agentAdd": "エージェントを追加",
+    "agentEdit": "エージェントを編集",
+    "name": "名前",
+    "save": "保存",
+    "baseUrl": "URL",
+    "apiKey": "APIキー",
+    "agentId": "エージェントID",
+    "agentImage": "エージェント画像",
+    "error": {
+      "nameIsRequired": "名前は必須です",
+      "baseUrlRequired": "URLは必須です。",
+      "apiKeyRequired": "APIキーは必須です。",
+      "agentIdRequired": "エージェントIDは必須です。",
+      "agentImageRequired": "エージェント画像は必須です。"
+    }
+  },
+  "talk": {
+    "title": "トーク",
+    "start": "トークを開始",
+    "pause": "トークを停止",
+    "error": {
+      "startFailed": "トーク中にエラーが発生しました。",
+      "pauseFailed": "トーク終了中にエラーが発生しました。"
+    }
+  }
+}

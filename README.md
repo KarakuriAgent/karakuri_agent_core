@@ -255,3 +255,4 @@ We also offer paid support for setup, configuration, and ongoing operation. Fees
 - [faster-whisper](https://github.com/guillaumekln/faster-whisper)  
 - [OpenAI Whisper](https://github.com/openai/whisper)  
 - [Ollama](https://docs.ollama.ai/)
+- [Niji voice API Documentation](https://docs.nijivoice.com/docs/getting-started)

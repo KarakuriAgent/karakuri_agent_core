@@ -254,3 +254,4 @@ AGENT_1_LINE_CHANNEL_ACCESS_TOKEN=LINEチャンネルアクセストークン(LI
 - [faster-whisper](https://github.com/guillaumekln/faster-whisper)  
 - [OpenAI Whisper](https://github.com/openai/whisper)  
 - [Ollama](https://docs.ollama.ai/)
+- [にじボイスAPIドキュメント](https://docs.nijivoice.com/docs/getting-started)

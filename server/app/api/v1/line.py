@@ -6,8 +6,6 @@ from starlette.responses import FileResponse
 from app.dependencies import get_llm_service, get_tts_service
 from app.utils.audio import calculate_audio_duration
 from pathlib import Path
-from pydub import AudioSegment
-import io
 import os
 import uuid
 from typing import List

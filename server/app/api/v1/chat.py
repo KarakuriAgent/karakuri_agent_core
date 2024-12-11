@@ -10,8 +10,6 @@ import logging
 import json
 from starlette.responses import FileResponse
 from pathlib import Path
-from pydub import AudioSegment
-import io
 import os
 import uuid
 from typing import List

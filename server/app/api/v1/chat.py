@@ -9,10 +9,10 @@ import logging
 import json
 from starlette.responses import FileResponse
 from pathlib import Path
+from pydub import AudioSegment
 import io
 import os
 import uuid
-import wave
 from typing import List
 from app.core.config import get_settings
 from app.schemas.chat import TextChatRequest
@@ -79,6 +79,7 @@ async def chat_text_to_voice(
             message, 
             agent_config
         )
+
         agent_message = llm_response["agent_message"].rstrip('\n')
         emotion = llm_response["emotion"]
 
@@ -92,6 +93,7 @@ async def chat_text_to_voice(
         base_url = f"{scheme}://{server_host}"
         
         audio_url = await upload_to_storage(base_url, audio_data)
+
         duration = calculate_audio_duration(audio_data)
         return Response(content=json.dumps({
             "audio_url": audio_url,
@@ -191,6 +193,7 @@ async def chat_voice_to_voice(
         
         audio_url = await upload_to_storage(base_url, audio_data)
         duration = calculate_audio_duration(audio_data)
+
         return Response(content=json.dumps({
             "audio_url": audio_url,
             "duration": duration,
@@ -205,12 +208,8 @@ async def chat_voice_to_voice(
         )
 
 def calculate_audio_duration(audio_data: bytes) -> int:
-    with io.BytesIO(audio_data) as audio_io:
-        with wave.open(audio_io, 'rb') as wav:
-            frames = wav.getnframes()
-            rate = wav.getframerate()
-            duration = int((frames / rate) * 1000)
-            return duration
+    audio_segment = AudioSegment.from_file(io.BytesIO(audio_data), format="wav")
+    return len(audio_segment)
 
 async def upload_to_storage(base_url: str, audio_data: bytes) -> str:
     Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)

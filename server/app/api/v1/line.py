@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from starlette.responses import FileResponse
 from app.dependencies import get_llm_service, get_tts_service, get_stt_service
 from pathlib import Path
+from pydub import AudioSegment
 import io
 import os
 import uuid
-import wave
 from typing import List
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
@@ -114,12 +114,8 @@ async def handle_line_callback(
         )
 
 def calculate_audio_duration(audio_data: bytes) -> int:
-    with io.BytesIO(audio_data) as audio_io:
-        with wave.open(audio_io, 'rb') as wav:
-            frames = wav.getnframes()
-            rate = wav.getframerate()
-            duration = int((frames / rate) * 1000)
-            return duration
+    audio_segment = AudioSegment.from_file(io.BytesIO(audio_data), format="wav")
+    return len(audio_segment)
 
 async def upload_to_storage(base_url: str, audio_data: bytes) -> str:
     Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)

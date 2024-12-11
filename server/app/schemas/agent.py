@@ -17,7 +17,7 @@ class AgentConfig(BaseModel):
     tts_api_key: str
     tts_type: str
     tts_speaker_model: str
-    tts_speaker_id: int
+    tts_speaker_id: str
     line_channel_secret: str
     line_channel_access_token: str
 

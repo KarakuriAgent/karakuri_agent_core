@@ -32,7 +32,7 @@ class AgentManager:
                 tts_api_key=self.settings.get_agent_env(i, "TTS_API_KEY"),
                 tts_type=self.settings.get_agent_env(i, "TTS_TYPE"),
                 tts_speaker_model=self.settings.get_agent_env(i, "TTS_SPEAKER_MODEL") or "",
-                tts_speaker_id=int(self.settings.get_agent_env(i, "TTS_SPEAKER_ID")),
+                tts_speaker_id=self.settings.get_agent_env(i, "TTS_SPEAKER_ID"),
                 line_channel_secret=self.settings.get_agent_env(i, "LINE_CHANNEL_SECRET") or "",
                 line_channel_access_token=self.settings.get_agent_env(i, "LINE_CHANNEL_ACCESS_TOKEN") or "",
             )

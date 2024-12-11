@@ -3,7 +3,8 @@
 # Please see the LICENSE file in the project root.
 from fastapi import APIRouter, Depends, HTTPException, Request
 from starlette.responses import FileResponse
-from app.dependencies import get_llm_service, get_tts_service, get_stt_service
+from app.dependencies import get_llm_service, get_tts_service
+from app.utils.audio import calculate_audio_duration
 from pathlib import Path
 from pydub import AudioSegment
 import io
@@ -112,10 +113,6 @@ async def handle_line_callback(
             status_code=500,
             detail=f"Error processing request: {str(e)}"
         )
-
-def calculate_audio_duration(audio_data: bytes) -> int:
-    audio_segment = AudioSegment.from_file(io.BytesIO(audio_data), format="wav")
-    return len(audio_segment)
 
 async def upload_to_storage(base_url: str, audio_data: bytes) -> str:
     Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)

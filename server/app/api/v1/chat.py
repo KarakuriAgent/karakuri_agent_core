@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, Fil
 from app.dependencies import get_llm_service, get_tts_service, get_stt_service
 from app.auth.api_key import get_api_key
 from app.core.agent_manager import get_agent_manager
+from app.utils.audio import calculate_audio_duration
 import logging
 import json
 from starlette.responses import FileResponse
@@ -206,10 +207,6 @@ async def chat_voice_to_voice(
             status_code=500,
             detail=f"Error processing request: {str(e)}"
         )
-
-def calculate_audio_duration(audio_data: bytes) -> int:
-    audio_segment = AudioSegment.from_file(io.BytesIO(audio_data), format="wav")
-    return len(audio_segment)
 
 async def upload_to_storage(base_url: str, audio_data: bytes) -> str:
     Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)

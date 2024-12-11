@@ -36,6 +36,31 @@ class VoicevoxProvider(TTSProvider):
                 synthesis_response.raise_for_status()
                 return await synthesis_response.read()
 
+class NijiVoiceProvider(TTSProvider):
+    async def generate_speech(self, text: str, agent_config: AgentConfig) -> bytes:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{agent_config.tts_base_url}/api/platform/v1/voice-actors/{agent_config.tts_speaker_id}/generate-voice",
+                headers = {
+                    "accept": "application/json",
+                    "content-type": "application/json",
+                    "x-api-key": agent_config.tts_api_key
+                },
+                json = {
+                    "format": "wav",
+                    "script": text,
+                    "speed": "1.0"
+                }
+            ) as query_response:
+                query_response.raise_for_status()
+                query_data = await query_response.json()
+
+                audio_url = query_data["generatedVoice"]["audioFileUrl"]
+                async with session.get(audio_url) as audio_response:
+                  audio_response.raise_for_status()
+                  audio_data = await audio_response.read()
+            return audio_data
+
 class OtherServiceProvider(TTSProvider):
     async def generate_speech(self, text: str, agent_config: AgentConfig) -> bytes:
         return b""
@@ -44,6 +69,7 @@ class TTSService:
     def __init__(self):
         self.providers = {
             "voicevox": VoicevoxProvider(),
+            "nijivoice": NijiVoiceProvider(),
             "other_service": OtherServiceProvider()
         }
 

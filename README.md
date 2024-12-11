@@ -49,6 +49,8 @@ By utilizing LiteLLM, you can access models supported by [LiteLLM](https://githu
 |--------------------|-----------------------|
 | Voicevox Engine     | 🟢 Supported          |
 | AivisSpeech Engine  | 🟢 Supported          |
+| Niji Voice API      | 🟢 Supported          |
+| OpenAI              | ❌ Not supported yet (planned) |
 | Style-Bert-VITS2    | ❌ Not supported yet (planned) |
 
 **Example for VoicevoxEngine Setup**:  
@@ -208,7 +210,7 @@ AGENT_1_MESSAGE_GENERATE_LLM_MODEL=Model for message generation LLM (LiteLLM sty
 AGENT_1_EMOTION_GENERATE_LLM_BASE_URL=Base URL for emotion generation LLM (LiteLLM style)
 AGENT_1_EMOTION_GENERATE_LLM_API_KEY=API key for emotion generation LLM
 AGENT_1_EMOTION_GENERATE_LLM_MODEL=Model for emotion generation LLM (LiteLLM style)
-AGENT_1_TTS_TYPE=TTS type (supported: voicevox; use voicevox for AivisSpeech as well)
+AGENT_1_TTS_TYPE=TTS type (supported: voicevox,nijivoice; use voicevox for AivisSpeech as well)
 AGENT_1_TTS_BASE_URL=TTS endpoint URL
 AGENT_1_TTS_API_KEY=TTS API key (can be blank)
 AGENT_1_TTS_SPEAKER_MODEL=TTS model (e.g., default)
@@ -253,3 +255,4 @@ We also offer paid support for setup, configuration, and ongoing operation. Fees
 - [faster-whisper](https://github.com/guillaumekln/faster-whisper)  
 - [OpenAI Whisper](https://github.com/openai/whisper)  
 - [Ollama](https://docs.ollama.ai/)
+- [Niji voice API Documentation](https://docs.nijivoice.com/docs/getting-started)

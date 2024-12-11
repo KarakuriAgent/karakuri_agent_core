@@ -48,6 +48,8 @@ LiteLLMを利用し、[LiteLLM](https://github.com/BerriAI/litellm)がサポー�
 | - | - |
 | Voicevox Engine | 🟢 対応済 |
 | AivisSpeech Engine | 🟢 対応済 |
+| にじボイスAPI | 🟢 対応済 |
+| OpenAI | ❌ 未対応(将来対応予定) |
 | Style-Bert-VITS2 | ❌ 未対応(将来対応予定) |
 
 **VoicevoxEngineの設定例**:  
@@ -208,7 +210,7 @@ AGENT_1_MESSAGE_GENERATE_LLM_MODEL=メッセージ生成用LLMのモデル(LiteL
 AGENT_1_EMOTION_GENERATE_LLM_BASE_URL=表情生成用LLMのURL(LiteLLM形式)
 AGENT_1_EMOTION_GENERATE_LLM_API_KEY=表情生成用LLMのAPIキー
 AGENT_1_EMOTION_GENERATE_LLM_MODEL=表情生成用LLMのモデル(LiteLLM形式)
-AGENT_1_TTS_TYPE=利用するTTSのタイプ(対応Type:voicevox(AivisSpeechもvoicevoxを指定ください。))
+AGENT_1_TTS_TYPE=利用するTTSのタイプ(対応Type:voicevox,nijivoice(AivisSpeechもvoicevoxを指定ください。))
 AGENT_1_TTS_BASE_URL=TTSエンドポイントのURL
 AGENT_1_TTS_API_KEY=TTSのAPIキー(なければ空白で問題有りません)
 AGENT_1_TTS_SPEAKER_MODEL=TTSのモデル(対応モデル:default)
@@ -252,3 +254,4 @@ AGENT_1_LINE_CHANNEL_ACCESS_TOKEN=LINEチャンネルアクセストークン(LI
 - [faster-whisper](https://github.com/guillaumekln/faster-whisper)  
 - [OpenAI Whisper](https://github.com/openai/whisper)  
 - [Ollama](https://docs.ollama.ai/)
+- [にじボイスAPIドキュメント](https://docs.nijivoice.com/docs/getting-started)

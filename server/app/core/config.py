@@ -21,7 +21,7 @@ class Settings:
         self.chat_audio_files_dir = str(os.getenv("CHAT_AUDIO_FILES_DIR", "chat_audio_files"))
     
     def get_agent_env(self, agent_id: int, key: str) -> str:
-        return os.getenv(f"AGENT_{agent_id}_{key}")
+        return os.getenv(f"AGENT_{agent_id}_{key}") or ""
     
     def is_valid_api_key(self, api_key: str) -> bool:
         return api_key in self.api_keys

@@ -3,28 +3,33 @@
 # Please see the LICENSE file in the project root.
 from fastapi import APIRouter, Depends, HTTPException, Request
 from starlette.responses import FileResponse
+from app.core.llm_service import LLMService
+from app.core.tts_service import TTSService
 from app.dependencies import get_llm_service, get_tts_service
 from app.utils.audio import calculate_audio_duration
 from pathlib import Path
 import os
 import uuid
-from typing import List
+from typing import List, cast
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 import logging
-from linebot.v3.webhook import WebhookParser
-from linebot.v3.messaging import (
+from linebot.v3.webhook import WebhookParser # type: ignore
+from linebot.v3.webhooks.models import Event # type: ignore
+from linebot.v3.messaging import ( # type: ignore
     AsyncApiClient,
     AsyncMessagingApi,
     Configuration,
+)
+from linebot.v3.messaging.models import ( # type: ignore
     ReplyMessageRequest,
     TextMessage,
     AudioMessage
 )
-from linebot.v3.exceptions import (
+from linebot.v3.exceptions import ( # type: ignore
     InvalidSignatureError
 )
-from linebot.v3.webhooks import (
+from linebot.v3.webhooks import ( # type: ignore
     MessageEvent,
     TextMessageContent
 )
@@ -39,8 +44,8 @@ MAX_FILES = settings.line_max_audio_files
 async def handle_line_callback(
     request: Request,
     agent_id: str, 
-    llm_service = Depends(get_llm_service),
-    tts_service = Depends(get_tts_service)
+    llm_service: LLMService = Depends(get_llm_service),
+    tts_service: TTSService = Depends(get_tts_service)
 ):
     signature = request.headers['X-Line-Signature']
 
@@ -61,7 +66,8 @@ async def handle_line_callback(
     line_parser = WebhookParser(agent_config.line_channel_secret)
 
     try:
-        events = line_parser.parse(body, signature)
+        events: List[Event] = cast(List[Event], line_parser.parse(body, signature))  # type: ignore
+
     except InvalidSignatureError:
         raise HTTPException(status_code=400, detail="Invalid signature")
 
@@ -77,10 +83,9 @@ async def handle_line_callback(
                 event.message.text, 
                 agent_config
             )
-            message = llm_response["agent_message"].rstrip('\n')
 
             audio_data = await tts_service.generate_speech(
-                message, 
+                llm_response.agent_message, 
                 agent_config
             )
 
@@ -91,12 +96,12 @@ async def handle_line_callback(
             audio_url = await upload_to_storage(base_url, audio_data)
             duration = calculate_audio_duration(audio_data)
             
-            await line_bot_api.reply_message(
+            await line_bot_api.reply_message( # type: ignore
                 ReplyMessageRequest(
-                    reply_token=event.reply_token,
+                    reply_token=event.reply_token, # type: ignore
                     messages=[
-                        TextMessage(text=message),
-                        AudioMessage(original_content_url=audio_url, duration=duration)
+                        TextMessage(text=llm_response.agent_message), # type: ignore
+                        AudioMessage(original_content_url=audio_url, duration=duration) # type: ignore
                     ]
                 )
             )
@@ -137,9 +142,11 @@ async def cleanup_old_files(directory: str):
             except Exception as e:
                 logger.error(f"Error deleting file {file_path}: {e}")
 
-@router.get(f"/{UPLOAD_DIR}/{{file_path}}")
-async def get_audio(file_path: str):
-    file_path = Path(f"{UPLOAD_DIR}/{file_path}.wav")
+@router.get(f"/{UPLOAD_DIR}/{{file_name}}")
+async def get_audio(file_name: str):
+    if '..' in file_name or '/' in file_name:
+        raise HTTPException(status_code=400, detail="Invalid file name")
+    file_path = Path(f"{UPLOAD_DIR}/{file_name}.wav")
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Audio file not found")
     return FileResponse(file_path)

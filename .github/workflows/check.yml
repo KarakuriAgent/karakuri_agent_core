@@ -13,14 +13,30 @@ permissions:
   issues: write
   pull-requests: write
 
-defaults:
-  run:
-    working-directory: client
-
 jobs:
+  analyze-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run pyright on server
+        run: pyright
+
   build-android-app:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: client
     container:
       image: ghcr.io/0235-jp/karkuri-agent-app-dev:latest
       options: --user root
@@ -50,9 +66,13 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           path: build/app/outputs/apk/release/app-release.apk
+
   build-web-app:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: client
     container:
       image: ghcr.io/0235-jp/karkuri-agent-app-dev:latest
       options: --user root
@@ -71,9 +91,13 @@ jobs:
         with:
           path: build/web
           retention-days: 1
+
   test-app:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: client
     container:
       image: ghcr.io/0235-jp/karkuri-agent-app-dev:latest
       options: --user root

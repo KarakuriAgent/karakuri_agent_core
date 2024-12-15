@@ -233,6 +233,8 @@ async def cleanup_old_files(directory: str):
 
 @router.get(f"/{UPLOAD_DIR}/{{file_name}}")
 async def get_audio(file_name: str):
+    if '..' in file_name or '/' in file_name:
+        raise HTTPException(status_code=400, detail="Invalid file name")
     file_path = Path(f"{UPLOAD_DIR}/{file_name}.wav")
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Audio file not found")

@@ -1,7 +1,7 @@
 # Copyright (c) 0235 Inc.
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, File, Request
 from app.dependencies import get_llm_service, get_tts_service, get_stt_service
 from app.auth.api_key import get_api_key
 from app.core.llm_service import LLMService
@@ -14,9 +14,9 @@ from starlette.responses import FileResponse
 from pathlib import Path
 import os
 import uuid
-from typing import List
+from typing import List, Optional
 from app.core.config import get_settings
-from app.schemas.chat import TextChatRequest, TextChatResponse, VoiceChatResponse
+from app.schemas.chat import TextChatResponse, VoiceChatResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -26,13 +26,12 @@ MAX_FILES = settings.chat_max_audio_files
 
 @router.post("/text/text")
 async def chat_text_to_text(
-    request_body: TextChatRequest,
+    agent_id: str = Form(...),
+    message: str = Form(...),
+    image_file: Optional[UploadFile] = File(None),
     api_key: str = Depends(get_api_key),
     llm_service: LLMService = Depends(get_llm_service),
 ):
-    agent_id = request_body.agent_id
-    message = request_body.message
-
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
     
@@ -41,11 +40,18 @@ async def chat_text_to_text(
             status_code=404,
             detail=f"Agent ID {agent_id} not found"
         )
+
+    if image_file is not None:
+        image_content = await image_file.read()
+    else:
+        image_content = None
+
     try:
         llm_response = await llm_service.generate_response(
-            "text_to_text",
-            message, 
-            agent_config
+            message_type =  "text_to_text",
+            message = message,
+            agent_config = agent_config,
+            image=image_content
         )
         return TextChatResponse(user_message=llm_response.user_message, 
                                 agent_message=llm_response.agent_message,
@@ -60,14 +66,13 @@ async def chat_text_to_text(
 @router.post("/text/voice")
 async def chat_text_to_voice(
     request: Request,
-    request_body: TextChatRequest,
+    agent_id: str = Form(...),
+    message: str = Form(...),
+    image_file: Optional[UploadFile] = File(None),
     api_key: str = Depends(get_api_key),
     llm_service: LLMService = Depends(get_llm_service),
     tts_service: TTSService = Depends(get_tts_service)
 ):
-    agent_id = request_body.agent_id
-    message = request_body.message
-
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
     
@@ -76,12 +81,18 @@ async def chat_text_to_voice(
             status_code=404,
             detail=f"Agent ID {agent_id} not found"
         )
+    
+    if image_file is not None:
+        image_content = await image_file.read()
+    else:
+        image_content = None
 
     try:
         llm_response = await llm_service.generate_response(
-            "text_to_voice",
-            message, 
-            agent_config
+            message_type =  "text_to_voice",
+            message = message,
+            agent_config = agent_config,
+            image=image_content
         )
 
         audio_data = await tts_service.generate_speech(
@@ -110,7 +121,8 @@ async def chat_text_to_voice(
 
 @router.post("/voice/text")
 async def chat_voice_to_text(
-    agent_id: str,
+    agent_id: str = Form(...),
+    image_file: Optional[UploadFile] = File(None),
     audio_file: UploadFile = File(...),
     api_key: str = Depends(get_api_key),
     llm_service: LLMService = Depends(get_llm_service),
@@ -125,6 +137,11 @@ async def chat_voice_to_text(
             detail=f"Agent ID {agent_id} not found"
         )
 
+    if image_file is not None:
+        image_content = await image_file.read()
+    else:
+        image_content = None
+
     try:
         audio_content = await audio_file.read()
         
@@ -134,9 +151,10 @@ async def chat_voice_to_text(
         )
 
         llm_response = await llm_service.generate_response(
-            "voice_to_text",
-            text_message, 
-            agent_config
+            message_type =  "voice_to_text",
+            message = text_message,
+            agent_config = agent_config,
+            image=image_content
         )
 
         return TextChatResponse(user_message=llm_response.user_message, 
@@ -152,7 +170,8 @@ async def chat_voice_to_text(
 @router.post("/voice/voice")
 async def chat_voice_to_voice(
     request: Request,
-    agent_id: str,
+    agent_id: str = Form(...),
+    image_file: Optional[UploadFile] = File(None),
     audio_file: UploadFile = File(...),
     api_key: str = Depends(get_api_key),
     llm_service: LLMService = Depends(get_llm_service),
@@ -168,6 +187,11 @@ async def chat_voice_to_voice(
             detail=f"Agent ID {agent_id} not found"
         )
 
+    if image_file is not None:
+        image_content = await image_file.read()
+    else:
+        image_content = None
+
     try:
         audio_content = await audio_file.read()
         
@@ -177,9 +201,10 @@ async def chat_voice_to_voice(
         )
 
         llm_response = await llm_service.generate_response(
-            "voice_to_voice",
-            text_message, 
-            agent_config
+            message_type =  "voice_to_voice",
+            message = text_message,
+            agent_config = agent_config,
+            image=image_content
         )
 
         audio_data = await tts_service.generate_speech(

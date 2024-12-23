@@ -16,18 +16,14 @@ class AgentManager:
         i = 1
         while True:
             name = self.settings.get_agent_env(i, "NAME")
-            message_generate_llm_base_url=self.settings.get_agent_env(i, "MESSAGE_GENERATE_LLM_BASE_URL")
             message_generate_llm_api_key=self.settings.get_agent_env(i, "MESSAGE_GENERATE_LLM_API_KEY")
             message_generate_llm_model=self.settings.get_agent_env(i, "MESSAGE_GENERATE_LLM_MODEL")
-            emotion_generate_llm_base_url=self.settings.get_agent_env(i, "EMOTION_GENERATE_LLM_BASE_URL")
             emotion_generate_llm_api_key=self.settings.get_agent_env(i, "EMOTION_GENERATE_LLM_API_KEY")
             emotion_generate_llm_model=self.settings.get_agent_env(i, "EMOTION_GENERATE_LLM_MODEL")
             required_values = [
                 name,
-                message_generate_llm_base_url,
                 message_generate_llm_api_key,
                 message_generate_llm_model,
-                emotion_generate_llm_base_url,
                 emotion_generate_llm_api_key,
                 emotion_generate_llm_model,
                 ]
@@ -38,12 +34,15 @@ class AgentManager:
             agents[str(i)] = AgentConfig(
                 id=str(i),
                 name=name,
-                message_generate_llm_base_url=message_generate_llm_base_url,
                 message_generate_llm_api_key=message_generate_llm_api_key,
                 message_generate_llm_model=message_generate_llm_model,
-                emotion_generate_llm_base_url=emotion_generate_llm_base_url,
                 emotion_generate_llm_api_key=emotion_generate_llm_api_key,
                 emotion_generate_llm_model=emotion_generate_llm_model,
+                message_generate_llm_base_url=self.settings.get_agent_env(i, "MESSAGE_GENERATE_LLM_BASE_URL") or "",
+                emotion_generate_llm_base_url=self.settings.get_agent_env(i, "EMOTION_GENERATE_LLM_BASE_URL") or "",
+                vision_generate_llm_base_url=self.settings.get_agent_env(i, "VISION_GENERATE_LLM_BASE_URL") or "",
+                vision_generate_llm_api_key=self.settings.get_agent_env(i, "VISION_GENERATE_LLM_API_KEY") or "",
+                vision_generate_llm_model=self.settings.get_agent_env(i, "VISION_GENERATE_LLM_MODEL") or "",
                 llm_system_prompt=self.settings.get_agent_env(i, "LLM_SYSTEM_PROMPT") or "",
                 tts_base_url=self.settings.get_agent_env(i, "TTS_BASE_URL") or "",
                 tts_api_key=self.settings.get_agent_env(i, "TTS_API_KEY") or "",

@@ -28,7 +28,7 @@ MAX_FILES = settings.chat_max_audio_files
 async def chat_text_to_text(
     agent_id: str = Form(...),
     message: str = Form(...),
-    image_file: Optional[UploadFile] = File(None),
+    image_file: Optional[UploadFile] = None,
     api_key: str = Depends(get_api_key),
     llm_service: LLMService = Depends(get_llm_service),
 ):
@@ -68,7 +68,7 @@ async def chat_text_to_voice(
     request: Request,
     agent_id: str = Form(...),
     message: str = Form(...),
-    image_file: Optional[UploadFile] = File(None),
+    image_file: Optional[UploadFile] = None,
     api_key: str = Depends(get_api_key),
     llm_service: LLMService = Depends(get_llm_service),
     tts_service: TTSService = Depends(get_tts_service)
@@ -122,7 +122,7 @@ async def chat_text_to_voice(
 @router.post("/voice/text")
 async def chat_voice_to_text(
     agent_id: str = Form(...),
-    image_file: Optional[UploadFile] = File(None),
+    image_file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
     api_key: str = Depends(get_api_key),
     llm_service: LLMService = Depends(get_llm_service),
@@ -171,7 +171,7 @@ async def chat_voice_to_text(
 async def chat_voice_to_voice(
     request: Request,
     agent_id: str = Form(...),
-    image_file: Optional[UploadFile] = File(None),
+    image_file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
     api_key: str = Depends(get_api_key),
     llm_service: LLMService = Depends(get_llm_service),

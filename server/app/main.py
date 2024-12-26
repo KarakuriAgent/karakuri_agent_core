@@ -4,7 +4,7 @@
 from fastapi import FastAPI, Depends
 from app.auth.api_key import get_api_key
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import chat, line, agents
+from app.api.v1 import chat, line, agents, web_socket
 from app.core.config import get_settings
 import logging
 
@@ -43,6 +43,12 @@ app.include_router(
     agents.router,
     prefix="/v1",
     tags=["agents"]
+)
+
+app.include_router(
+    web_socket.router,
+    prefix="/v1/ws",
+    tags=["websocket"]
 )
 
 @app.get("/health")

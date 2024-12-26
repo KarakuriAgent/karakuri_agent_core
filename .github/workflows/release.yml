@@ -36,7 +36,6 @@ jobs:
       - run: git config --global --add safe.directory /home/ubuntu/flutter
       - run: dart run rps build-release apk
       - run: zip -r build/mapping.zip build/app/outputs/mapping/release
-      - run: zip -r build/debugSymbols.zip build/app/intermediates/merged_native_libs/release/out/lib
       - run: zip -r build/dartDebugSymbols.zip obfuscate/android
       - uses: actions/upload-release-asset@v1
         env:
@@ -53,14 +52,6 @@ jobs:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: client/build/mapping.zip
           asset_name: mapping.zip
-          asset_content_type: application/zip
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: client/build/debugSymbols.zip
-          asset_name: debugSymbols.zip
           asset_content_type: application/zip
       - uses: actions/upload-release-asset@v1
         env:

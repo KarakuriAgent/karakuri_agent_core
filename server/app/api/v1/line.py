@@ -143,10 +143,10 @@ def parse_line_events(body: str, signature: str, line_channel_secret: str) -> Li
 async def process_image_message(line_bot_api: AsyncLineBotApi):
     message_content = await line_bot_api.get_message_content(event.message.id) # type: ignore
     image_bytes: bytes = b''
-        async for chunk in message_content.iter_content(): # type: ignore
-            assert isinstance(chunk, bytes)  
-            image_bytes += chunk
-        user_image_cache[event.source.user_id] = image_bytes # type: ignore
+    async for chunk in message_content.iter_content(): # type: ignore
+        assert isinstance(chunk, bytes)  
+        image_bytes += chunk
+    user_image_cache[event.source.user_id] = image_bytes # type: ignore
 
 async def upload_to_storage(base_url: str, audio_data: bytes) -> str:
     Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)

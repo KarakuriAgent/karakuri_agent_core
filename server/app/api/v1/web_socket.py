@@ -7,18 +7,22 @@ import json
 import logging
 from pathlib import Path
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+import secrets
+import time
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.websockets import WebSocket
 from jsonschema import ValidationError
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 from app.dependencies import get_llm_service, get_stt_service, get_tts_service
-from app.schemas.web_socket import AudioRequest, AudioResponse, ImageAudioRequest, ImageTextRequest, TextRequest, TextResponse
+from app.schemas.web_socket import AudioRequest, AudioResponse, ImageAudioRequest, ImageTextRequest, TextRequest, TextResponse, TokenResponse
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 from app.core.llm_service import LLMService
 from app.core.stt_service import STTService
 from app.core.tts_service import TTSService
+from app.auth.api_key import get_api_key
 
 router = APIRouter()
 settings = get_settings()
@@ -26,12 +30,35 @@ logger = logging.getLogger(__name__)
 UPLOAD_DIR = settings.web_socket_audio_files_dir
 MAX_FILES = settings.web_socket_max_audio_files
 
+ws_tokens: dict[str, tuple[str, float]] = {}
+TOKEN_LIFETIME = 10
+router = APIRouter()
+@router.get("/get_ws_token")
+async def get_ws_token(api_key: str = Depends(get_api_key)):
+    clean_expired_tokens()
+    token = secrets.token_urlsafe(16)
+    expire_at = time.time() + TOKEN_LIFETIME
+    ws_tokens[token] = (api_key, expire_at)
+    return TokenResponse(token=token, expire_in=TOKEN_LIFETIME)
+
 @router.websocket("")
-async def websocket_endpoint(websocket: WebSocket,
+async def websocket_endpoint(websocket: WebSocket, 
+    token: Optional[str] = Query(None),
     llm_service: LLMService = Depends(get_llm_service),
     stt_service: STTService = Depends(get_stt_service),
     tts_service: TTSService = Depends(get_tts_service)):
+    clean_expired_tokens()
+    if not token or token not in ws_tokens:
+        await websocket.close(code=1008)
+        return
+    api_key, expire_at = ws_tokens[token]
+    if time.time() > expire_at:
+        del ws_tokens[token]
+        await websocket.close(code=1008)
+        return
+    del ws_tokens[token]
     await websocket.accept()
+    await websocket.send_text(f"Hello! Connected with token associated to API key: {api_key}")
     agent_manager = get_agent_manager()
     while True:
         try:
@@ -135,6 +162,11 @@ async def get_audio(file_name: str):
         raise HTTPException(status_code=404, detail="Audio file not found")
     return FileResponse(file_path)
 
+def clean_expired_tokens():
+    now = time.time()
+    expired = [t for t,(_,exp) in ws_tokens.items() if exp < now]
+    for t in expired:
+        del ws_tokens[t]
 
 @router.get("/ws-test", response_class=HTMLResponse)
 def ws_test_page():
@@ -142,7 +174,7 @@ def ws_test_page():
         "request_type": "text",
         "responce_type": "text",
         "agent_id": "1",
-        "text": "こんにちは"
+        "text": "Hello"
     }, ensure_ascii=False, indent=2)
     return f"""
     <!DOCTYPE html>
@@ -151,72 +183,102 @@ def ws_test_page():
     <body>
         <h1>WebSocket Test Page</h1>
         <div>
-            <p>以下のテキストエリアにJSONメッセージを入力し、"Send"ボタンで送信してください。</p>
-            <p>画像を添付したい場合はファイルを選択してください。選択時に request_type が自動で "image_text" に変わります。</p>
+            <label for="tokenInput">Token: </label>
+            <input type="text" id="tokenInput" size="40" placeholder="Enter your WebSocket token here" />
+            <button id="connectBtn">Connect</button>
+        </div>
+        <hr/>
+
+        <div>
+            <p>Enter your JSON message in the text area below and click the "Send" button to submit it.</p>
+            <p>If you want to attach an image, select a file. Once selected, the request_type will be automatically changed to "image_text".</p>
             <textarea id="msgInput" rows="10" cols="60">{initial_message}</textarea><br>
             <input type="file" id="fileInput" accept="image/*"/><br><br>
-            <button id="sendBtn">Send</button>
+            <button id="sendBtn" disabled>Send</button>
         </div>
+
         <pre id="log"></pre>
 
         <script>
-            const logArea = document.getElementById('log');
-            const protocol = (window.location.protocol === 'https:') ? 'wss:' : 'ws:';
-            const ws = new WebSocket(protocol + '//' + window.location.host + '/v1/ws');
+            let ws = null;
 
-            // 画像ファイルの base64 データを保持するための変数
+            const logArea = document.getElementById('log');
+            const connectBtn = document.getElementById('connectBtn');
+            const sendBtn = document.getElementById('sendBtn');
+            const fileInput = document.getElementById('fileInput');
+            const msgInput = document.getElementById('msgInput');
+            const tokenInput = document.getElementById('tokenInput');
+
             let imageBase64 = null;
 
-            // WebSocket イベント
-            ws.onopen = () => {{
-                logArea.textContent += "WebSocket connection opened\\n";
+            connectBtn.onclick = () => {{
+                if (ws && ws.readyState === WebSocket.OPEN) {{
+                    ws.close();
+                }}
+
+                const token = tokenInput.value.trim();
+                if (!token) {{
+                    logArea.textContent += "[Error] Token is empty.\\n";
+                    return;
+                }}
+
+                const protocol = (window.location.protocol === 'https:') ? 'wss:' : 'ws:';
+                const wsUrl = protocol + '//' + window.location.host + '/v1/ws?token=' + encodeURIComponent(token);
+
+                ws = new WebSocket(wsUrl);
+
+                ws.onopen = () => {{
+                    logArea.textContent += "WebSocket connection opened with token: " + token + "\\n";
+                    sendBtn.disabled = false;
+                }};
+
+                ws.onmessage = (event) => {{
+                    logArea.textContent += "Received: " + event.data + "\\n";
+                }};
+
+                ws.onclose = () => {{
+                    logArea.textContent += "WebSocket connection closed\\n";
+                    sendBtn.disabled = true;
+                }};
+
+                ws.onerror = (err) => {{
+                    logArea.textContent += "[Error] " + err + "\\n";
+                }};
             }};
 
-            ws.onmessage = (event) => {{
-                logArea.textContent += "Received: " + event.data + "\\n";
-            }};
-
-            ws.onclose = () => {{
-                logArea.textContent += "WebSocket connection closed\\n";
-            }};
-
-            // 画像ファイルが選択されたときの処理
-            document.getElementById('fileInput').onchange = (event) => {{
+            fileInput.onchange = (event) => {{
                 const file = event.target.files[0];
                 if (!file) {{
-                    // ファイルがクリアされた場合は初期化
                     imageBase64 = null;
                     return;
                 }}
 
-                // FileReader で画像を base64 に変換
                 const reader = new FileReader();
                 reader.onload = () => {{
-                    imageBase64 = reader.result.split(",")[1]; // "data:xxx;base64,～～" の後ろだけを切り出し
+                    imageBase64 = reader.result.split(",")[1];
 
-                    // JSON テキストエリアを読み込み
                     let msgObj;
                     try {{
-                        msgObj = JSON.parse(document.getElementById('msgInput').value);
+                        msgObj = JSON.parse(msgInput.value);
                     }} catch (e) {{
                         logArea.textContent += "JSON Parse Error: " + e + "\\n";
                         return;
                     }}
 
-                    // imageBase64 があるので request_type を "image_text" に変更し、
-                    // image フィールドを追加。テキスト欄は任意で使ってください
                     msgObj.request_type = "image_text";
                     msgObj.image = imageBase64;
 
-                    // JSON テキストエリアの表示も更新
-                    document.getElementById('msgInput').value = JSON.stringify(msgObj, null, 2);
+                    msgInput.value = JSON.stringify(msgObj, null, 2);
                 }};
                 reader.readAsDataURL(file);
             }};
 
-            // Send ボタンが押されたときに送信
-            document.getElementById('sendBtn').onclick = () => {{
-                const msg = document.getElementById('msgInput').value;
+            sendBtn.onclick = () => {{
+                if (!ws || ws.readyState !== WebSocket.OPEN) {{
+                    logArea.textContent += "[Error] WebSocket is not connected.\\n";
+                    return;
+                }}
+                const msg = msgInput.value;
                 ws.send(msg);
                 logArea.textContent += "Sent: " + msg + "\\n";
             }};

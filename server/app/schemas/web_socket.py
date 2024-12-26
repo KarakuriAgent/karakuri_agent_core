@@ -43,3 +43,7 @@ class AudioResponse(TextResponse):
     responce_type: Literal["audio"] = "audio" # type: ignore
     audio_url: str
     duration: int
+
+class TokenResponse(BaseModel):
+    token: str
+    expire_in: int

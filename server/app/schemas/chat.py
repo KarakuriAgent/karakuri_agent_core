@@ -3,10 +3,6 @@
 # Please see the LICENSE file in the project root.
 from pydantic import BaseModel
 
-class TextChatRequest(BaseModel):
-    agent_id: str
-    message: str
-
 class TextChatResponse(BaseModel):
     user_message: str
     agent_message: str

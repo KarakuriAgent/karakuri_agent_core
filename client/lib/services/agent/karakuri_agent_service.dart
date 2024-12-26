@@ -47,19 +47,16 @@ class KarakuriAgentService extends AgentService {
   Future<AgentResponse?> _chat(String message) async {
     final uri = Uri.parse('${_agentConfig.baseUrl}/v1/chat/text/voice');
 
-    final headers = {
-      'X-API-Key': _agentConfig.apiKey,
-      'accept': 'application/json',
-      'Content-Type': 'application/json'
-    };
-
-    final body = {'agent_id': _agentConfig.agentId, 'message': message};
-
     try {
-      final response = await http.post(uri,
-          headers: headers,
-          body: json.encode(body),
-          encoding: Encoding.getByName('utf-8'));
+      final request = http.MultipartRequest('POST', uri)
+        ..fields['agent_id'] = _agentConfig.agentId
+        ..fields['message'] = message
+        ..headers['X-API-Key'] = _agentConfig.apiKey
+        ..headers['accept'] = 'application/json';
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
       if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
         final decodedBody = utf8.decode(response.bodyBytes);
         return AgentResponse.fromJson(json.decode(decodedBody));

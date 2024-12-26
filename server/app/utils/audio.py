@@ -27,7 +27,7 @@ async def cleanup_old_files(directory: str, max_files: int):
     ]
     files_with_time.sort()
     if len(files_with_time) >= max_files:
-        files_to_delete = files_with_time[:(len(files_with_time) - max_files + 1)]
+        files_to_delete = files_with_time[:(len(files_with_time) - max_files)]
         for _, file_path in files_to_delete:
             try:
                 file_path.unlink() 

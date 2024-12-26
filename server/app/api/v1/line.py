@@ -8,11 +8,9 @@ from app.core.llm_service import LLMService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
 from app.dependencies import get_llm_service, get_stt_service, get_tts_service
-from app.utils.audio import calculate_audio_duration
+from app.utils.audio import calculate_audio_duration, upload_to_storage
 from pathlib import Path
-import os
-import uuid
-from typing import Dict, List, cast
+from typing import Dict, cast, List
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 import logging
@@ -100,7 +98,7 @@ async def handle_line_callback(
                 scheme = request.headers.get('X-Forwarded-Proto', 'http')
                 server_host = request.headers.get('X-Forwarded-Host', request.base_url.hostname)
                 base_url = f"{scheme}://{server_host}"
-                audio_url = await upload_to_storage(base_url, audio_data)
+                audio_url = await upload_to_storage(base_url, audio_data, "line", UPLOAD_DIR, MAX_FILES)
                 duration = calculate_audio_duration(audio_data)
 
                 await line_messaging_api.reply_message( # type: ignore
@@ -148,27 +146,6 @@ async def process_image_message(line_bot_api: AsyncLineBotApi):
         image_bytes += chunk
     user_image_cache[event.source.user_id] = image_bytes # type: ignore
 
-async def upload_to_storage(base_url: str, audio_data: bytes) -> str:
-    Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
-    file_id = str(uuid.uuid4())
-    file_path = os.path.join(UPLOAD_DIR, f"{file_id}.wav")
-    await cleanup_old_files(UPLOAD_DIR)
-    with open(file_path, "wb") as f:
-        f.write(audio_data)
-    return f"{base_url}/v1/line/{UPLOAD_DIR}/{file_id}"
-async def cleanup_old_files(directory: str):
-    files = Path(directory).glob('*.wav')
-    files_with_time: List[tuple[float, Path]] = [
-        (f.stat().st_ctime, f) for f in files if f.is_file()
-    ]
-    files_with_time.sort()
-    if len(files_with_time) >= MAX_FILES:
-        files_to_delete = files_with_time[:(len(files_with_time) - MAX_FILES + 1)]
-        for _, file_path in files_to_delete:
-            try:
-                file_path.unlink()
-            except Exception as e:
-                logger.error(f"Error deleting file {file_path}: {e}")
 @router.get(f"/{UPLOAD_DIR}/{{file_name}}")
 async def get_audio(file_name: str):
     if '..' in file_name or '/' in file_name:

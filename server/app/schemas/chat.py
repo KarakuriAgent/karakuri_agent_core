@@ -3,10 +3,12 @@
 # Please see the LICENSE file in the project root.
 from pydantic import BaseModel
 
+
 class TextChatResponse(BaseModel):
     user_message: str
     agent_message: str
     emotion: str
+
 
 class VoiceChatResponse(BaseModel):
     user_message: str

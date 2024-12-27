@@ -3,6 +3,7 @@
 # Please see the LICENSE file in the project root.
 from pydantic import BaseModel
 
+
 class LLMResponse(BaseModel):
     user_message: str
     agent_message: str

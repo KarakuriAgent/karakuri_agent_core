@@ -4,9 +4,18 @@ import logging
 import json
 
 from litellm import (
-    AllMessageValues, ChatCompletionImageObject, ChatCompletionImageUrlObject, ChatCompletionTextObject,
-    ChatCompletionUserMessage, ChatCompletionSystemMessage, ChatCompletionAssistantMessage,
-    Choices, CustomStreamWrapper, acompletion, ModelResponse, utils, litellm # type: ignore
+    AllMessageValues,
+    ChatCompletionImageObject,
+    ChatCompletionImageUrlObject,
+    ChatCompletionTextObject,
+    ChatCompletionUserMessage,
+    ChatCompletionSystemMessage,
+    ChatCompletionAssistantMessage,
+    Choices,
+    CustomStreamWrapper,
+    acompletion,  # type: ignore
+    ModelResponse,  # type: ignore
+    utils,  # type: ignore
 )
 from app.schemas.agent import AgentConfig
 from app.schemas.emotion import Emotion
@@ -18,6 +27,7 @@ settings = get_settings()
 CHECK_SUPPORT_VISION_MODEL = settings.check_support_vision_model
 
 conversation_history: List[AllMessageValues] = []
+
 
 class LLMService:
     MAX_ROUNDS = 10
@@ -35,15 +45,15 @@ Required JSON format:
 }}"""
 
     async def generate_response(
-        self, 
+        self,
         message_type: str,
         message: str,
         agent_config: AgentConfig,
-        image: Optional[bytes] = None
+        image: Optional[bytes] = None,
     ) -> LLMResponse:
         global conversation_history
         messages: List[AllMessageValues] = []
-        
+
         if agent_config.llm_system_prompt:
             messages.append(
                 ChatCompletionSystemMessage(
@@ -55,10 +65,12 @@ Required JSON format:
         messages.extend(conversation_history)
 
         if image:
-            image_data_b64 = base64.b64encode(image).decode('utf-8')
+            image_data_b64 = base64.b64encode(image).decode("utf-8")
             data_url = f"data:image/jpeg;base64,{image_data_b64}"
-            
-            if not CHECK_SUPPORT_VISION_MODEL or utils.supports_vision(model=agent_config.message_generate_llm_model):
+
+            if not CHECK_SUPPORT_VISION_MODEL or utils.supports_vision(
+                model=agent_config.message_generate_llm_model
+            ):
                 messages.append(
                     ChatCompletionUserMessage(
                         role="user",
@@ -67,19 +79,18 @@ Required JSON format:
                                 type="image_url",
                                 image_url=ChatCompletionImageUrlObject(url=data_url),
                             ),
-                            ChatCompletionTextObject(
-                                type="text",
-                                text=message
-                            ),
-                        ]
+                            ChatCompletionTextObject(type="text", text=message),
+                        ],
                     )
                 )
             else:
-                image_description = await self.convert_images_to_text(data_url, agent_config)
+                image_description = await self.convert_images_to_text(
+                    data_url, agent_config
+                )
                 messages.append(
                     ChatCompletionUserMessage(
                         role="user",
-                        content=f"{message}\n\n[Image description: {image_description}]"
+                        content=f"{message}\n\n[Image description: {image_description}]",
                     )
                 )
         else:
@@ -94,28 +105,28 @@ Required JSON format:
             base_url=agent_config.message_generate_llm_base_url,
             api_key=agent_config.message_generate_llm_api_key,
             model=agent_config.message_generate_llm_model,
-            messages=messages
+            messages=messages,
         )
         agent_message = self.get_message_content(response)
 
         emotion = await self.generate_emotion_response(
-            user_message=message,
-            agent_message=agent_message,
-            agent_config=agent_config
+            user_message=message, agent_message=agent_message, agent_config=agent_config
         )
 
         conversation_history = self._update_conversation_history(
-            conversation_history,
-            user_message=message,
-            agent_message=agent_message
+            conversation_history, user_message=message, agent_message=agent_message
         )
 
-        return LLMResponse(user_message=message, agent_message=agent_message, emotion=emotion)
+        return LLMResponse(
+            user_message=message, agent_message=agent_message, emotion=emotion
+        )
 
-    def get_message_content(self, response: Union[ModelResponse, CustomStreamWrapper]) -> str:
+    def get_message_content(
+        self, response: Union[ModelResponse, CustomStreamWrapper]
+    ) -> str:
         if not isinstance(response, ModelResponse):
             raise TypeError("response is not a ModelResponse instance.")
-        if not hasattr(response, 'choices'):
+        if not hasattr(response, "choices"):
             raise AttributeError("response has no 'choices' attribute.")
         if len(response.choices) == 0:
             raise IndexError("response.choices is empty, no elements to access.")
@@ -128,29 +139,33 @@ Required JSON format:
         if not isinstance(content, str):
             raise TypeError("response.choices[0].message.content is not a string.")
         if not content.strip():
-            raise ValueError("response.choices[0].message.content is empty or whitespace-only.")
+            raise ValueError(
+                "response.choices[0].message.content is empty or whitespace-only."
+            )
 
         return content
-    
-    async def convert_images_to_text(self, data_url: str, agent_config: AgentConfig) -> str:
+
+    async def convert_images_to_text(
+        self, data_url: str, agent_config: AgentConfig
+    ) -> str:
         vision_messages: List[AllMessageValues] = [
             ChatCompletionSystemMessage(
                 role="system",
-                content="You are a vision model that converts images into a descriptive text."
+                content="You are a vision model that converts images into a descriptive text.",
             ),
             ChatCompletionUserMessage(
                 role="user",
                 content=[
                     ChatCompletionImageObject(
                         type="image_url",
-                        image_url=ChatCompletionImageUrlObject(url=data_url)
+                        image_url=ChatCompletionImageUrlObject(url=data_url),
                     ),
                     ChatCompletionTextObject(
                         type="text",
-                        text="Please describe the following images in a concise and clear way."
+                        text="Please describe the following images in a concise and clear way.",
                     ),
-                ]
-            )
+                ],
+            ),
         ]
         vision_response = await acompletion(
             base_url=agent_config.vision_generate_llm_base_url,
@@ -161,7 +176,7 @@ Required JSON format:
         return self.get_message_content(vision_response)
 
     async def generate_emotion_response(
-        self, 
+        self,
         user_message: str,
         agent_message: str,
         agent_config: AgentConfig,
@@ -175,7 +190,7 @@ Required JSON format:
             ChatCompletionUserMessage(
                 role="user",
                 content=emotion_prompt,
-            )
+            ),
         ]
         emotion_response = await acompletion(
             base_url=agent_config.emotion_generate_llm_base_url,
@@ -187,9 +202,12 @@ Required JSON format:
 
         try:
             parsed_response = json.loads(self.get_message_content(emotion_response))
-            if not isinstance(parsed_response, dict) or "emotion" not in parsed_response:
+            if (
+                not isinstance(parsed_response, dict)
+                or "emotion" not in parsed_response
+            ):
                 raise ValueError("Invalid JSON structure")
-            
+
             if parsed_response["emotion"] not in Emotion.to_request_values():
                 raise ValueError(f"Invalid emotion value: {parsed_response['emotion']}")
             return parsed_response["emotion"]
@@ -201,23 +219,17 @@ Required JSON format:
         self,
         conversation_history: List[AllMessageValues],
         user_message: str,
-        agent_message: str
+        agent_message: str,
     ) -> List[AllMessageValues]:
         conversation_history.append(
-            ChatCompletionUserMessage(
-                role="user",
-                content=user_message
-            )
+            ChatCompletionUserMessage(role="user", content=user_message)
         )
         conversation_history.append(
-            ChatCompletionAssistantMessage(
-                role="assistant",
-                content=agent_message
-            )
+            ChatCompletionAssistantMessage(role="assistant", content=agent_message)
         )
 
         max_length = self.MAX_ROUNDS * 2
         if len(conversation_history) > max_length:
             conversation_history = conversation_history[-max_length:]
-        
+
         return conversation_history

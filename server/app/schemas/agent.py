@@ -3,6 +3,7 @@
 # Please see the LICENSE file in the project root.
 from pydantic import BaseModel
 
+
 class AgentConfig(BaseModel):
     id: str
     name: str
@@ -23,6 +24,7 @@ class AgentConfig(BaseModel):
     tts_speaker_id: str
     line_channel_secret: str
     line_channel_access_token: str
+
 
 class AgentResponse(BaseModel):
     agent_id: str

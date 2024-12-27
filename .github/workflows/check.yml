@@ -30,6 +30,8 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run pyright on server
         run: pyright
+      - name: Run Ruff check
+        run: ruff check
 
   build-android-app:
     runs-on: ubuntu-latest

@@ -10,3 +10,4 @@ python-multipart==0.0.20
 line-bot-sdk==3.14.2
 pydub==0.25.1
 pyright==1.1.391
+ruff==0.8.4

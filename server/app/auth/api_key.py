@@ -10,23 +10,22 @@ from app.core.config import get_settings, Settings
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
+
 async def get_api_key(
     api_key_header: Optional[str] = Security(api_key_header),
-    settings: Settings = Depends(get_settings)
+    settings: Settings = Depends(get_settings),
 ) -> str:
     if api_key_header is None:
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN, detail="API key is required"
         )
-    
+
     if not settings.api_keys:
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN, detail="No API keys configured"
         )
-    
+
     if not settings.is_valid_api_key(api_key_header):
-        raise HTTPException(
-            status_code=HTTP_403_FORBIDDEN, detail="Invalid API key"
-        )
-    
+        raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Invalid API key")
+
     return api_key_header

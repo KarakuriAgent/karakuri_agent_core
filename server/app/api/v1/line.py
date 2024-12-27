@@ -14,25 +14,25 @@ from typing import Dict, cast, List
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 import logging
-from linebot import AsyncLineBotApi # type: ignore
-from linebot.aiohttp_async_http_client import AiohttpAsyncHttpClient # type: ignore
-from linebot.v3.messaging.async_api_client import AsyncApiClient # type: ignore
-from linebot.v3.messaging import AsyncMessagingApi # type: ignore
-from linebot.v3.webhook import WebhookParser # type: ignore
-from linebot.v3.webhooks.models import Event # type: ignore
-from linebot.v3.messaging.models import ( # type: ignore
+from linebot import AsyncLineBotApi  # type: ignore
+from linebot.aiohttp_async_http_client import AiohttpAsyncHttpClient  # type: ignore
+from linebot.v3.messaging.async_api_client import AsyncApiClient  # type: ignore
+from linebot.v3.messaging import AsyncMessagingApi  # type: ignore
+from linebot.v3.webhook import WebhookParser  # type: ignore
+from linebot.v3.webhooks.models import Event  # type: ignore
+from linebot.v3.messaging.models import (  # type: ignore
     ReplyMessageRequest,
     TextMessage,
-    AudioMessage
+    AudioMessage,
 )
-from linebot.v3.exceptions import ( # type: ignore
-    InvalidSignatureError
+from linebot.v3.exceptions import (  # type: ignore
+    InvalidSignatureError,
 )
-from linebot.v3.webhooks import ( # type: ignore
+from linebot.v3.webhooks import (  # type: ignore
     MessageEvent,
     TextMessageContent,
     ImageMessageContent,
-    Configuration
+    Configuration,
 )
 
 router = APIRouter()
@@ -42,33 +42,36 @@ UPLOAD_DIR = settings.line_audio_files_dir
 MAX_FILES = settings.line_max_audio_files
 user_image_cache: Dict[str, bytes] = {}
 
+
 @router.post("/callback/{agent_id}")
 async def handle_line_callback(
     request: Request,
     agent_id: str,
     llm_service: LLMService = Depends(get_llm_service),
     tts_service: TTSService = Depends(get_tts_service),
-    stt_service: STTService = Depends(get_stt_service)
+    stt_service: STTService = Depends(get_stt_service),
 ):
     signature, body = await extract_line_request_data(request)
     agent_manager = get_agent_manager()
     try:
         agent_config = agent_manager.get_agent(agent_id)
     except KeyError:
-        raise HTTPException(status_code=404, detail=f"Agent with ID '{agent_id}' not found.")
+        raise HTTPException(
+            status_code=404, detail=f"Agent with ID '{agent_id}' not found."
+        )
     aio_session = aiohttp.ClientSession()
     async_client: AsyncApiClient | None = None
     try:
         configuration = Configuration(
             access_token=agent_config.line_channel_access_token
-         )
+        )
         async_client = AsyncApiClient(configuration)
         line_messaging_api = AsyncMessagingApi(async_client)
-        
+
         aio_client = AiohttpAsyncHttpClient(aio_session)
         line_bot_api = AsyncLineBotApi(
             channel_access_token=agent_config.line_channel_access_token,
-            async_http_client=aio_client
+            async_http_client=aio_client,
         )
 
         events = parse_line_events(body, signature, agent_config.line_channel_secret)
@@ -78,58 +81,64 @@ async def handle_line_callback(
                     continue
 
                 if isinstance(event.message, ImageMessageContent):
-                    await process_image_message(line_bot_api)
+                    await process_image_message(line_bot_api, event)
                     continue
                 elif isinstance(event.message, TextMessageContent):
                     text_message = event.message.text
                 else:
                     continue
-                cached_image_bytes = user_image_cache.pop(event.source.user_id, None) # type: ignore
+                cached_image_bytes = user_image_cache.pop(event.source.user_id, None)  # type: ignore
                 llm_response = await llm_service.generate_response(
-                    "line",
-                    text_message,
-                    agent_config,
-                    image=cached_image_bytes
+                    "line", text_message, agent_config, image=cached_image_bytes
                 )
                 audio_data = await tts_service.generate_speech(
-                    llm_response.agent_message,
-                    agent_config
+                    llm_response.agent_message, agent_config
                 )
-                scheme = request.headers.get('X-Forwarded-Proto', 'http')
-                server_host = request.headers.get('X-Forwarded-Host', request.base_url.hostname)
+                scheme = request.headers.get("X-Forwarded-Proto", "http")
+                server_host = request.headers.get(
+                    "X-Forwarded-Host", request.base_url.hostname
+                )
                 base_url = f"{scheme}://{server_host}"
-                audio_url = await upload_to_storage(base_url, audio_data, "line", UPLOAD_DIR, MAX_FILES)
+                audio_url = await upload_to_storage(
+                    base_url, audio_data, "line", UPLOAD_DIR, MAX_FILES
+                )
                 duration = calculate_audio_duration(audio_data)
 
-                await line_messaging_api.reply_message( # type: ignore
+                await line_messaging_api.reply_message(  # type: ignore
                     ReplyMessageRequest(
-                        reply_token=event.reply_token, # type: ignore
+                        reply_token=event.reply_token,  # type: ignore
                         messages=[
-                            TextMessage(text=llm_response.agent_message), # type: ignore
-                            AudioMessage(original_content_url=audio_url, duration=duration) # type: ignore
-                        ]
+                            TextMessage(text=llm_response.agent_message),  # type: ignore
+                            AudioMessage(
+                                original_content_url=audio_url,  # type: ignore
+                                duration=duration,
+                            ),
+                        ],
                     )
                 )
 
-            return 'OK'
+            return "OK"
 
         except Exception as e:
             logger.exception("Error in handle_line_callback:", exc_info=True)
             raise HTTPException(
-                status_code=500,
-                detail=f"Error processing request: {str(e)}"
+                status_code=500, detail=f"Error processing request: {str(e)}"
             )
     finally:
         await aio_session.close()
         if async_client is not None:
             await async_client.close()
 
+
 async def extract_line_request_data(request: Request):
-    signature = request.headers['X-Line-Signature']
+    signature = request.headers["X-Line-Signature"]
     body = await request.body()
     return signature, body.decode()
 
-def parse_line_events(body: str, signature: str, line_channel_secret: str) -> List[Event]:
+
+def parse_line_events(
+    body: str, signature: str, line_channel_secret: str
+) -> List[Event]:
     line_parser = WebhookParser(line_channel_secret)
 
     try:
@@ -138,17 +147,19 @@ def parse_line_events(body: str, signature: str, line_channel_secret: str) -> Li
         raise HTTPException(status_code=400, detail="Invalid signature")
     return events
 
-async def process_image_message(line_bot_api: AsyncLineBotApi):
-    message_content = await line_bot_api.get_message_content(event.message.id) # type: ignore
-    image_bytes: bytes = b''
-    async for chunk in message_content.iter_content(): # type: ignore
-        assert isinstance(chunk, bytes)  
+
+async def process_image_message(line_bot_api: AsyncLineBotApi, event: MessageEvent):
+    message_content = await line_bot_api.get_message_content(event.message.id)  # type: ignore
+    image_bytes: bytes = b""
+    async for chunk in message_content.iter_content():  # type: ignore
+        assert isinstance(chunk, bytes)
         image_bytes += chunk
-    user_image_cache[event.source.user_id] = image_bytes # type: ignore
+    user_image_cache[event.source.user_id] = image_bytes  # type: ignore
+
 
 @router.get(f"/{UPLOAD_DIR}/{{file_name}}")
 async def get_audio(file_name: str):
-    if '..' in file_name or '/' in file_name:
+    if ".." in file_name or "/" in file_name:
         raise HTTPException(status_code=400, detail="Invalid file name")
     file_path = Path(f"{UPLOAD_DIR}/{file_name}.wav")
     if not file_path.exists():

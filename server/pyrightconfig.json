@@ -1,0 +1,10 @@
+{
+  "include": [
+    "app",
+  ],
+  "exclude": [
+    "**/__pycache__",
+  ],
+  "pythonVersion": "3.10",
+  "typeCheckingMode": "standard",
+}

@@ -14,42 +14,25 @@ logging.basicConfig(
 
 settings = get_settings()
 app = FastAPI(
-    title="Karakuri_agentAPI",
-    description="Karakuri_agentAPI",
-    version="0.2.1+12"
+    title="Karakuri_agentAPI", description="Karakuri_agentAPI", version="0.2.1+12"
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(
-    chat.router,
-    prefix="/v1/chat",
-    tags=["chat"]
-)
+app.include_router(chat.router, prefix="/v1/chat", tags=["chat"])
 
-app.include_router(
-    line.router,
-    prefix="/v1/line",
-    tags=["line"]
-)
+app.include_router(line.router, prefix="/v1/line", tags=["line"])
 
-app.include_router(
-    agents.router,
-    prefix="/v1",
-    tags=["agents"]
-)
+app.include_router(agents.router, prefix="/v1", tags=["agents"])
 
-app.include_router(
-    web_socket.router,
-    prefix="/v1/ws",
-    tags=["websocket"]
-)
+app.include_router(web_socket.router, prefix="/v1/ws", tags=["websocket"])
+
 
 @app.get("/health")
 async def health_check(api_key: str = Depends(get_api_key)):

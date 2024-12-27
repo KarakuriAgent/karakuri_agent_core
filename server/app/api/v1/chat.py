@@ -22,6 +22,7 @@ settings = get_settings()
 UPLOAD_DIR = settings.chat_audio_files_dir
 MAX_FILES = settings.chat_max_audio_files
 
+
 @router.post("/text/text")
 async def chat_text_to_text(
     agent_id: str = Form(...),
@@ -32,12 +33,9 @@ async def chat_text_to_text(
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
-    
+
     if not agent_config:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Agent ID {agent_id} not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
 
     if image_file is not None:
         image_content = await image_file.read()
@@ -46,20 +44,21 @@ async def chat_text_to_text(
 
     try:
         llm_response = await llm_service.generate_response(
-            message_type =  "text_to_text",
-            message = message,
-            agent_config = agent_config,
-            image=image_content
+            message_type="text_to_text",
+            message=message,
+            agent_config=agent_config,
+            image=image_content,
         )
-        return TextChatResponse(user_message=llm_response.user_message, 
-                                agent_message=llm_response.agent_message,
-                                  emotion=llm_response.emotion
-                                  )
+        return TextChatResponse(
+            user_message=llm_response.user_message,
+            agent_message=llm_response.agent_message,
+            emotion=llm_response.emotion,
+        )
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Error processing request: {str(e)}"
+            status_code=500, detail=f"Error processing request: {str(e)}"
         )
+
 
 @router.post("/text/voice")
 async def chat_text_to_voice(
@@ -69,17 +68,14 @@ async def chat_text_to_voice(
     image_file: Optional[UploadFile] = None,
     api_key: str = Depends(get_api_key),
     llm_service: LLMService = Depends(get_llm_service),
-    tts_service: TTSService = Depends(get_tts_service)
+    tts_service: TTSService = Depends(get_tts_service),
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
-    
+
     if not agent_config:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Agent ID {agent_id} not found"
-        )
-    
+        raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
+
     if image_file is not None:
         image_content = await image_file.read()
     else:
@@ -87,35 +83,37 @@ async def chat_text_to_voice(
 
     try:
         llm_response = await llm_service.generate_response(
-            message_type =  "text_to_voice",
-            message = message,
-            agent_config = agent_config,
-            image=image_content
+            message_type="text_to_voice",
+            message=message,
+            agent_config=agent_config,
+            image=image_content,
         )
 
         audio_data = await tts_service.generate_speech(
-            llm_response.agent_message, 
-            agent_config
+            llm_response.agent_message, agent_config
         )
 
-        scheme = request.headers.get('X-Forwarded-Proto', 'http')
-        server_host = request.headers.get('X-Forwarded-Host', request.base_url.hostname)
+        scheme = request.headers.get("X-Forwarded-Proto", "http")
+        server_host = request.headers.get("X-Forwarded-Host", request.base_url.hostname)
         base_url = f"{scheme}://{server_host}"
-        
-        audio_url = await upload_to_storage(base_url, audio_data, "chat", UPLOAD_DIR, MAX_FILES)
+
+        audio_url = await upload_to_storage(
+            base_url, audio_data, "chat", UPLOAD_DIR, MAX_FILES
+        )
 
         duration = calculate_audio_duration(audio_data)
-        return VoiceChatResponse(user_message=message, 
-                                 agent_message=llm_response.agent_message, 
-                                 emotion=llm_response.emotion,
-                                 audio_url=audio_url, 
-                                 duration=duration
-                                 )
+        return VoiceChatResponse(
+            user_message=message,
+            agent_message=llm_response.agent_message,
+            emotion=llm_response.emotion,
+            audio_url=audio_url,
+            duration=duration,
+        )
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Error processing request: {str(e)}"
+            status_code=500, detail=f"Error processing request: {str(e)}"
         )
+
 
 @router.post("/voice/text")
 async def chat_voice_to_text(
@@ -124,16 +122,13 @@ async def chat_voice_to_text(
     audio_file: UploadFile = File(...),
     api_key: str = Depends(get_api_key),
     llm_service: LLMService = Depends(get_llm_service),
-    stt_service: STTService = Depends(get_stt_service)
+    stt_service: STTService = Depends(get_stt_service),
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
-    
+
     if not agent_config:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Agent ID {agent_id} not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
 
     if image_file is not None:
         image_content = await image_file.read()
@@ -142,28 +137,26 @@ async def chat_voice_to_text(
 
     try:
         audio_content = await audio_file.read()
-        
-        text_message = await stt_service.transcribe_audio(
-            audio_content,
-            agent_config
-        )
+
+        text_message = await stt_service.transcribe_audio(audio_content, agent_config)
 
         llm_response = await llm_service.generate_response(
-            message_type =  "voice_to_text",
-            message = text_message,
-            agent_config = agent_config,
-            image=image_content
+            message_type="voice_to_text",
+            message=text_message,
+            agent_config=agent_config,
+            image=image_content,
         )
 
-        return TextChatResponse(user_message=llm_response.user_message, 
-                                agent_message=llm_response.agent_message,
-                                  emotion=llm_response.emotion
-                                  )
+        return TextChatResponse(
+            user_message=llm_response.user_message,
+            agent_message=llm_response.agent_message,
+            emotion=llm_response.emotion,
+        )
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Error processing request: {str(e)}"
+            status_code=500, detail=f"Error processing request: {str(e)}"
         )
+
 
 @router.post("/voice/voice")
 async def chat_voice_to_voice(
@@ -174,16 +167,13 @@ async def chat_voice_to_voice(
     api_key: str = Depends(get_api_key),
     llm_service: LLMService = Depends(get_llm_service),
     stt_service: STTService = Depends(get_stt_service),
-    tts_service: TTSService = Depends(get_tts_service)
+    tts_service: TTSService = Depends(get_tts_service),
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
-    
+
     if not agent_config:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Agent ID {agent_id} not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
 
     if image_file is not None:
         image_content = await image_file.read()
@@ -192,46 +182,45 @@ async def chat_voice_to_voice(
 
     try:
         audio_content = await audio_file.read()
-        
-        text_message = await stt_service.transcribe_audio(
-            audio_content,
-            agent_config
-        )
+
+        text_message = await stt_service.transcribe_audio(audio_content, agent_config)
 
         llm_response = await llm_service.generate_response(
-            message_type =  "voice_to_voice",
-            message = text_message,
-            agent_config = agent_config,
-            image=image_content
+            message_type="voice_to_voice",
+            message=text_message,
+            agent_config=agent_config,
+            image=image_content,
         )
 
         audio_data = await tts_service.generate_speech(
-            llm_response.agent_message, 
-            agent_config
+            llm_response.agent_message, agent_config
         )
 
-        scheme = request.headers.get('X-Forwarded-Proto', 'http')
-        server_host = request.headers.get('X-Forwarded-Host', request.base_url.hostname)
+        scheme = request.headers.get("X-Forwarded-Proto", "http")
+        server_host = request.headers.get("X-Forwarded-Host", request.base_url.hostname)
         base_url = f"{scheme}://{server_host}"
-        
-        audio_url = await upload_to_storage(base_url, audio_data, "chat", UPLOAD_DIR, MAX_FILES)
+
+        audio_url = await upload_to_storage(
+            base_url, audio_data, "chat", UPLOAD_DIR, MAX_FILES
+        )
         duration = calculate_audio_duration(audio_data)
 
-        return VoiceChatResponse(user_message=text_message, 
-                                 agent_message=llm_response.agent_message, 
-                                 emotion=llm_response.emotion,
-                                 audio_url=audio_url, 
-                                 duration=duration
-                                 )
+        return VoiceChatResponse(
+            user_message=text_message,
+            agent_message=llm_response.agent_message,
+            emotion=llm_response.emotion,
+            audio_url=audio_url,
+            duration=duration,
+        )
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Error processing request: {str(e)}"
+            status_code=500, detail=f"Error processing request: {str(e)}"
         )
+
 
 @router.get(f"/{UPLOAD_DIR}/{{file_name}}")
 async def get_audio(file_name: str):
-    if '..' in file_name or '/' in file_name:
+    if ".." in file_name or "/" in file_name:
         raise HTTPException(status_code=400, detail="Invalid file name")
     file_path = Path(f"{UPLOAD_DIR}/{file_name}.wav")
     if not file_path.exists():

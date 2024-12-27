@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Optional
 import secrets
 import time
-from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.websockets import WebSocket
@@ -17,7 +16,15 @@ from jsonschema import ValidationError
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 from app.dependencies import get_llm_service, get_stt_service, get_tts_service
-from app.schemas.web_socket import AudioRequest, AudioResponse, ImageAudioRequest, ImageTextRequest, TextRequest, TextResponse, TokenResponse
+from app.schemas.web_socket import (
+    AudioRequest,
+    AudioResponse,
+    ImageAudioRequest,
+    ImageTextRequest,
+    TextRequest,
+    TextResponse,
+    TokenResponse,
+)
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 from app.core.llm_service import LLMService
 from app.core.stt_service import STTService
@@ -33,6 +40,8 @@ MAX_FILES = settings.web_socket_max_audio_files
 ws_tokens: dict[str, tuple[str, float]] = {}
 TOKEN_LIFETIME = 10
 router = APIRouter()
+
+
 @router.get("/get_ws_token")
 async def get_ws_token(api_key: str = Depends(get_api_key)):
     clean_expired_tokens()
@@ -41,12 +50,15 @@ async def get_ws_token(api_key: str = Depends(get_api_key)):
     ws_tokens[token] = (api_key, expire_at)
     return TokenResponse(token=token, expire_in=TOKEN_LIFETIME)
 
+
 @router.websocket("")
-async def websocket_endpoint(websocket: WebSocket, 
+async def websocket_endpoint(
+    websocket: WebSocket,
     token: Optional[str] = Query(None),
     llm_service: LLMService = Depends(get_llm_service),
     stt_service: STTService = Depends(get_stt_service),
-    tts_service: TTSService = Depends(get_tts_service)):
+    tts_service: TTSService = Depends(get_tts_service),
+):
     clean_expired_tokens()
     if not token or token not in ws_tokens:
         await websocket.close(code=1008)
@@ -58,7 +70,9 @@ async def websocket_endpoint(websocket: WebSocket,
         return
     del ws_tokens[token]
     await websocket.accept()
-    await websocket.send_text(f"Hello! Connected with token associated to API key: {api_key}")
+    await websocket.send_text(
+        f"Hello! Connected with token associated to API key: {api_key}"
+    )
     agent_manager = get_agent_manager()
     while True:
         try:
@@ -75,7 +89,9 @@ async def websocket_endpoint(websocket: WebSocket,
             elif msg_type == "image_audio":
                 request_obj = ImageAudioRequest(**raw_data)
             else:
-                await websocket.send_text(json.dumps({"type": "text", "text": "unknown request type"}))
+                await websocket.send_text(
+                    json.dumps({"type": "text", "text": "unknown request type"})
+                )
                 continue
 
             agent_config = agent_manager.get_agent(request_obj.agent_id)
@@ -85,61 +101,66 @@ async def websocket_endpoint(websocket: WebSocket,
             if isinstance(request_obj, AudioRequest):
                 audio_bytes = base64.b64decode(request_obj.audio)
                 audio_file = io.BytesIO(audio_bytes)
-                audio_content = audio_file.read() 
+                audio_content = audio_file.read()
                 text_message = await stt_service.transcribe_audio(
-                    audio_content,
-                    agent_config
-                 )
+                    audio_content, agent_config
+                )
             elif isinstance(request_obj, ImageAudioRequest):
                 audio_bytes = base64.b64decode(request_obj.audio)
                 audio_file = io.BytesIO(audio_bytes)
-                audio_content = audio_file.read() 
+                audio_content = audio_file.read()
                 text_message = await stt_service.transcribe_audio(
-                    audio_content,
-                    agent_config
-                 )
+                    audio_content, agent_config
+                )
                 image_bytes = base64.b64decode(request_obj.image)
                 image_file = io.BytesIO(image_bytes)
-                image_content = image_file.read() 
+                image_content = image_file.read()
             elif isinstance(request_obj, ImageTextRequest):
                 text_message = request_obj.text
                 image_bytes = base64.b64decode(request_obj.image)
                 image_file = io.BytesIO(image_bytes)
-                image_content = image_file.read() 
+                image_content = image_file.read()
             else:
                 text_message = request_obj.text
             llm_response = await llm_service.generate_response(
-                "websocket",
-                text_message, 
-                agent_config,
-                image=image_content
+                "websocket", text_message, agent_config, image=image_content
             )
 
-            agent_message = llm_response.agent_message.rstrip('\n')
+            agent_message = llm_response.agent_message.rstrip("\n")
             emotion = llm_response.emotion
 
             if request_obj.responce_type == "text":
-                response = TextResponse(user_message=text_message, agent_message=agent_message, emotion=emotion)
+                response = TextResponse(
+                    user_message=text_message,
+                    agent_message=agent_message,
+                    emotion=emotion,
+                )
             elif request_obj.responce_type == "audio":
                 audio_data = await tts_service.generate_speech(
-                    agent_message, 
-                    agent_config
+                    agent_message, agent_config
                 )
 
-                scheme = websocket.headers.get('X-Forwarded-Proto', 'http')
-                server_host = websocket.headers.get('X-Forwarded-Host', websocket.base_url.hostname)
+                scheme = websocket.headers.get("X-Forwarded-Proto", "http")
+                server_host = websocket.headers.get(
+                    "X-Forwarded-Host", websocket.base_url.hostname
+                )
                 base_url = f"{scheme}://{server_host}"
-        
-                audio_url = await upload_to_storage(base_url, audio_data, "ws", UPLOAD_DIR, MAX_FILES)
+
+                audio_url = await upload_to_storage(
+                    base_url, audio_data, "ws", UPLOAD_DIR, MAX_FILES
+                )
                 duration = calculate_audio_duration(audio_data)
-                response = AudioResponse(user_message=text_message,
-                                         agent_message=agent_message,
-                                         emotion=emotion,
-                                         audio_url=audio_url, 
-                                         duration=duration
+                response = AudioResponse(
+                    user_message=text_message,
+                    agent_message=agent_message,
+                    emotion=emotion,
+                    audio_url=audio_url,
+                    duration=duration,
                 )
             else:
-                await websocket.send_text(json.dumps({"type": "text", "text": "unknown response type"}))
+                await websocket.send_text(
+                    json.dumps({"type": "text", "text": "unknown response type"})
+                )
                 continue
 
             await websocket.send_text(response.model_dump_json())
@@ -155,27 +176,33 @@ async def websocket_endpoint(websocket: WebSocket,
 
 @router.get(f"/{UPLOAD_DIR}/{{file_name}}")
 async def get_audio(file_name: str):
-    if '..' in file_name or '/' in file_name:
+    if ".." in file_name or "/" in file_name:
         raise HTTPException(status_code=400, detail="Invalid file name")
     file_path = Path(f"{UPLOAD_DIR}/{file_name}.wav")
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Audio file not found")
     return FileResponse(file_path)
 
+
 def clean_expired_tokens():
     now = time.time()
-    expired = [t for t,(_,exp) in ws_tokens.items() if exp < now]
+    expired = [t for t, (_, exp) in ws_tokens.items() if exp < now]
     for t in expired:
         del ws_tokens[t]
 
+
 @router.get("/ws-test", response_class=HTMLResponse)
 def ws_test_page():
-    initial_message = json.dumps({
-        "request_type": "text",
-        "responce_type": "text",
-        "agent_id": "1",
-        "text": "Hello"
-    }, ensure_ascii=False, indent=2)
+    initial_message = json.dumps(
+        {
+            "request_type": "text",
+            "responce_type": "text",
+            "agent_id": "1",
+            "text": "Hello",
+        },
+        ensure_ascii=False,
+        indent=2,
+    )
     return f"""
     <!DOCTYPE html>
     <html>

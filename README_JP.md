@@ -4,38 +4,10 @@
 多種多様なエンドポイントやサービスとの統合により、**1つのエージェント** へ **どこからでもアクセス可能** な世界を実現します。  
 複数のエージェントを同時に定義し、それぞれに異なる役割・性格・音声・モデルを割り当てることも可能です。
 
-## ディレクトリ構成
-
-```
-.
-├─ server/
-│  ├─ app/
-│  ├─ requirements.txt
-│  ├─ example.env
-│  └─ ...
-├─ client/
-│  ├─ lib/
-│  ├─ pubspec.yaml
-│  └─ ...
-└─ compose.yml
-```
-
 ## 技術概要
 
 ### 🚀 **サーバーサイド**:
 - フレームワーク: FastAPI
-
-### 📱 **クライアントサイド**: 
-- フレームワーク: Flutter
-
-| Platform | Support Status |
-| - | - |
-| Android | 🟢 対応済 |
-| iOS | 🟢 対応済 |
-| Web | 🟢 対応済 |
-| Mac | 🟢 対応済 |
-| Windows | ❌ 未対応(将来対応予定) |
-| Linux | ❌ 未対応(将来対応予定) |
 
 ### 🪶 **モデル対応 (LLM)**: 
 LiteLLMを利用し、[LiteLLM](https://github.com/BerriAI/litellm)がサポートしているモデル(例: OpenAI, Ollama)にアクセス可能。  
@@ -120,10 +92,6 @@ Flutterクライアントの画面や音声インタラクションのGIFを公�
     - ローカルでVoicevoxEngineを起動し、`.env`でそのURLを設定してください  
   - (任意) LINE連携を利用する場合は、[LINE Developer Console](https://developers.line.biz/ja/)よりトークン・シークレット取得が必要
 
-- **クライアント(Flutter)**  
-  - Flutter SDK (最新版推奨)  
-  ※ Android/iOS/Web/Macで動作可能。Windows/Linux対応は将来検討。
-
 - **各種LLMサービスモデル利用時**  
   - 有効なAPIキーおよびインターネット接続が必要。
 
@@ -141,57 +109,32 @@ Flutterクライアントの画面や音声インタラクションのGIFを公�
 docker compose up
 ```
 
-上記コマンドで  
-- `http://localhost:8080` でサーバー  
-- `http://localhost:5050` でWebクライアント  
-が起動します。
+上記コマンドで`http://localhost:8080` でサーバーが起動します。
 
-`.env`は事前に`server`ディレクトリで設定しておいてください。
+`.env`は事前に設定しておいてください。
 
 ### サーバーサイドのセットアップ(手動)
 
-1. サーバー側のディレクトリへ移動  
-   ```bash
-   cd server
-   ```
-2. `.env`ファイルの作成、及び必要に応じて修正
+1. `.env`ファイルの作成、及び必要に応じて修正
    ```bash
    cp example.env .env
    ```
    `.env`でエージェント数やモデル設定、APIキーなどを設定します。
    
-3. 必要なパッケージインストール  
+2. 必要なパッケージインストール  
    ```bash
    pip install -r requirements.txt
    ```
-4. サーバー起動  
+3. サーバー起動  
    ```bash
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
    ```
    → `http://localhost:8080` でFastAPIサーバーが起動します。
 
-### クライアント(Flutter)のセットアップ(手動)
-
-1. Flutterクライアントのディレクトリへ移動  
-   ```bash
-   cd client
-   ```
-2. 依存関係を解決  
-   ```bash
-   flutter pub get
-   ```
-3. 実行 (ここではWebを例示。詳細は`pubspec.yaml`のscriptsを参照)  
-   ```bash
-   dart run rps run-release web
-   ```
-   → `http://localhost:5050` でFlutterのWebアプリが起動します。
-
 ## 💡 使い方
 
 - Swagger UIでAPIのフォーマットを確認および実行  
   `http://localhost:8080/docs`
-
-- `http://localhost:5050` でFlutterアプリにアクセスし、APIサーバーの情報を入力するとAIエージェントとのやり取りが可能
 
 ## ⚙️ 設定・カスタマイズ
 

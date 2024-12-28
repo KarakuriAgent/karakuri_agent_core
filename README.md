@@ -5,38 +5,10 @@
 **Karakuri Agent** is an open-source project aiming to create an **AI agent** accessible from any environment—whether it's a smart speaker, chat tool, or web application. By integrating various endpoints and services, it aims to realize a world where you can **access a single agent** from **anywhere**.  
 You can also define multiple agents simultaneously, each with unique roles, personalities, voices, and models.
 
-## Project Structure
-
-```
-.
-├─ server/
-│  ├─ app/
-│  ├─ requirements.txt
-│  ├─ example.env
-│  └─ ...
-├─ client/
-│  ├─ lib/
-│  ├─ pubspec.yaml
-│  └─ ...
-└─ compose.yml
-```
-
 ## Technical Overview
 
 ### 🚀 **Server-Side**
 - Framework: FastAPI
-
-### 📱 **Client-Side**
-- Framework: Flutter
-
-| Platform | Support Status       |
-|----------|----------------------|
-| Android  | 🟢 Supported         |
-| iOS      | 🟢 Supported         |
-| Web      | 🟢 Supported         |
-| Mac      | 🟢 Supported         |
-| Windows  | ❌ Not supported yet (planned) |
-| Linux    | ❌ Not supported yet (planned) |
 
 ### 🪶 **Model Support (LLM)**
 By utilizing LiteLLM, you can access models supported by [LiteLLM](https://github.com/BerriAI/litellm), such as OpenAI and Ollama.  
@@ -122,10 +94,6 @@ We plan to provide screenshots or GIFs showing the Flutter client and voice inte
     - Run VoicevoxEngine locally and set the URL in `.env`.  
   - (Optional) For LINE integration, obtain tokens and a secret from the [LINE Developer Console](https://developers.line.biz/en/).
 
-- **Client (Flutter)**  
-  - Flutter SDK (latest recommended)  
-  *Supports Android/iOS/Web/Mac; Windows/Linux support is planned.*
-
 - **LLM Model Usage**  
   - Requires valid API keys and an internet connection.
 
@@ -141,57 +109,32 @@ If you have `compose.yml` at the project root, you can start both the server and
 ```bash
 docker compose up
 ```
+The above command will start the server at `http://localhost:8080`.
 
-After running this command:  
-- Server will be available at `http://localhost:8080`  
-- Web client will be available at `http://localhost:5050`
-
-Make sure to set up `.env` in the `server` directory beforehand.
+Make sure to set up `.env` beforehand.
 
 ### Manual Setup: Server-Side
 
-1. Move to the server directory:  
-   ```bash
-   cd server
-   ```
-2. Copy and edit `.env` as needed:  
+1. Copy and edit `.env` as needed:  
    ```bash
    cp example.env .env
    ```
    Configure agents, models, API keys, etc. in `.env`.
    
-3. Install required packages:  
+2. Install required packages:  
    ```bash
    pip install -r requirements.txt
    ```
-4. Start the server:  
+3. Start the server:  
    ```bash
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
    ```
    → Server will run at `http://localhost:8080`.
 
-### Manual Setup: Client (Flutter)
-
-1. Move to the client directory:  
-   ```bash
-   cd client
-   ```
-2. Resolve dependencies:  
-   ```bash
-   flutter pub get
-   ```
-3. Run the application (example for Web; see `pubspec.yaml` scripts for details):  
-   ```bash
-   dart run rps run-release web
-   ```
-   → Web client will run at `http://localhost:5050`.
-
 ## 💡 Usage
 
 - Check and interact with the API format via Swagger UI:  
   `http://localhost:8080/docs`
-
-- Access the Flutter web app at `http://localhost:5050` and input the API server information to interact with the AI agent.
 
 ## ⚙️ Configuration
 

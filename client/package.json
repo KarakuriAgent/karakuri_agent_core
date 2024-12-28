@@ -1,6 +1,0 @@
-{
-  "devDependencies": {
-    "@ricky0123/vad-web": "^0.0.21",
-    "onnxruntime-web": "^1.14.0"
-  }
-}

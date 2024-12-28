@@ -104,7 +104,7 @@ We plan to provide screenshots or GIFs showing the Flutter client and voice inte
 
 ### Using Docker Compose
 
-If you have `compose.yml` at the project root, you can start both the server and the web client with Docker Compose.
+If you have `compose.yml` at the project root, you can start the server with Docker Compose.
 
 ```bash
 docker compose up

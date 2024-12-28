@@ -103,7 +103,7 @@ Flutterクライアントの画面や音声インタラクションのGIFを公�
 ### Docker Composeを利用する場合
 
 プロジェクトルートにある`compose.yml`を使用すると、  
-サーバーとWebクライアントをコンテナで一括起動できます。
+サーバーをコンテナで一括起動できます。
 
 ```bash
 docker compose up

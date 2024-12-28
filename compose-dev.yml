@@ -9,7 +9,9 @@ services:
       - ./:/home/karakuri/workspace/server
       - pip-cache:/home/karakuri/.cache/pip
       - pip-local:/home/karakuri/.local
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
     ports:
      - "8081:8080"
     tty: true

@@ -1,8 +1,8 @@
+import asyncio
 from typing import List, Optional, Union
 import base64
 import logging
 import json
-
 from litellm import (
     AllMessageValues,
     ChatCompletionImageObject,
@@ -16,6 +16,8 @@ from litellm import (
     acompletion,  # type: ignore
     ModelResponse,  # type: ignore
     utils,  # type: ignore
+    token_counter,  # type: ignore
+    model_cost,  # type: ignore
 )
 from app.schemas.agent import AgentConfig
 from app.schemas.emotion import Emotion
@@ -26,12 +28,11 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 CHECK_SUPPORT_VISION_MODEL = settings.check_support_vision_model
 
+conversation_history_lock = asyncio.Lock()
 conversation_history: List[AllMessageValues] = []
 
 
 class LLMService:
-    MAX_ROUNDS = 10
-
     def create_emotion_analysis_prompt(self, text: str) -> str:
         emotions = Emotion.to_request_values()
         return f"""analyze the following text emotion.
@@ -51,75 +52,83 @@ Required JSON format:
         agent_config: AgentConfig,
         image: Optional[bytes] = None,
     ) -> LLMResponse:
-        global conversation_history
-        messages: List[AllMessageValues] = []
-
-        if agent_config.llm_system_prompt:
-            messages.append(
-                ChatCompletionSystemMessage(
-                    role="system",
-                    content=agent_config.llm_system_prompt,
-                )
+        async with conversation_history_lock:
+            global conversation_history
+            systemMessage = ChatCompletionSystemMessage(
+                role="system",
+                content=agent_config.llm_system_prompt,
             )
 
-        messages.extend(conversation_history)
+            if image:
+                image_data_b64 = base64.b64encode(image).decode("utf-8")
+                data_url = f"data:image/jpeg;base64,{image_data_b64}"
 
-        if image:
-            image_data_b64 = base64.b64encode(image).decode("utf-8")
-            data_url = f"data:image/jpeg;base64,{image_data_b64}"
-
-            if not CHECK_SUPPORT_VISION_MODEL or utils.supports_vision(
-                model=agent_config.message_generate_llm_model
-            ):
-                messages.append(
-                    ChatCompletionUserMessage(
-                        role="user",
-                        content=[
-                            ChatCompletionImageObject(
-                                type="image_url",
-                                image_url=ChatCompletionImageUrlObject(url=data_url),
-                            ),
-                            ChatCompletionTextObject(type="text", text=message),
-                        ],
+                if not CHECK_SUPPORT_VISION_MODEL or utils.supports_vision(
+                    model=agent_config.message_generate_llm_model
+                ):
+                    conversation_history.append(
+                        ChatCompletionUserMessage(
+                            role="user",
+                            content=[
+                                ChatCompletionImageObject(
+                                    type="image_url",
+                                    image_url=ChatCompletionImageUrlObject(
+                                        url=data_url
+                                    ),
+                                ),
+                                ChatCompletionTextObject(type="text", text=message),
+                            ],
+                        )
                     )
-                )
+                else:
+                    image_description = await self.convert_images_to_text(
+                        data_url, agent_config
+                    )
+                    conversation_history.append(
+                        ChatCompletionUserMessage(
+                            role="user",
+                            content=f"{message}\n\n[Image description: {image_description}]",
+                        )
+                    )
             else:
-                image_description = await self.convert_images_to_text(
-                    data_url, agent_config
-                )
-                messages.append(
+                conversation_history.append(
                     ChatCompletionUserMessage(
                         role="user",
-                        content=f"{message}\n\n[Image description: {image_description}]",
+                        content=message,
                     )
                 )
-        else:
-            messages.append(
-                ChatCompletionUserMessage(
-                    role="user",
-                    content=message,
+
+            response = await acompletion(
+                base_url=agent_config.message_generate_llm_base_url,
+                api_key=agent_config.message_generate_llm_api_key,
+                model=agent_config.message_generate_llm_model,
+                messages=[systemMessage] + conversation_history[:],
+            )
+            agent_message = self.get_message_content(response)
+            conversation_history.append(
+                ChatCompletionAssistantMessage(
+                    role="assistant",
+                    content=agent_message,
                 )
             )
 
-        response = await acompletion(
-            base_url=agent_config.message_generate_llm_base_url,
-            api_key=agent_config.message_generate_llm_api_key,
-            model=agent_config.message_generate_llm_model,
-            messages=messages,
-        )
-        agent_message = self.get_message_content(response)
+            emotion = await self.generate_emotion_response(
+                user_message=message,
+                agent_message=agent_message,
+                agent_config=agent_config,
+            )
 
-        emotion = await self.generate_emotion_response(
-            user_message=message, agent_message=agent_message, agent_config=agent_config
-        )
+            llm_response = LLMResponse(
+                user_message=message, agent_message=agent_message, emotion=emotion
+            )
 
-        conversation_history = self._update_conversation_history(
-            conversation_history, user_message=message, agent_message=agent_message
-        )
+            asyncio.create_task(
+                self._update_conversation_history(
+                    agent_config.message_generate_llm_model, systemMessage
+                )
+            )
 
-        return LLMResponse(
-            user_message=message, agent_message=agent_message, emotion=emotion
-        )
+        return llm_response
 
     def get_message_content(
         self, response: Union[ModelResponse, CustomStreamWrapper]
@@ -215,21 +224,40 @@ Required JSON format:
             logger.error(f"Error parsing emotion response: {str(e)}")
             return Emotion.NEUTRAL.value
 
-    def _update_conversation_history(
-        self,
-        conversation_history: List[AllMessageValues],
-        user_message: str,
-        agent_message: str,
-    ) -> List[AllMessageValues]:
-        conversation_history.append(
-            ChatCompletionUserMessage(role="user", content=user_message)
-        )
-        conversation_history.append(
-            ChatCompletionAssistantMessage(role="assistant", content=agent_message)
-        )
+    async def _update_conversation_history(
+        self, model, systemMessage: ChatCompletionSystemMessage
+    ):
+        try:
+            max_tokens: int = model_cost[model]["max_input_tokens"] or 8192
+        except Exception:
+            max_tokens: int = 8192
 
-        max_length = self.MAX_ROUNDS * 2
-        if len(conversation_history) > max_length:
-            conversation_history = conversation_history[-max_length:]
+        threshold = int(max_tokens * 0.8)
+        async with conversation_history_lock:
+            current_tokens = token_counter(
+                model=model, messages=[systemMessage] + conversation_history[:]
+            )
+            if current_tokens > threshold:
+                remove_first_user_to_next_user()
+        print(conversation_history)
 
-        return conversation_history
+
+def remove_first_user_to_next_user() -> None:
+    first_user_index = None
+    second_user_index = None
+    user_count = 0
+    global conversation_history
+
+    for i, msg in enumerate(conversation_history):
+        if msg["role"] == "user":
+            user_count += 1
+            if user_count == 1:
+                first_user_index = i
+            elif user_count == 2:
+                second_user_index = i
+                break
+
+    if first_user_index is None or second_user_index is None:
+        return
+
+    del conversation_history[first_user_index:second_user_index]

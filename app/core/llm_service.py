@@ -16,20 +16,19 @@ from litellm import (
     acompletion,  # type: ignore
     ModelResponse,  # type: ignore
     utils,  # type: ignore
-    token_counter,  # type: ignore
-    model_cost,  # type: ignore
 )
+from app.core.memory_service import MemoryService
 from app.schemas.agent import AgentConfig
 from app.schemas.emotion import Emotion
 from app.schemas.llm import LLMResponse
 from app.core.config import get_settings
+from app.core.memory_service import conversation_history_lock
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 CHECK_SUPPORT_VISION_MODEL = settings.check_support_vision_model
 
-conversation_history_lock = asyncio.Lock()
-conversation_history: List[AllMessageValues] = []
+memory_service = MemoryService()
 
 
 class LLMService:
@@ -53,7 +52,9 @@ Required JSON format:
         image: Optional[bytes] = None,
     ) -> LLMResponse:
         async with conversation_history_lock:
-            global conversation_history
+            conversation_history = await memory_service.get_conversation_history(
+                agent_config.id
+            )
             systemMessage = ChatCompletionSystemMessage(
                 role="system",
                 content=agent_config.llm_system_prompt,
@@ -123,8 +124,11 @@ Required JSON format:
             )
 
             asyncio.create_task(
-                self._update_conversation_history(
-                    agent_config.message_generate_llm_model, systemMessage
+                memory_service.update_conversation_history(
+                    agent_config.message_generate_llm_model,
+                    agent_config.id,
+                    systemMessage,
+                    conversation_history,
                 )
             )
 
@@ -223,41 +227,3 @@ Required JSON format:
         except (json.JSONDecodeError, ValueError) as e:
             logger.error(f"Error parsing emotion response: {str(e)}")
             return Emotion.NEUTRAL.value
-
-    async def _update_conversation_history(
-        self, model, systemMessage: ChatCompletionSystemMessage
-    ):
-        try:
-            max_tokens: int = model_cost[model]["max_input_tokens"] or 8192
-        except Exception:
-            max_tokens: int = 8192
-
-        threshold = int(max_tokens * 0.8)
-        async with conversation_history_lock:
-            current_tokens = token_counter(
-                model=model, messages=[systemMessage] + conversation_history[:]
-            )
-            if current_tokens > threshold:
-                remove_first_user_to_next_user()
-        print(conversation_history)
-
-
-def remove_first_user_to_next_user() -> None:
-    first_user_index = None
-    second_user_index = None
-    user_count = 0
-    global conversation_history
-
-    for i, msg in enumerate(conversation_history):
-        if msg["role"] == "user":
-            user_count += 1
-            if user_count == 1:
-                first_user_index = i
-            elif user_count == 2:
-                second_user_index = i
-                break
-
-    if first_user_index is None or second_user_index is None:
-        return
-
-    del conversation_history[first_user_index:second_user_index]

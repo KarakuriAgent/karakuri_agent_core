@@ -21,6 +21,18 @@ services:
       bash -c "pip install --user --upgrade pip &&
              pip install --user --no-cache-dir --upgrade -r requirements.txt &&
              sleep infinity"
+    depends_on:
+      - redis
+
+  redis:
+    container_name: "karakuri-redis-dev"
+    image: redis:latest
+    ports:
+      - "6378:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
+  redis_data:
   pip-cache:
   pip-local:

@@ -9,6 +9,19 @@ services:
       - ./:/app
     build: 
       context: .
-      dockerfile: .
+      dockerfile: Dockerfile
     ports:
       - 8080:8080
+    depends_on:
+      - redis
+
+  redis:
+    container_name: "karakuri-redis"
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

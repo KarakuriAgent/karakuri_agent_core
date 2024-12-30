@@ -54,3 +54,5 @@ pubspec_overrides.yaml
 .env
 *__pycache__/
 *_audio_files/*
+
+.venv/

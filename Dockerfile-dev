@@ -7,7 +7,7 @@ FROM python:3.10-slim
 USER root
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends build-essential && \
+    apt-get install -y --no-install-recommends build-essential libsndfile1 ffmpeg && \
     apt-get upgrade -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

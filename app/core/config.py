@@ -34,6 +34,7 @@ class Settings:
             os.getenv("CHECK_SUPPORT_VISION_MODEL", "True").lower() == "true"
         )
         self.redis_url = str(os.getenv("REDIS_URL", "redis://karakuri-redis"))
+        self.redis_password = str(os.getenv("REDIS_PASSWORD", "Redis_P@ssw0rd123"))
         self.threshold_tokens_percentage = double(
             os.getenv("THRESHOLD_TOKENS_PERCENTAGE", 0.8)
         )

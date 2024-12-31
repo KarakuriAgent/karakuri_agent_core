@@ -14,8 +14,9 @@ from app.core.config import get_settings
 
 settings = get_settings()
 REDIS_URL = settings.redis_url
+REDIS_PASSWORD = settings.redis_password
 threshold_tokens_percentage = settings.threshold_tokens_percentage
-redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+redis_client = redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
 conversation_history_lock = asyncio.Lock()
 
 

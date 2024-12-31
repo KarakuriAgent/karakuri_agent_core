@@ -157,8 +157,10 @@ async def extract_line_request_data(request: Request):
     try:
         signature = request.headers.get("X-Line-Signature")
         if not signature:
-            raise HTTPException(status_code=400, detail="X-Line-Signature header is missing")
-        
+            raise HTTPException(
+                status_code=400, detail="X-Line-Signature header is missing"
+            )
+
         body = await request.body()
         return signature, body.decode()
     except ClientDisconnect:

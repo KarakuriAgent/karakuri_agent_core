@@ -2,7 +2,7 @@
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
 import aiohttp
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from starlette.responses import FileResponse
 from app.core.llm_service import LLMService
 from app.core.tts_service import TTSService
@@ -11,6 +11,7 @@ from app.dependencies import get_llm_service, get_stt_service, get_tts_service
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 from pathlib import Path
 from typing import Dict, cast, List
+from app.schemas.agent import AgentConfig
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 import logging
@@ -43,22 +44,14 @@ MAX_FILES = settings.line_max_audio_files
 user_image_cache: Dict[str, bytes] = {}
 
 
-@router.post("/callback/{agent_id}")
-async def handle_line_callback(
+async def process_line_events_background(
+    body: str,
+    signature: str,
+    agent_config: AgentConfig,
     request: Request,
-    agent_id: str,
-    llm_service: LLMService = Depends(get_llm_service),
-    tts_service: TTSService = Depends(get_tts_service),
-    stt_service: STTService = Depends(get_stt_service),
+    llm_service: LLMService,
+    tts_service: TTSService,
 ):
-    signature, body = await extract_line_request_data(request)
-    agent_manager = get_agent_manager()
-    try:
-        agent_config = agent_manager.get_agent(agent_id)
-    except KeyError:
-        raise HTTPException(
-            status_code=404, detail=f"Agent with ID '{agent_id}' not found."
-        )
     aio_session = aiohttp.ClientSession()
     async_client: AsyncApiClient | None = None
     try:
@@ -116,18 +109,47 @@ async def handle_line_callback(
                         ],
                     )
                 )
-
-            return "OK"
-
         except Exception as e:
-            logger.exception("Error in handle_line_callback:", exc_info=True)
-            raise HTTPException(
-                status_code=500, detail=f"Error processing request: {str(e)}"
+            logger.exception(
+                f"Error in process_line_events_background: {str(e)}", exc_info=True
             )
     finally:
         await aio_session.close()
         if async_client is not None:
             await async_client.close()
+
+
+@router.post("/callback/{agent_id}")
+async def handle_line_callback(
+    background_tasks: BackgroundTasks,
+    request: Request,
+    agent_id: str,
+    llm_service: LLMService = Depends(get_llm_service),
+    tts_service: TTSService = Depends(get_tts_service),
+    stt_service: STTService = Depends(get_stt_service),
+):
+    signature, body = await extract_line_request_data(request)
+    agent_manager = get_agent_manager()
+    try:
+        agent_config = agent_manager.get_agent(agent_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404, detail=f"Agent with ID '{agent_id}' not found."
+        )
+
+    # Verify signature before returning OK
+    parse_line_events(body, signature, agent_config.line_channel_secret)
+
+    background_tasks.add_task(
+        process_line_events_background,
+        body,
+        signature,
+        agent_config,
+        request,
+        llm_service,
+        tts_service,
+    )
+    return "OK"
 
 
 async def extract_line_request_data(request: Request):

@@ -3,6 +3,7 @@
 # Please see the LICENSE file in the project root.
 import aiohttp
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from starlette.requests import ClientDisconnect
 from starlette.responses import FileResponse
 from app.core.llm_service import LLMService
 from app.core.tts_service import TTSService
@@ -153,9 +154,19 @@ async def handle_line_callback(
 
 
 async def extract_line_request_data(request: Request):
-    signature = request.headers["X-Line-Signature"]
-    body = await request.body()
-    return signature, body.decode()
+    try:
+        signature = request.headers.get("X-Line-Signature")
+        if not signature:
+            raise HTTPException(status_code=400, detail="X-Line-Signature header is missing")
+        
+        body = await request.body()
+        return signature, body.decode()
+    except ClientDisconnect:
+        logger.warning("Client disconnected while reading request body")
+        raise HTTPException(status_code=400, detail="Client disconnected")
+    except Exception as e:
+        logger.error(f"Error extracting LINE request data: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid request")
 
 
 def parse_line_events(

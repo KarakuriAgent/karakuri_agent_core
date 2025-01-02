@@ -130,7 +130,6 @@ Response:
     "video": false
 }
 ```
-
 #### 3.3.1 ステータスと利用可能なコミュニケーション
 ```python
 class CommunicationChannel(str, Enum):

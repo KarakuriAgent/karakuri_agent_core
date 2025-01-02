@@ -66,6 +66,71 @@ app/
 
 ### 3.3 エージェントの状態管理
 
+#### 3.3.0 APIエンドポイント
+
+| エンドポイント | メソッド | 説明 |
+|--------------|---------|------|
+| `/v1/agents/{agent_id}/status` | GET | エージェントの現在のステータスを取得 |
+| `/v1/agents/{agent_id}/status` | PUT | エージェントのステータスを更新 |
+| `/v1/agents/{agent_id}/schedule` | GET | エージェントの当日のスケジュールを取得 |
+| `/v1/agents/{agent_id}/availability` | GET | 各コミュニケーションチャンネルの利用可否を取得 |
+
+リクエスト・レスポンス例：
+
+```json
+// GET /v1/agents/1/status
+{
+    "current_status": "available",
+    "last_status_change": "2024-01-01T12:00:00",
+    "next_status_change": "2024-01-01T22:00:00",
+    "status_message": "通常対応可能です"
+}
+
+// PUT /v1/agents/1/status
+Request:
+"working"
+
+Response:
+{
+    "current_status": "working",
+    "last_status_change": "2024-01-01T13:00:00",
+    "next_status_change": null,
+    "status_message": "作業中ですが、チャットでの対応は可能です"
+}
+
+// GET /v1/agents/1/schedule
+{
+    "date": "2024-01-01",
+    "items": [
+        {
+            "start_time": "08:00",
+            "end_time": "12:00",
+            "activity": "通常業務",
+            "status": "available",
+            "description": "メールチェックと一般的な問い合わせ対応",
+            "location": "オフィス"
+        },
+        {
+            "start_time": "12:00",
+            "end_time": "13:00",
+            "activity": "昼食",
+            "status": "eating",
+            "description": "昼食休憩",
+            "location": "カフェテリア"
+        }
+    ],
+    "generated_at": "2024-01-01T07:30:00",
+    "last_updated": "2024-01-01T07:30:00"
+}
+
+// GET /v1/agents/1/availability
+{
+    "chat": true,
+    "voice": false,
+    "video": false
+}
+```
+
 #### 3.3.1 ステータスと利用可能なコミュニケーション
 ```python
 class CommunicationChannel(str, Enum):

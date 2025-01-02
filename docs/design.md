@@ -64,20 +64,84 @@ app/
 | voice to text | ✅ | 音声入力からテキスト応答 |
 | voice to voice | ✅ | 音声入力から音声応答 |
 
-### 3.3 外部サービス連携
+### 3.3 エージェントの状態管理
 
-#### 3.3.1 LLM (Language Models)
+#### 3.3.1 ステータスと利用可能なコミュニケーション
+```python
+class CommunicationChannel(str, Enum):
+    CHAT = "chat"          # Text-based communication (LINE, etc.)
+    VOICE = "voice"        # Voice communication
+    VIDEO = "video"        # Video communication (for future expansion)
+
+class AgentStatus(str, Enum):
+    AVAILABLE = "available"     # Free and ready to interact
+    SLEEPING = "sleeping"       # Currently sleeping
+    EATING = "eating"          # Having a meal
+    WORKING = "working"        # Working on tasks but can handle chat
+    OUT = "out"               # Outside/Away but can handle chat
+    MAINTENANCE = "maintenance" # System maintenance mode
+```
+
+各ステータスでのコミュニケーション可否：
+| ステータス | チャット | 音声 | ビデオ |
+|-----------|---------|------|--------|
+| AVAILABLE | ✅ | ✅ | ✅ |
+| SLEEPING | ❌ | ❌ | ❌ |
+| EATING | ✅ | ❌ | ❌ |
+| WORKING | ✅ | ❌ | ❌ |
+| OUT | ✅ | ❌ | ❌ |
+| MAINTENANCE | ❌ | ❌ | ❌ |
+
+#### 3.3.2 スケジュール管理
+- 起床30分前に自動的に当日のスケジュールを生成
+- LLMを使用した動的なスケジュール作成
+- エージェントの性格や役割に基づいた活動の設定
+
+スケジュールデータ構造：
+```python
+class ScheduleItem(BaseModel):
+    start_time: str
+    end_time: str
+    activity: str
+    status: AgentStatus
+    description: Optional[str]
+    location: Optional[str]
+
+class DailySchedule(BaseModel):
+    date: date
+    items: List[ScheduleItem]
+    generated_at: datetime
+    last_updated: datetime
+```
+
+#### 3.3.3 状態に応じた応答生成
+- LLMを使用した文脈に応じた応答の生成
+- 現在の状態、スケジュール、次の利用可能時間を考慮
+- エージェントの性格に合わせた応答スタイル
+
+応答生成の考慮要素：
+- 現在時刻
+- 現在のステータス
+- 現在の活動内容
+- 場所情報
+- 次の利用可能時間
+- ユーザーのメッセージ内容
+- エージェントのキャラクター設定
+
+### 3.4 外部サービス連携
+
+#### 3.4.1 LLM (Language Models)
 - LiteLLM対応モデル
 
-#### 3.3.2 TTS (Text-to-Speech)
+#### 3.4.2 TTS (Text-to-Speech)
 - Voicevox Engine
 - AivisSpeech Engine
 - にじボイスAPI
 
-#### 3.3.3 STT (Speech-to-Text)
+#### 3.4.3 STT (Speech-to-Text)
 - faster-whisper
 
-#### 3.3.4 メッセージングプラットフォーム
+#### 3.4.4 メッセージングプラットフォーム
 - LINE
 
 ## 4. データフロー
@@ -87,16 +151,39 @@ app/
 1. クライアントからのリクエスト受信
 2. APIキー認証
 3. エージェント設定の読み込み
-4. 入力形式に応じた前処理
+4. 現在のステータスと利用可能性の確認
+   - 利用不可の場合：状況に応じた応答を生成
+   - 利用可能な場合：通常の処理を継続
+5. 入力形式に応じた前処理
    - テキスト: そのまま処理
    - 音声: STTで変換
    - 画像: Vision LLMで解析
-5. LLMによるメッセージ生成
-6. 感情生成（必要な場合）
-7. 出力形式に応じた後処理
+6. LLMによるメッセージ生成
+   - 現在の状態とスケジュールを考慮
+   - エージェントの性格に基づいた応答生成
+7. 感情生成（必要な場合）
+8. 出力形式に応じた後処理
    - テキスト: そのまま返信
    - 音声: TTSで変換
-8. レスポンス送信
+9. レスポンス送信
+
+### 4.2 スケジュール管理フロー
+
+1. スケジュール生成トリガー（起床30分前）
+2. エージェント情報の取得
+   - 基本設定
+   - 性格設定
+   - 定期的なスケジュール
+3. LLMによるスケジュール生成
+   - エージェントの特性を考慮
+   - 必要な活動の組み込み
+   - 適切な時間配分
+4. スケジュールの検証
+   - 時間の整合性チェック
+   - 必須活動の確認
+5. スケジュールの保存
+   - キャッシュへの保存
+   - 必要に応じた更新
 
 ### 4.2 メモリ管理
 

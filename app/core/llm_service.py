@@ -227,3 +227,107 @@ Required JSON format:
         except (json.JSONDecodeError, ValueError) as e:
             logger.error(f"Error parsing emotion response: {str(e)}")
             return Emotion.NEUTRAL.value
+
+    async def generate_schedule(self, prompt: str) -> str:
+        """Generate a daily schedule using LLM"""
+        system_prompt = """
+        You are a schedule generator for an AI agent. Create a detailed daily schedule considering the following aspects:
+
+        Key Considerations:
+        1. Activities should align with the agent's personality and role
+        2. Include appropriate break times
+        3. Allocate realistic time frames
+        4. Account for travel time between locations
+        5. Maintain consistency with the agent's established patterns
+
+        Required Output Format:
+        {
+            "schedule": [
+                {
+                    "start_time": "HH:MM",
+                    "end_time": "HH:MM",
+                    "activity": "Brief activity description",
+                    "status": "AVAILABLE|SLEEPING|EATING|WORKING|OUT|MAINTENANCE",
+                    "description": "Detailed description of the activity",
+                    "location": "Location of the activity"
+                }
+            ]
+        }
+
+        Guidelines:
+        - Times must be in 24-hour format (HH:MM)
+        - Status must match one of the defined status types
+        - Activities should be specific and meaningful
+        - Descriptions should provide context for the activity
+        - Locations should be specific when relevant
+
+        Note: Ensure the schedule maintains a natural flow and includes necessary transition times between activities.
+        """
+
+        messages = [
+            ChatCompletionSystemMessage(
+                role="system",
+                content=system_prompt
+            ),
+            ChatCompletionUserMessage(
+                role="user",
+                content=prompt
+            )
+        ]
+
+        response = await acompletion(
+            messages=messages,
+            response_format={"type": "json_object"}
+        )
+        return self.get_message_content(response)
+
+    async def generate_status_response(self, context: dict) -> str:
+        """Generate contextual status response"""
+        system_prompt = """
+        You are an AI agent responding to a user about your current availability. 
+        Craft a natural, contextual response based on your current status and schedule.
+
+        Guidelines:
+        1. Be polite and empathetic
+        2. Explain your current status/activity naturally
+        3. Provide clear information about when you'll be available next
+        4. If you're partially available (e.g., can respond to chat but not voice), explain this
+        5. Match the tone and style to your character/personality
+        6. Keep the response concise but informative
+
+        Response should be in {language}.
+        """
+
+        user_prompt = f"""
+        Current Context:
+        - Current time: {context['current_time']}
+        - Current status: {context['current_status']}
+        - Current activity: {context['current_activity']}
+        - Location: {context['location']}
+        - Next available time: {context['next_available']}
+
+        User's message: {context['user_message']}
+
+        Character Profile:
+        {context['agent_profile']}
+
+        Generate a natural response explaining your current status and availability.
+        """
+
+        messages = [
+            ChatCompletionSystemMessage(
+                role="system",
+                content=system_prompt.format(
+                    language="Japanese" if context.get('language') == "Japanese" else "English"
+                )
+            ),
+            ChatCompletionUserMessage(
+                role="user",
+                content=user_prompt
+            )
+        ]
+
+        response = await acompletion(
+            messages=messages
+        )
+        return self.get_message_content(response)

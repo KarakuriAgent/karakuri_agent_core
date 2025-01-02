@@ -1,7 +1,11 @@
 # Copyright (c) 0235 Inc.
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
+from datetime import datetime
 from pydantic import BaseModel
+
+from app.schemas.status import AgentStatusConfig
+from app.schemas.schedule import AgentScheduleConfig
 
 
 class AgentConfig(BaseModel):
@@ -24,6 +28,8 @@ class AgentConfig(BaseModel):
     tts_speaker_id: str
     line_channel_secret: str
     line_channel_access_token: str
+    status: AgentStatusConfig
+    schedule: AgentScheduleConfig
 
 
 class AgentResponse(BaseModel):

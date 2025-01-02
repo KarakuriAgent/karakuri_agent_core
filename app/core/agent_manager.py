@@ -40,6 +40,11 @@ class AgentManager:
             if not all(required_values):
                 break
 
+            # Initialize default status and schedule
+            from datetime import datetime
+            from app.schemas.status import AgentStatus, AgentStatusConfig
+            from app.schemas.schedule import AgentScheduleConfig
+
             agents[str(i)] = AgentConfig(
                 id=str(i),
                 name=name,
@@ -83,6 +88,11 @@ class AgentManager:
                     i, "LINE_CHANNEL_ACCESS_TOKEN"
                 )
                 or "",
+                status=AgentStatusConfig(
+                    current_status=AgentStatus.AVAILABLE,
+                    last_status_change=datetime.now().isoformat(),
+                ),
+                schedule=AgentScheduleConfig(),
             )
             i += 1
         return agents

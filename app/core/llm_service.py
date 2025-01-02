@@ -276,6 +276,7 @@ Required JSON format:
         ]
 
         response = await acompletion(
+            model="gpt-4",  # Default model for schedule generation
             messages=messages,
             response_format={"type": "json_object"}
         )
@@ -328,6 +329,7 @@ Required JSON format:
         ]
 
         response = await acompletion(
+            model="gpt-4",  # Default model for status response generation
             messages=messages
         )
         return self.get_message_content(response)

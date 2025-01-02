@@ -8,7 +8,7 @@ import logging
 from app.core.config import get_settings
 from app.core.llm_service import LLMService
 from app.schemas.schedule import DailySchedule, ScheduleItem
-from app.schemas.status import AgentStatus, CommunicationChannel, STATUS_AVAILABILITY
+from app.schemas.status import CommunicationChannel, STATUS_AVAILABILITY
 from app.schemas.agent import AgentConfig
 
 settings = get_settings()

@@ -51,21 +51,21 @@ class ScheduleService:
     async def _check_and_generate_schedules(self):
         """Check and generate schedules for agents"""
         from app.core.agent_manager import get_agent_manager
+
         agent_manager = get_agent_manager()
 
         for agent_id, agent in agent_manager.agents.items():
             try:
                 local_time = self._get_agent_local_time(agent)
-                wake_time = datetime.strptime(
-                    agent.schedule.wake_time, "%H:%M"
-                ).time()
+                wake_time = datetime.strptime(agent.schedule.wake_time, "%H:%M").time()
                 schedule_gen_time = (
-                    datetime.combine(date.today(), wake_time) -
-                    timedelta(minutes=30)
+                    datetime.combine(date.today(), wake_time) - timedelta(minutes=30)
                 ).time()
 
-                if (local_time.time().hour == schedule_gen_time.hour and
-                        local_time.time().minute == schedule_gen_time.minute):
+                if (
+                    local_time.time().hour == schedule_gen_time.hour
+                    and local_time.time().minute == schedule_gen_time.minute
+                ):
                     tomorrow = local_time.date() + timedelta(days=1)
                     schedule = await self.generate_daily_schedule(agent, tomorrow)
                     self._schedule_cache[agent_id] = schedule
@@ -74,9 +74,7 @@ class ScheduleService:
                 logger.error(f"Schedule generation failed for agent {agent_id}: {e}")
 
     async def generate_daily_schedule(
-        self,
-        agent: AgentConfig,
-        target_date: date
+        self, agent: AgentConfig, target_date: date
     ) -> DailySchedule:
         """Generate a daily schedule for the agent"""
         schedule_prompt = self._create_schedule_prompt(agent, target_date)
@@ -89,7 +87,7 @@ class ScheduleService:
                 date=target_date,
                 items=items,
                 generated_at=datetime.now(),
-                last_updated=datetime.now()
+                last_updated=datetime.now(),
             )
         except Exception as e:
             logger.error(f"Failed to parse schedule response: {e}")
@@ -129,9 +127,7 @@ class ScheduleService:
         return datetime.now(tz)
 
     def get_current_availability(
-        self,
-        agent: AgentConfig,
-        channel: CommunicationChannel
+        self, agent: AgentConfig, channel: CommunicationChannel
     ) -> bool:
         """Check if the communication channel is available in current status"""
         current_status = agent.status.current_status
@@ -143,20 +139,20 @@ class ScheduleService:
         agent: AgentConfig,
         channel: CommunicationChannel,
         user_message: str,
-        lang: str = "ja"
+        lang: str = "ja",
     ) -> str:
         """Generate contextual status response using LLM"""
         current_time = self._get_agent_local_time(agent)
         current_schedule = self._get_current_schedule_item(agent, current_time)
-        next_available = self._get_next_available_schedule(
-            agent, channel, current_time
-        )
+        next_available = self._get_next_available_schedule(agent, channel, current_time)
 
         context = {
             "current_time": current_time.strftime("%H:%M"),
             "current_status": agent.status.current_status,
             "current_activity": (
-                current_schedule.activity if current_schedule else "No specific activity"
+                current_schedule.activity
+                if current_schedule
+                else "No specific activity"
             ),
             "location": (
                 current_schedule.location if current_schedule else "Not specified"
@@ -166,15 +162,13 @@ class ScheduleService:
             ),
             "user_message": user_message,
             "agent_profile": agent.llm_system_prompt,
-            "language": "Japanese" if lang == "ja" else "English"
+            "language": "Japanese" if lang == "ja" else "English",
         }
 
         return await self.llm_service.generate_status_response(context)
 
     def _get_current_schedule_item(
-        self,
-        agent: AgentConfig,
-        current_time: datetime
+        self, agent: AgentConfig, current_time: datetime
     ) -> Optional[ScheduleItem]:
         """Get current schedule item"""
         schedule = self._schedule_cache.get(agent.id)
@@ -190,10 +184,7 @@ class ScheduleService:
         return None
 
     def _get_next_available_schedule(
-        self,
-        agent: AgentConfig,
-        channel: CommunicationChannel,
-        current_time: datetime
+        self, agent: AgentConfig, channel: CommunicationChannel, current_time: datetime
     ) -> Optional[ScheduleItem]:
         """Get next schedule item where the requested channel is available"""
         schedule = self._schedule_cache.get(agent.id)
@@ -204,9 +195,11 @@ class ScheduleService:
             start = datetime.strptime(item.start_time, "%H:%M").time()
             if start > current_time.time():
                 availability = STATUS_AVAILABILITY[item.status]
-                if (channel == CommunicationChannel.CHAT and availability.chat) or \
-                   (channel == CommunicationChannel.VOICE and availability.voice) or \
-                   (channel == CommunicationChannel.VIDEO and availability.video):
+                if (
+                    (channel == CommunicationChannel.CHAT and availability.chat)
+                    or (channel == CommunicationChannel.VOICE and availability.voice)
+                    or (channel == CommunicationChannel.VIDEO and availability.video)
+                ):
                     return item
 
         return None

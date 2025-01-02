@@ -3,18 +3,18 @@ from pydantic import BaseModel
 
 
 class CommunicationChannel(str, Enum):
-    CHAT = "chat"          # Text-based communication (LINE, etc.)
-    VOICE = "voice"        # Voice communication
-    VIDEO = "video"        # Video communication (for future expansion)
+    CHAT = "chat"  # Text-based communication (LINE, etc.)
+    VOICE = "voice"  # Voice communication
+    VIDEO = "video"  # Video communication (for future expansion)
 
 
 class AgentStatus(str, Enum):
-    AVAILABLE = "available"     # Free and ready to interact
-    SLEEPING = "sleeping"       # Currently sleeping
-    EATING = "eating"          # Having a meal
-    WORKING = "working"        # Working on tasks but can handle chat
-    OUT = "out"               # Outside/Away but can handle chat
-    MAINTENANCE = "maintenance" # System maintenance mode
+    AVAILABLE = "available"  # Free and ready to interact
+    SLEEPING = "sleeping"  # Currently sleeping
+    EATING = "eating"  # Having a meal
+    WORKING = "working"  # Working on tasks but can handle chat
+    OUT = "out"  # Outside/Away but can handle chat
+    MAINTENANCE = "maintenance"  # System maintenance mode
 
 
 class StatusAvailability(BaseModel):

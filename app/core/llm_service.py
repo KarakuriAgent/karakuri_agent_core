@@ -265,20 +265,14 @@ Required JSON format:
         """
 
         messages = [
-            ChatCompletionSystemMessage(
-                role="system",
-                content=system_prompt
-            ),
-            ChatCompletionUserMessage(
-                role="user",
-                content=prompt
-            )
+            ChatCompletionSystemMessage(role="system", content=system_prompt),
+            ChatCompletionUserMessage(role="user", content=prompt),
         ]
 
         response = await acompletion(
             model="gpt-4",  # Default model for schedule generation
             messages=messages,
-            response_format={"type": "json_object"}
+            response_format={"type": "json_object"},
         )
         return self.get_message_content(response)
 
@@ -319,17 +313,16 @@ Required JSON format:
             ChatCompletionSystemMessage(
                 role="system",
                 content=system_prompt.format(
-                    language="Japanese" if context.get('language') == "Japanese" else "English"
-                )
+                    language="Japanese"
+                    if context.get("language") == "Japanese"
+                    else "English"
+                ),
             ),
-            ChatCompletionUserMessage(
-                role="user",
-                content=user_prompt
-            )
+            ChatCompletionUserMessage(role="user", content=user_prompt),
         ]
 
         response = await acompletion(
             model="gpt-4",  # Default model for status response generation
-            messages=messages
+            messages=messages,
         )
         return self.get_message_content(response)

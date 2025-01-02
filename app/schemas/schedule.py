@@ -7,7 +7,7 @@ from app.schemas.status import AgentStatus
 
 class ScheduleItem(BaseModel):
     start_time: str  # HH:MM format
-    end_time: str    # HH:MM format
+    end_time: str  # HH:MM format
     activity: str
     status: AgentStatus
     description: Optional[str] = None
@@ -27,6 +27,6 @@ class AgentScheduleConfig(BaseModel):
     sleep_time: str = "22:00"
     meal_times: List[dict[str, str]] = [
         {"start": "12:00", "end": "13:00"},
-        {"start": "19:00", "end": "20:00"}
+        {"start": "19:00", "end": "20:00"},
     ]
     custom_schedules: List[dict] = []  # For special events or custom schedules

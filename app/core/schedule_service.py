@@ -20,6 +20,22 @@ class ScheduleService:
         self._schedule_cache: Dict[str, DailySchedule] = {}
         self.llm_service = llm_service
         self._schedule_generation_task = None
+        
+        asyncio.create_task(self._initialize_schedules())
+
+    async def _initialize_schedules(self):
+        """Generate initial schedules on server startup"""
+        from app.core.agent_manager import get_agent_manager
+        
+        agent_manager = get_agent_manager()
+        for agent_id, agent in agent_manager.agents.items():
+            try:
+                local_time = self._get_agent_local_time(agent)
+                tomorrow = local_time.date() + timedelta(days=1)
+                schedule = await self.generate_daily_schedule(agent, tomorrow)
+                self._schedule_cache[agent_id] = schedule
+            except Exception as e:
+                logger.error(f"Initial schedule generation failed for agent {agent_id}: {e}")
 
     async def start_schedule_generation(self):
         """Start the background task for schedule generation"""

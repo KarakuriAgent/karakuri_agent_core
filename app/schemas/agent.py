@@ -33,6 +33,18 @@ class AgentConfig(BaseModel):
     status: AgentStatusConfig
     schedule: AgentScheduleConfig
 
+    def update_status(self, new_status: str) -> "AgentConfig":
+        """Update agent status and return new instance"""
+        from datetime import datetime
+        from app.schemas.status import AgentStatus
+        
+        return self.model_copy(update={
+            "status": self.status.model_copy(update={
+                "current_status": AgentStatus(new_status),
+                "last_status_change": datetime.now().isoformat()
+            })
+        }, deep=True)
+
 
 class AgentResponse(BaseModel):
     agent_id: str

@@ -153,6 +153,9 @@ class ScheduleService:
 
         try:
             schedule_data = json.loads(schedule_response)
+            for item in schedule_data["schedule"]:
+                if "status" in item:
+                    item["status"] = item["status"].lower()
             items = [ScheduleItem(**item) for item in schedule_data["schedule"]]
             return DailySchedule(
                 date=target_date,

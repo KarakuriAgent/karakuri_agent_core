@@ -7,7 +7,7 @@ import logging
 
 from app.core.config import get_settings
 from app.core.llm_service import LLMService
-from app.schemas.schedule import DailySchedule, ScheduleItem
+from app.schemas.schedule import DailySchedule, ScheduleItem, StatusContext
 from app.schemas.status import CommunicationChannel, STATUS_AVAILABILITY
 from app.schemas.agent import AgentConfig
 
@@ -22,8 +22,15 @@ class ScheduleService:
         self._schedule_generation_task = None
         self._schedule_execution_task = None
 
-        asyncio.create_task(self._initialize_schedules())
-        asyncio.create_task(self.start_schedule_execution())
+        # Initialize schedules in a way that works with FastAPI's dependency injection
+        self._initialized = False
+
+    async def initialize(self):
+        """Initialize schedules after the event loop is running"""
+        if not self._initialized:
+            await self._initialize_schedules()
+            await self.start_schedule_execution()
+            self._initialized = True
 
     async def _initialize_schedules(self):
         """Generate initial schedules on server startup"""
@@ -98,18 +105,23 @@ class ScheduleService:
     async def _execute_current_schedules(self):
         """Execute current schedules and update agent statuses"""
         from app.core.agent_manager import get_agent_manager
-        
+
         agent_manager = get_agent_manager()
         for agent_id, agent_config in agent_manager.agents.items():
             try:
                 local_time = self._get_agent_local_time(agent_config)
                 current_item = self._get_current_schedule_item(agent_config, local_time)
-                
-                if current_item and current_item.status != agent_config.status.current_status:
+
+                if (
+                    current_item
+                    and current_item.status != agent_config.status.current_status
+                ):
                     updated_agent = agent_config.update_status(current_item.status)
                     agent_manager.update_agent(agent_id, updated_agent)
-                    logger.info(f"Updated status for agent {agent_id} to {current_item.status}")
-                    
+                    logger.info(
+                        f"Updated status for agent {agent_id} to {current_item.status}"
+                    )
+
             except Exception as e:
                 logger.error(f"Failed to execute schedule for agent {agent_id}: {e}")
 
@@ -210,41 +222,6 @@ class ScheduleService:
         availability = STATUS_AVAILABILITY[current_status]
         return getattr(availability, channel.value)
 
-    async def generate_status_response(
-        self,
-        agent_config: AgentConfig,
-        channel: CommunicationChannel,
-        user_message: str,
-        lang: str = "ja",
-    ) -> str:
-        """Generate contextual status response using LLM"""
-        current_time = self._get_agent_local_time(agent_config)
-        current_schedule = self._get_current_schedule_item(agent_config, current_time)
-        next_available = self._get_next_available_schedule(
-            agent_config, channel, current_time
-        )
-
-        context = {
-            "current_time": current_time.strftime("%H:%M"),
-            "current_status": agent_config.status.current_status,
-            "current_activity": (
-                current_schedule.activity
-                if current_schedule
-                else "No specific activity"
-            ),
-            "location": (
-                current_schedule.location if current_schedule else "Not specified"
-            ),
-            "next_available": (
-                next_available.start_time if next_available else "Not determined"
-            ),
-            "user_message": user_message,
-            "agent_profile": agent_config.llm_system_prompt,
-            "language": "Japanese" if lang == "ja" else "English",
-        }
-
-        return await self.llm_service.generate_status_response(context, agent_config)
-
     def _get_current_schedule_item(
         self, agent_config: AgentConfig, current_time: datetime
     ) -> Optional[ScheduleItem]:
@@ -284,3 +261,21 @@ class ScheduleService:
                     return item
 
         return None
+
+    def get_current_status_context(
+        self, agent_config: AgentConfig, communication_channel: CommunicationChannel
+    ) -> StatusContext:
+        current_time = self._get_agent_local_time(agent_config=agent_config)
+        current_schedule = self._get_current_schedule_item(agent_config, current_time)
+        next_available = self._get_next_available_schedule(
+            agent_config, communication_channel, current_time
+        )
+        return StatusContext(
+            available=self.get_current_availability(
+                agent_config=agent_config, channel=communication_channel
+            ),
+            current_time=current_time,
+            current_status=agent_config.status.current_status,
+            current_schedule=current_schedule,
+            next_schedule=next_available,
+        )

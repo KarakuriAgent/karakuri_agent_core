@@ -15,7 +15,14 @@ from fastapi.websockets import WebSocket
 from jsonschema import ValidationError
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
-from app.dependencies import get_llm_service, get_stt_service, get_tts_service
+from app.core.schedule_service import ScheduleService
+from app.dependencies import (
+    get_llm_service,
+    get_schedule_service,
+    get_stt_service,
+    get_tts_service,
+)
+from app.schemas.status import CommunicationChannel
 from app.schemas.web_socket import (
     AudioRequest,
     AudioResponse,
@@ -58,6 +65,7 @@ async def websocket_endpoint(
     llm_service: LLMService = Depends(get_llm_service),
     stt_service: STTService = Depends(get_stt_service),
     tts_service: TTSService = Depends(get_tts_service),
+    schedule_service: ScheduleService = Depends(get_schedule_service),
 ):
     clean_expired_tokens()
     if not token or token not in ws_tokens:
@@ -122,8 +130,12 @@ async def websocket_endpoint(
                 image_content = image_file.read()
             else:
                 text_message = request_obj.text
+            status_context = schedule_service.get_current_status_context(
+                agent_config=agent_config,
+                communication_channel=CommunicationChannel.VOICE,
+            )
             llm_response = await llm_service.generate_response(
-                "websocket", text_message, agent_config, image=image_content
+                text_message, agent_config, status_context, image=image_content
             )
 
             agent_message = llm_response.agent_message.rstrip("\n")

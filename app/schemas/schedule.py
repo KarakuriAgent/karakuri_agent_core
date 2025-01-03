@@ -30,3 +30,13 @@ class AgentScheduleConfig(BaseModel):
         {"start": "19:00", "end": "20:00"},
     ]
     custom_schedules: List[dict] = []  # For special events or custom schedules
+
+
+class StatusContext(BaseModel):
+    """Context for generating status responses"""
+
+    available: bool
+    current_time: datetime
+    current_status: str
+    current_schedule: Optional[ScheduleItem]
+    next_schedule: Optional[ScheduleItem]

@@ -6,9 +6,16 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from starlette.requests import ClientDisconnect
 from starlette.responses import FileResponse
 from app.core.llm_service import LLMService
+from app.core.schedule_service import ScheduleService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
-from app.dependencies import get_llm_service, get_stt_service, get_tts_service
+from app.dependencies import (
+    get_llm_service,
+    get_schedule_service,
+    get_stt_service,
+    get_tts_service,
+)
+from app.schemas.status import CommunicationChannel
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 from pathlib import Path
 from typing import Dict, cast, List
@@ -52,6 +59,7 @@ async def process_line_events_background(
     request: Request,
     llm_service: LLMService,
     tts_service: TTSService,
+    schedule_service: ScheduleService,
 ):
     aio_session = aiohttp.ClientSession()
     async_client: AsyncApiClient | None = None
@@ -82,8 +90,12 @@ async def process_line_events_background(
                 else:
                     continue
                 cached_image_bytes = user_image_cache.pop(event.source.user_id, None)  # type: ignore
+                status_context = schedule_service.get_current_status_context(
+                    agent_config=agent_config,
+                    communication_channel=CommunicationChannel.CHAT,
+                )
                 llm_response = await llm_service.generate_response(
-                    "line", text_message, agent_config, image=cached_image_bytes
+                    text_message, agent_config, status_context, image=cached_image_bytes
                 )
                 audio_data = await tts_service.generate_speech(
                     llm_response.agent_message, agent_config
@@ -128,6 +140,7 @@ async def handle_line_callback(
     llm_service: LLMService = Depends(get_llm_service),
     tts_service: TTSService = Depends(get_tts_service),
     stt_service: STTService = Depends(get_stt_service),
+    schedule_service: ScheduleService = Depends(get_schedule_service),
 ):
     signature, body = await extract_line_request_data(request)
     agent_manager = get_agent_manager()
@@ -149,6 +162,7 @@ async def handle_line_callback(
         request,
         llm_service,
         tts_service,
+        schedule_service,
     )
     return "OK"
 

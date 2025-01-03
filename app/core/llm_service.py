@@ -228,7 +228,11 @@ Required JSON format:
             logger.error(f"Error parsing emotion response: {str(e)}")
             return Emotion.NEUTRAL.value
 
-    async def generate_schedule(self, prompt: str) -> str:
+    async def generate_schedule(
+        self,
+        prompt: str,
+        agent_config: AgentConfig,
+    ) -> str:
         """Generate a daily schedule using LLM"""
         system_prompt = """
         You are a schedule generator for an AI agent. Create a detailed daily schedule considering the following aspects:
@@ -270,13 +274,19 @@ Required JSON format:
         ]
 
         response = await acompletion(
-            model="gpt-4",  # Default model for schedule generation
+            base_url=agent_config.schedule_generate_llm_base_url,
+            api_key=agent_config.schedule_generate_llm_api_key,
+            model=agent_config.schedule_generate_llm_model,
             messages=messages,
             response_format={"type": "json_object"},
         )
         return self.get_message_content(response)
 
-    async def generate_status_response(self, context: dict) -> str:
+    async def generate_status_response(
+        self,
+        context: dict,
+        agent_config: AgentConfig,
+    ) -> str:
         """Generate contextual status response"""
         system_prompt = """
         You are an AI agent responding to a user about your current availability. 
@@ -322,7 +332,9 @@ Required JSON format:
         ]
 
         response = await acompletion(
-            model="gpt-4",  # Default model for status response generation
+            base_url=agent_config.message_generate_llm_base_url,
+            api_key=agent_config.message_generate_llm_api_key,
+            model=agent_config.message_generate_llm_model,
             messages=messages,
         )
         return self.get_message_content(response)

@@ -20,13 +20,13 @@ class ScheduleService:
         self._schedule_cache: Dict[str, DailySchedule] = {}
         self.llm_service = llm_service
         self._schedule_generation_task = None
-        
+
         asyncio.create_task(self._initialize_schedules())
 
     async def _initialize_schedules(self):
         """Generate initial schedules on server startup"""
         from app.core.agent_manager import get_agent_manager
-        
+
         agent_manager = get_agent_manager()
         for agent_id, agent in agent_manager.agents.items():
             try:
@@ -35,7 +35,9 @@ class ScheduleService:
                 schedule = await self.generate_daily_schedule(agent, tomorrow)
                 self._schedule_cache[agent_id] = schedule
             except Exception as e:
-                logger.error(f"Initial schedule generation failed for agent {agent_id}: {e}")
+                logger.error(
+                    f"Initial schedule generation failed for agent {agent_id}: {e}"
+                )
 
     async def start_schedule_generation(self):
         """Start the background task for schedule generation"""
@@ -70,10 +72,12 @@ class ScheduleService:
 
         agent_manager = get_agent_manager()
 
-        for agent_id, agent in agent_manager.agents.items():
+        for agent_id, agent_config in agent_manager.agents.items():
             try:
-                local_time = self._get_agent_local_time(agent)
-                wake_time = datetime.strptime(agent.schedule.wake_time, "%H:%M").time()
+                local_time = self._get_agent_local_time(agent_config)
+                wake_time = datetime.strptime(
+                    agent_config.schedule.wake_time, "%H:%M"
+                ).time()
                 schedule_gen_time = (
                     datetime.combine(date.today(), wake_time) - timedelta(minutes=30)
                 ).time()
@@ -83,18 +87,22 @@ class ScheduleService:
                     and local_time.time().minute == schedule_gen_time.minute
                 ):
                     tomorrow = local_time.date() + timedelta(days=1)
-                    schedule = await self.generate_daily_schedule(agent, tomorrow)
+                    schedule = await self.generate_daily_schedule(
+                        agent_config, tomorrow
+                    )
                     self._schedule_cache[agent_id] = schedule
 
             except Exception as e:
                 logger.error(f"Schedule generation failed for agent {agent_id}: {e}")
 
     async def generate_daily_schedule(
-        self, agent: AgentConfig, target_date: date
+        self, agent_config: AgentConfig, target_date: date
     ) -> DailySchedule:
         """Generate a daily schedule for the agent"""
-        schedule_prompt = self._create_schedule_prompt(agent, target_date)
-        schedule_response = await self.llm_service.generate_schedule(schedule_prompt)
+        schedule_prompt = self._create_schedule_prompt(agent_config, target_date)
+        schedule_response = await self.llm_service.generate_schedule(
+            schedule_prompt, agent_config
+        )
 
         try:
             schedule_data = json.loads(schedule_response)
@@ -109,17 +117,19 @@ class ScheduleService:
             logger.error(f"Failed to parse schedule response: {e}")
             raise
 
-    def _create_schedule_prompt(self, agent: AgentConfig, target_date: date) -> str:
+    def _create_schedule_prompt(
+        self, agent_config: AgentConfig, target_date: date
+    ) -> str:
         """Create prompt for schedule generation"""
         return f"""
-        Generate a daily schedule for {agent.name} for {target_date.strftime('%Y-%m-%d')}.
+        Generate a daily schedule for {agent_config.name} for {target_date.strftime('%Y-%m-%d')}.
 
         Agent Profile:
-        - Name: {agent.name}
-        - Role: {self._extract_role_from_system_prompt(agent.llm_system_prompt)}
-        - Wake time: {agent.schedule.wake_time}
-        - Sleep time: {agent.schedule.sleep_time}
-        - Regular meal times: {json.dumps(agent.schedule.meal_times)}
+        - Name: {agent_config.name}
+        - Role: {self._extract_role_from_system_prompt(agent_config.llm_system_prompt)}
+        - Wake time: {agent_config.schedule.wake_time}
+        - Sleep time: {agent_config.schedule.sleep_time}
+        - Regular meal times: {json.dumps(agent_config.schedule.meal_times)}
 
         Requirements:
         1. Schedule should start 30 minutes before wake time with preparation activities
@@ -137,34 +147,36 @@ class ScheduleService:
         # This would need to be implemented based on your system prompt structure
         return "AI Assistant"  # Placeholder implementation
 
-    def _get_agent_local_time(self, agent: AgentConfig) -> datetime:
+    def _get_agent_local_time(self, agent_config: AgentConfig) -> datetime:
         """Get the current time in agent's timezone"""
-        tz = pytz.timezone(agent.schedule.timezone)
+        tz = pytz.timezone(agent_config.schedule.timezone)
         return datetime.now(tz)
 
     def get_current_availability(
-        self, agent: AgentConfig, channel: CommunicationChannel
+        self, agent_config: AgentConfig, channel: CommunicationChannel
     ) -> bool:
         """Check if the communication channel is available in current status"""
-        current_status = agent.status.current_status
+        current_status = agent_config.status.current_status
         availability = STATUS_AVAILABILITY[current_status]
         return getattr(availability, channel.value)
 
     async def generate_status_response(
         self,
-        agent: AgentConfig,
+        agent_config: AgentConfig,
         channel: CommunicationChannel,
         user_message: str,
         lang: str = "ja",
     ) -> str:
         """Generate contextual status response using LLM"""
-        current_time = self._get_agent_local_time(agent)
-        current_schedule = self._get_current_schedule_item(agent, current_time)
-        next_available = self._get_next_available_schedule(agent, channel, current_time)
+        current_time = self._get_agent_local_time(agent_config)
+        current_schedule = self._get_current_schedule_item(agent_config, current_time)
+        next_available = self._get_next_available_schedule(
+            agent_config, channel, current_time
+        )
 
         context = {
             "current_time": current_time.strftime("%H:%M"),
-            "current_status": agent.status.current_status,
+            "current_status": agent_config.status.current_status,
             "current_activity": (
                 current_schedule.activity
                 if current_schedule
@@ -177,17 +189,17 @@ class ScheduleService:
                 next_available.start_time if next_available else "Not determined"
             ),
             "user_message": user_message,
-            "agent_profile": agent.llm_system_prompt,
+            "agent_profile": agent_config.llm_system_prompt,
             "language": "Japanese" if lang == "ja" else "English",
         }
 
-        return await self.llm_service.generate_status_response(context)
+        return await self.llm_service.generate_status_response(context, agent_config)
 
     def _get_current_schedule_item(
-        self, agent: AgentConfig, current_time: datetime
+        self, agent_config: AgentConfig, current_time: datetime
     ) -> Optional[ScheduleItem]:
         """Get current schedule item"""
-        schedule = self._schedule_cache.get(agent.id)
+        schedule = self._schedule_cache.get(agent_config.id)
         if not schedule:
             return None
 
@@ -200,10 +212,13 @@ class ScheduleService:
         return None
 
     def _get_next_available_schedule(
-        self, agent: AgentConfig, channel: CommunicationChannel, current_time: datetime
+        self,
+        agent_config: AgentConfig,
+        channel: CommunicationChannel,
+        current_time: datetime,
     ) -> Optional[ScheduleItem]:
         """Get next schedule item where the requested channel is available"""
-        schedule = self._schedule_cache.get(agent.id)
+        schedule = self._schedule_cache.get(agent_config.id)
         if not schedule:
             return None
 

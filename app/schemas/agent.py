@@ -19,6 +19,9 @@ class AgentConfig(BaseModel):
     vision_generate_llm_base_url: str
     vision_generate_llm_api_key: str
     vision_generate_llm_model: str
+    schedule_generate_llm_base_url: str
+    schedule_generate_llm_api_key: str
+    schedule_generate_llm_model: str
     llm_system_prompt: str
     tts_base_url: str
     tts_api_key: str

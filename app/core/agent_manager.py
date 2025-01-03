@@ -5,6 +5,9 @@ from functools import lru_cache
 from typing import Dict, List, Tuple
 from app.schemas.agent import AgentConfig
 from app.core.config import get_settings
+from datetime import datetime
+from app.schemas.status import AgentStatus, AgentStatusConfig
+from app.schemas.schedule import AgentScheduleConfig
 
 
 class AgentManager:
@@ -47,11 +50,6 @@ class AgentManager:
 
             if not all(required_values):
                 break
-
-            # Initialize default status and schedule
-            from datetime import datetime
-            from app.schemas.status import AgentStatus, AgentStatusConfig
-            from app.schemas.schedule import AgentScheduleConfig
 
             agents[str(i)] = AgentConfig(
                 id=str(i),
@@ -119,6 +117,12 @@ class AgentManager:
 
     def get_all_agents(self) -> List[Tuple[str, str]]:
         return [(id, config.name) for id, config in self.agents.items()]
+
+    def update_agent(self, agent_id: str, updated_agent: AgentConfig) -> None:
+        """Update agent configuration in the manager"""
+        if agent_id not in self.agents:
+            raise KeyError(f"Agent with ID '{agent_id}' not found.")
+        self.agents[agent_id] = updated_agent
 
 
 @lru_cache()

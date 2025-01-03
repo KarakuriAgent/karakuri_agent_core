@@ -20,8 +20,10 @@ class ScheduleService:
         self._schedule_cache: Dict[str, DailySchedule] = {}
         self.llm_service = llm_service
         self._schedule_generation_task = None
+        self._schedule_execution_task = None
 
         asyncio.create_task(self._initialize_schedules())
+        asyncio.create_task(self.start_schedule_execution())
 
     async def _initialize_schedules(self):
         """Generate initial schedules on server startup"""
@@ -65,6 +67,51 @@ class ScheduleService:
             except Exception as e:
                 logger.error(f"Error in schedule generation task: {e}")
                 await asyncio.sleep(60)  # Wait before retrying
+
+    async def start_schedule_execution(self):
+        """Start the background task for schedule execution"""
+        if self._schedule_execution_task is None:
+            self._schedule_execution_task = asyncio.create_task(
+                self.schedule_execution_task()
+            )
+
+    async def stop_schedule_execution(self):
+        """Stop the background task"""
+        if self._schedule_execution_task is not None:
+            self._schedule_execution_task.cancel()
+            try:
+                await self._schedule_execution_task
+            except asyncio.CancelledError:
+                pass
+            self._schedule_execution_task = None
+
+    async def schedule_execution_task(self):
+        """Background task for schedule execution and status updates"""
+        while True:
+            try:
+                await self._execute_current_schedules()
+                await asyncio.sleep(60)  # Check every minute
+            except Exception as e:
+                logger.error(f"Error in schedule execution task: {e}")
+                await asyncio.sleep(60)  # Wait before retrying
+
+    async def _execute_current_schedules(self):
+        """Execute current schedules and update agent statuses"""
+        from app.core.agent_manager import get_agent_manager
+        
+        agent_manager = get_agent_manager()
+        for agent_id, agent_config in agent_manager.agents.items():
+            try:
+                local_time = self._get_agent_local_time(agent_config)
+                current_item = self._get_current_schedule_item(agent_config, local_time)
+                
+                if current_item and current_item.status != agent_config.status.current_status:
+                    updated_agent = agent_config.update_status(current_item.status)
+                    agent_manager.update_agent(agent_id, updated_agent)
+                    logger.info(f"Updated status for agent {agent_id} to {current_item.status}")
+                    
+            except Exception as e:
+                logger.error(f"Failed to execute schedule for agent {agent_id}: {e}")
 
     async def _check_and_generate_schedules(self):
         """Check and generate schedules for agents"""

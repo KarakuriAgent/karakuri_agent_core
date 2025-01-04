@@ -54,9 +54,13 @@ Required JSON format:
     ) -> LLMResponse:
         async with conversation_history_lock:
             if not schedule_context.available:
+                laungage = await self.generate_laungage(
+                    text=message, agent_config=agent_config
+                )
                 status_response = await self.generate_status_response(
                     context=schedule_context,
-                    agent_config=agent_config
+                    agent_config=agent_config,
+                    laungage=laungage,
                 )
 
                 return LLMResponse(
@@ -220,9 +224,9 @@ Required JSON format:
             ),
         ]
         emotion_response = await acompletion(
-            base_url=agent_config.emotion_generate_llm_base_url,
-            api_key=agent_config.emotion_generate_llm_api_key,
-            model=agent_config.emotion_generate_llm_model,
+            base_url=agent_config.analyze_generate_llm_base_url,
+            api_key=agent_config.analyze_generate_llm_api_key,
+            model=agent_config.analyze_generate_llm_model,
             messages=emotion_messages,
             response_format={"type": "json_object"},
         )
@@ -248,7 +252,7 @@ Required JSON format:
         agent_config: AgentConfig,
     ) -> str:
         """Generate a daily schedule using LLM"""
-        system_prompt = """
+        system_prompt = f"""
         You are a schedule generator for an AI agent. Create a detailed daily schedule considering the following aspects:
 
         Key Considerations:
@@ -257,6 +261,9 @@ Required JSON format:
         3. Allocate realistic time frames
         4. Account for travel time between locations
         5. Maintain consistency with the agent's established patterns
+
+        Character Profile:
+        {agent_config.llm_system_prompt}
 
         Required Output Format:
         {
@@ -296,11 +303,37 @@ Required JSON format:
         )
         return self.get_message_content(response)
 
+    async def generate_laungage(self, text: str, agent_config: AgentConfig) -> str:
+        systemMessage = ChatCompletionSystemMessage(
+            role="system",
+            content="You are an expert language analyzer. Always respond in the exact JSON format requested.",
+        )
+        userMessage = ChatCompletionUserMessage(
+            role="user",
+            content=f"""analyze the following text language.
+        Respond ONLY in the specified JSON format without any additional explanation.
+
+        Input text: {text}
+
+        Required JSON format:
+        {{
+            "language": One language
+        }}""",
+        )
+        response = await acompletion(
+            base_url=agent_config.analyze_generate_llm_base_url,
+            api_key=agent_config.analyze_generate_llm_api_key,
+            model=agent_config.analyze_generate_llm_model,
+            messages=[systemMessage, userMessage],
+        )
+        return self.get_message_content(response)
+
     async def generate_status_response(
-        self, context: ScheduleContext, agent_config: AgentConfig) -> str:
+        self, context: ScheduleContext, agent_config: AgentConfig, laungage: str
+    ) -> str:
+        ## TODO: add status cash
         """Generate contextual status response"""
-        # TODO: デフォルト値
-        system_prompt = """
+        system_prompt = f"""
         You are an AI agent responding to a user about your current availability. 
         Craft a natural, contextual response based on your current status and schedule.
 
@@ -309,38 +342,30 @@ Required JSON format:
         2. Explain your current status/activity naturally
         3. Provide clear information about when you'll be available next
         4. If you're partially available (e.g., can respond to chat but not voice), explain this
-        5. Match the tone and style to your character/personality
-        6. Keep the response concise but informative
+        5. Keep the response concise but informative
 
-        The response must be tailored to the language of user_message.
+        Answer language must be {laungage}
         """
 
         user_prompt = f"""
         Current time: {context.current_time}
-        Current Schedule:
-        - status: {context.current_schedule.status if context.current_schedule else  ""}
-        - activity: {context.current_schedule.activity if context.current_schedule else  ""}
-        - Location: {context.current_schedule.location if context.current_schedule else  ""}
-        - end_time: {context.current_schedule.end_time if context.current_schedule else  ""}
-        Next Schedule:
-        - status: {context.next_schedule.status if context.next_schedule else  ""}
-        - activity: {context.next_schedule.activity if context.next_schedule else  ""}
-        - Location: {context.next_schedule.location if context.next_schedule else  ""}
-        - start_time: {context.next_schedule.start_time if context.next_schedule else  ""}
-
-        Character Profile:
-        {agent_config.llm_system_prompt}
+        Daily Schedule: {context.schedule}
 
         Generate a natural response explaining your current status and availability.
         """
-
-        messages = [
-            ChatCompletionSystemMessage(
-                role="system",
-                content=system_prompt,
-            ),
-            ChatCompletionUserMessage(role="user", content=user_prompt),
-        ]
+        conversation_history = await memory_service.get_conversation_history(
+            agent_config.id
+        )
+        messages = (
+            [
+                ChatCompletionSystemMessage(
+                    role="system",
+                    content=system_prompt,
+                )
+            ]
+            + conversation_history[:]
+            + [ChatCompletionUserMessage(role="user", content=user_prompt)]
+        )
 
         response = await acompletion(
             base_url=agent_config.message_generate_llm_base_url,

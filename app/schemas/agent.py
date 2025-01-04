@@ -13,9 +13,9 @@ class AgentConfig(BaseModel):
     message_generate_llm_base_url: str
     message_generate_llm_api_key: str
     message_generate_llm_model: str
-    emotion_generate_llm_base_url: str
-    emotion_generate_llm_api_key: str
-    emotion_generate_llm_model: str
+    analyze_generate_llm_base_url: str
+    analyze_generate_llm_api_key: str
+    analyze_generate_llm_model: str
     vision_generate_llm_base_url: str
     vision_generate_llm_api_key: str
     vision_generate_llm_model: str

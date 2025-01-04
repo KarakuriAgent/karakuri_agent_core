@@ -49,6 +49,7 @@ TOKEN_LIFETIME = 10
 router = APIRouter()
 
 
+# TODO: トークン取得時にAgentIdとComunitcationChannelを指定する
 @router.get("/get_ws_token")
 async def get_ws_token(api_key: str = Depends(get_api_key)):
     clean_expired_tokens()
@@ -130,12 +131,12 @@ async def websocket_endpoint(
                 image_content = image_file.read()
             else:
                 text_message = request_obj.text
-            status_context = schedule_service.get_current_status_context(
+            schedule_context = schedule_service.get_current_schedule_context(
                 agent_config=agent_config,
                 communication_channel=CommunicationChannel.VOICE,
             )
             llm_response = await llm_service.generate_response(
-                text_message, agent_config, status_context, image=image_content
+                text_message, agent_config, schedule_context, image=image_content
             )
 
             agent_message = llm_response.agent_message.rstrip("\n")

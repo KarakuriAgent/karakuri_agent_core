@@ -30,6 +30,8 @@ UPLOAD_DIR = settings.chat_audio_files_dir
 MAX_FILES = settings.chat_max_audio_files
 
 
+# TODO: 強制的にスケジュール変更させてトークするフラグの設定
+# 通常のテキスト生成にスケジュールを考慮した文言を入れる
 @router.post("/text/text")
 async def chat_text_to_text(
     agent_id: str = Form(...),
@@ -52,14 +54,14 @@ async def chat_text_to_text(
         image_content = None
 
     try:
-        status_context = schedule_service.get_current_status_context(
+        schedule_context = schedule_service.get_current_schedule_context(
             agent_config=agent_config,
             communication_channel=CommunicationChannel(channel),
         )
         llm_response = await llm_service.generate_response(
             message=message,
             agent_config=agent_config,
-            status_context=status_context,
+            schedule_context=schedule_context,
             image=image_content,
         )
         return TextChatResponse(
@@ -97,14 +99,14 @@ async def chat_text_to_voice(
         image_content = None
 
     try:
-        status_context = schedule_service.get_current_status_context(
+        schedule_context = schedule_service.get_current_schedule_context(
             agent_config=agent_config,
             communication_channel=CommunicationChannel(channel),
         )
         llm_response = await llm_service.generate_response(
             message=message,
             agent_config=agent_config,
-            status_context=status_context,
+            schedule_context=schedule_context,
             image=image_content,
         )
 
@@ -161,14 +163,14 @@ async def chat_voice_to_text(
 
         text_message = await stt_service.transcribe_audio(audio_content, agent_config)
 
-        status_context = schedule_service.get_current_status_context(
+        schedule_context = schedule_service.get_current_schedule_context(
             agent_config=agent_config,
             communication_channel=CommunicationChannel(channel),
         )
         llm_response = await llm_service.generate_response(
             message=text_message,
             agent_config=agent_config,
-            status_context=status_context,
+            schedule_context=schedule_context,
             image=image_content,
         )
 
@@ -212,14 +214,14 @@ async def chat_voice_to_voice(
 
         text_message = await stt_service.transcribe_audio(audio_content, agent_config)
 
-        status_context = schedule_service.get_current_status_context(
+        schedule_context = schedule_service.get_current_schedule_context(
             agent_config=agent_config,
             communication_channel=CommunicationChannel(channel),
         )
         llm_response = await llm_service.generate_response(
             message=text_message,
             agent_config=agent_config,
-            status_context=status_context,
+            schedule_context=schedule_context,
             image=image_content,
         )
 

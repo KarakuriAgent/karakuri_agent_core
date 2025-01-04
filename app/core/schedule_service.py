@@ -259,15 +259,11 @@ class ScheduleService:
         self, agent_config: AgentConfig, communication_channel: CommunicationChannel
     ) -> ScheduleContext:
         current_time = self._get_agent_local_time(agent_config=agent_config)
-        current_schedule = self._get_current_schedule_item(agent_config, current_time)
-        next_available = self._get_next_available_schedule(
-            agent_config, communication_channel, current_time
-        )
+        schedule = self._schedule_cache.get(agent_config.id)
         return ScheduleContext(
             available=self.get_current_availability(
                 agent_config=agent_config, channel=communication_channel
             ),
             current_time=current_time,
-            current_schedule=current_schedule,
-            next_schedule=next_available,
+            schedule=schedule,
         )

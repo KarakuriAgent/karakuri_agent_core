@@ -26,11 +26,11 @@ class AgentManager:
             message_generate_llm_model = self.settings.get_agent_env(
                 i, "MESSAGE_GENERATE_LLM_MODEL"
             )
-            emotion_generate_llm_api_key = self.settings.get_agent_env(
-                i, "EMOTION_GENERATE_LLM_API_KEY"
+            analyze_generate_llm_api_key = self.settings.get_agent_env(
+                i, "ANALYZE_GENERATE_LLM_API_KEY"
             )
-            emotion_generate_llm_model = self.settings.get_agent_env(
-                i, "EMOTION_GENERATE_LLM_MODEL"
+            analyze_generate_llm_model = self.settings.get_agent_env(
+                i, "ANALYZE_GENERATE_LLM_MODEL"
             )
             schedule_generate_llm_api_key = self.settings.get_agent_env(
                 i, "SCHEDULE_GENERATE_LLM_API_KEY"
@@ -42,8 +42,8 @@ class AgentManager:
                 name,
                 message_generate_llm_api_key,
                 message_generate_llm_model,
-                emotion_generate_llm_api_key,
-                emotion_generate_llm_model,
+                analyze_generate_llm_api_key,
+                analyze_generate_llm_model,
                 schedule_generate_llm_api_key,
                 schedule_generate_llm_model,
             ]
@@ -56,16 +56,16 @@ class AgentManager:
                 name=name,
                 message_generate_llm_api_key=message_generate_llm_api_key,
                 message_generate_llm_model=message_generate_llm_model,
-                emotion_generate_llm_api_key=emotion_generate_llm_api_key,
-                emotion_generate_llm_model=emotion_generate_llm_model,
+                analyze_generate_llm_api_key=analyze_generate_llm_api_key,
+                analyze_generate_llm_model=analyze_generate_llm_model,
                 schedule_generate_llm_api_key=schedule_generate_llm_api_key,
                 schedule_generate_llm_model=schedule_generate_llm_model,
                 message_generate_llm_base_url=self.settings.get_agent_env(
                     i, "MESSAGE_GENERATE_LLM_BASE_URL"
                 )
                 or "",
-                emotion_generate_llm_base_url=self.settings.get_agent_env(
-                    i, "EMOTION_GENERATE_LLM_BASE_URL"
+                analyze_generate_llm_base_url=self.settings.get_agent_env(
+                    i, "ANALYZE_GENERATE_LLM_BASE_URL"
                 )
                 or "",
                 schedule_generate_llm_base_url=self.settings.get_agent_env(

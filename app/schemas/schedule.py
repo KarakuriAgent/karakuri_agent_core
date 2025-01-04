@@ -26,10 +26,10 @@ class AgentScheduleConfig(BaseModel):
     wake_time: str = "08:00"
     sleep_time: str = "22:00"
 
+
 class ScheduleContext(BaseModel):
     """Context for generating status responses"""
 
     available: bool
     current_time: datetime
-    current_schedule: Optional[ScheduleItem]
-    next_schedule: Optional[ScheduleItem]
+    schedule: Optional[DailySchedule]

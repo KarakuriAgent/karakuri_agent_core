@@ -90,12 +90,15 @@ async def process_line_events_background(
                 else:
                     continue
                 cached_image_bytes = user_image_cache.pop(event.source.user_id, None)  # type: ignore
-                status_context = schedule_service.get_current_status_context(
+                schedule_context = schedule_service.get_current_schedule_context(
                     agent_config=agent_config,
                     communication_channel=CommunicationChannel.CHAT,
                 )
                 llm_response = await llm_service.generate_response(
-                    text_message, agent_config, status_context, image=cached_image_bytes
+                    text_message,
+                    agent_config,
+                    schedule_context,
+                    image=cached_image_bytes,
                 )
                 audio_data = await tts_service.generate_speech(
                     llm_response.agent_message, agent_config

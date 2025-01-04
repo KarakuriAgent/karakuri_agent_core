@@ -95,11 +95,11 @@ async def process_line_events_background(
                     communication_channel=CommunicationChannel.CHAT,
                 )
                 if not schedule_context.available:
-                     llm_response =await llm_service.generate_status_response(
+                    llm_response = await llm_service.generate_status_response(
                         message=text_message,
                         context=schedule_context,
                         agent_config=agent_config,
-                     )
+                    )
                 else:
                     llm_response = await llm_service.generate_response(
                         text_message,

@@ -333,6 +333,7 @@ def ws_test_page():
     </html>
     """
 
+
 async def _create_llm_response(
     schedule_service: ScheduleService,
     llm_service: LLMService,

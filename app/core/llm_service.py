@@ -23,7 +23,7 @@ from app.schemas.emotion import Emotion
 from app.schemas.llm import LLMResponse
 from app.core.config import get_settings
 from app.core.memory_service import conversation_history_lock
-from app.schemas.schedule import ScheduleContext, ScheduleItem
+from app.schemas.schedule import ScheduleContext
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -44,7 +44,10 @@ class LLMService:
         {{
             "emotion": One of these emotions: {', '.join(emotions)}
         }}"""
-    def create_system_prompt(self, llm_system_prompt: str, context: ScheduleContext) -> str:
+
+    def create_system_prompt(
+        self, llm_system_prompt: str, context: ScheduleContext
+    ) -> str:
         return f"""
         {llm_system_prompt}
 
@@ -67,7 +70,9 @@ class LLMService:
             )
             systemMessage = ChatCompletionSystemMessage(
                 role="system",
-                content=self.create_system_prompt(agent_config.llm_system_prompt, schedule_context),
+                content=self.create_system_prompt(
+                    agent_config.llm_system_prompt, schedule_context
+                ),
             )
 
             if image:

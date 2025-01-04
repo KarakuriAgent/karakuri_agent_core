@@ -76,6 +76,7 @@ async def chat_text_to_text(
             status_code=500, detail=f"Error processing request: {str(e)}"
         )
 
+
 @router.post("/text/voice")
 async def chat_text_to_voice(
     request: Request,
@@ -260,6 +261,7 @@ async def get_audio(file_name: str):
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Audio file not found")
     return FileResponse(file_path)
+
 
 async def _create_llm_response(
     schedule_service: ScheduleService,

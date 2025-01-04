@@ -338,15 +338,14 @@ class LLMService:
         3. Provide clear information about when you'll be available next
         4. If you're partially available (e.g., can respond to chat but not voice), explain this
         5. Keep the response concise but informative
+        6. Speak {laungage}
 
-        Answer language must be {laungage}
-        """
-
-        user_prompt = f"""
         Current time: {context.current_time}
         Daily Schedule: {context.schedule}
+        """
 
-        Generate a natural response explaining your current status and availability.
+        user_prompt = """
+        Please describe your current status.
         """
         messages = [
             ChatCompletionSystemMessage(

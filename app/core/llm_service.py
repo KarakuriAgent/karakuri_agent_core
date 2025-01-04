@@ -23,7 +23,7 @@ from app.schemas.emotion import Emotion
 from app.schemas.llm import LLMResponse
 from app.core.config import get_settings
 from app.core.memory_service import conversation_history_lock
-from app.schemas.schedule import StatusContext
+from app.schemas.schedule import ScheduleContext
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -49,15 +49,14 @@ Required JSON format:
         self,
         message: str,
         agent_config: AgentConfig,
-        status_context: StatusContext,
+        schedule_context: ScheduleContext,
         image: Optional[bytes] = None,
     ) -> LLMResponse:
         async with conversation_history_lock:
-            if not status_context.available:
+            if not schedule_context.available:
                 status_response = await self.generate_status_response(
-                    context=status_context,
-                    agent_config=agent_config,
-                    user_message=message,
+                    context=schedule_context,
+                    agent_config=agent_config
                 )
 
                 return LLMResponse(
@@ -298,8 +297,7 @@ Required JSON format:
         return self.get_message_content(response)
 
     async def generate_status_response(
-        self, context: StatusContext, agent_config: AgentConfig, user_message: str
-    ) -> str:
+        self, context: ScheduleContext, agent_config: AgentConfig) -> str:
         """Generate contextual status response"""
         # TODO: デフォルト値
         system_prompt = """
@@ -318,14 +316,17 @@ Required JSON format:
         """
 
         user_prompt = f"""
-        Current Context:
-        - Current time: {context.current_time}
-        - Current status: {context.current_status}
-        - Current activity: {context.current_schedule.activity if context.current_schedule else  ""}
+        Current time: {context.current_time}
+        Current Schedule:
+        - status: {context.current_schedule.status if context.current_schedule else  ""}
+        - activity: {context.current_schedule.activity if context.current_schedule else  ""}
         - Location: {context.current_schedule.location if context.current_schedule else  ""}
-        - Next available time: {context.next_schedule.start_time if context.next_schedule else  ""}
-
-        User's message: {user_message}
+        - end_time: {context.current_schedule.end_time if context.current_schedule else  ""}
+        Next Schedule:
+        - status: {context.next_schedule.status if context.next_schedule else  ""}
+        - activity: {context.next_schedule.activity if context.next_schedule else  ""}
+        - Location: {context.next_schedule.location if context.next_schedule else  ""}
+        - start_time: {context.next_schedule.start_time if context.next_schedule else  ""}
 
         Character Profile:
         {agent_config.llm_system_prompt}

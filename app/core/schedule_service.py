@@ -7,7 +7,7 @@ import logging
 
 from app.core.config import get_settings
 from app.core.llm_service import LLMService
-from app.schemas.schedule import DailySchedule, ScheduleItem, StatusContext
+from app.schemas.schedule import DailySchedule, ScheduleItem, ScheduleContext
 from app.schemas.status import CommunicationChannel, STATUS_AVAILABILITY
 from app.schemas.agent import AgentConfig
 
@@ -188,26 +188,19 @@ class ScheduleService:
 
         Agent Profile:
         - Name: {agent_config.name}
-        - Role: {self._extract_role_from_system_prompt(agent_config.llm_system_prompt)}
+        - Role: {agent_config.llm_system_prompt}
         - Wake time: {agent_config.schedule.wake_time}
         - Sleep time: {agent_config.schedule.sleep_time}
-        - Regular meal times: {json.dumps(agent_config.schedule.meal_times)}
 
         Requirements:
-        1. Schedule should start 30 minutes before wake time with preparation activities
-        2. Include regular daily activities and any special events
-        3. Account for meal times as specified
-        4. Include appropriate work/activity periods
-        5. End the day with wind-down activities before sleep time
-        6. Consider the agent's personality and preferences
+        1. Include regular daily activities and any special events
+        2. Account for meal times as specified
+        3. Include appropriate work/activity periods
+        4. End the day with wind-down activities before sleep time
+        5. Consider the agent's personality and preferences
 
         Please generate a complete schedule following the specified format.
         """
-
-    def _extract_role_from_system_prompt(self, system_prompt: str) -> str:
-        """Extract role information from system prompt"""
-        # This would need to be implemented based on your system prompt structure
-        return "AI Assistant"  # Placeholder implementation
 
     def _get_agent_local_time(self, agent_config: AgentConfig) -> datetime:
         """Get the current time in agent's timezone"""
@@ -262,20 +255,19 @@ class ScheduleService:
 
         return None
 
-    def get_current_status_context(
+    def get_current_schedule_context(
         self, agent_config: AgentConfig, communication_channel: CommunicationChannel
-    ) -> StatusContext:
+    ) -> ScheduleContext:
         current_time = self._get_agent_local_time(agent_config=agent_config)
         current_schedule = self._get_current_schedule_item(agent_config, current_time)
         next_available = self._get_next_available_schedule(
             agent_config, communication_channel, current_time
         )
-        return StatusContext(
+        return ScheduleContext(
             available=self.get_current_availability(
                 agent_config=agent_config, channel=communication_channel
             ),
             current_time=current_time,
-            current_status=agent_config.status.current_status,
             current_schedule=current_schedule,
             next_schedule=next_available,
         )

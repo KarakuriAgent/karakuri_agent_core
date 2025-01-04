@@ -25,18 +25,11 @@ class AgentScheduleConfig(BaseModel):
     timezone: str = "Asia/Tokyo"
     wake_time: str = "08:00"
     sleep_time: str = "22:00"
-    meal_times: List[dict[str, str]] = [
-        {"start": "12:00", "end": "13:00"},
-        {"start": "19:00", "end": "20:00"},
-    ]
-    custom_schedules: List[dict] = []  # For special events or custom schedules
 
-
-class StatusContext(BaseModel):
+class ScheduleContext(BaseModel):
     """Context for generating status responses"""
 
     available: bool
     current_time: datetime
-    current_status: str
     current_schedule: Optional[ScheduleItem]
     next_schedule: Optional[ScheduleItem]

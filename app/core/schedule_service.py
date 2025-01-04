@@ -8,7 +8,7 @@ import logging
 from app.core.config import get_settings
 from app.core.llm_service import LLMService
 from app.schemas.schedule import DailySchedule, ScheduleItem, ScheduleContext
-from app.schemas.status import CommunicationChannel, STATUS_AVAILABILITY
+from app.schemas.status import AgentStatus, CommunicationChannel, STATUS_AVAILABILITY
 from app.schemas.agent import AgentConfig
 
 settings = get_settings()
@@ -70,10 +70,10 @@ class ScheduleService:
         while True:
             try:
                 await self._check_and_generate_schedules()
-                await asyncio.sleep(60)  # Check every minute
+                await asyncio.sleep(10)  # Check every minute
             except Exception as e:
                 logger.error(f"Error in schedule generation task: {e}")
-                await asyncio.sleep(60)  # Wait before retrying
+                await asyncio.sleep(10)  # Wait before retrying
 
     async def start_schedule_execution(self):
         """Start the background task for schedule execution"""
@@ -97,10 +97,10 @@ class ScheduleService:
         while True:
             try:
                 await self._execute_current_schedules()
-                await asyncio.sleep(60)  # Check every minute
+                await asyncio.sleep(10)  # Check every minute
             except Exception as e:
                 logger.error(f"Error in schedule execution task: {e}")
-                await asyncio.sleep(60)  # Wait before retrying
+                await asyncio.sleep(10)  # Wait before retrying
 
     async def _execute_current_schedules(self):
         """Execute current schedules and update agent statuses"""
@@ -111,11 +111,28 @@ class ScheduleService:
             try:
                 local_time = self._get_agent_local_time(agent_config)
                 current_item = self._get_current_schedule_item(agent_config, local_time)
-
+                wake_time = datetime.strptime(
+                    agent_config.schedule.wake_time, "%H:%M"
+                ).time()
+                sleep_time = datetime.strptime(
+                    agent_config.schedule.sleep_time, "%H:%M"
+                ).time()
                 if current_item:
                     self._current_schedule[agent_id] = current_item
                     logger.info(
                         f"Updated status for agent {agent_id} to {current_item.status}"
+                    )
+                if local_time.time() <= wake_time or local_time.time() >= sleep_time:
+                    self._current_schedule[agent_id] = ScheduleItem(
+                        start_time=agent_config.schedule.sleep_time,
+                        end_time=agent_config.schedule.wake_time,
+                        activity="Sleep",
+                        status=AgentStatus.SLEEPING,
+                        description="Sleeping comfortably.",
+                        location="Bedroom",
+                    )
+                    logger.info(
+                        f"Agent {agent_id} is outside active hours, setting schedule to None"
                     )
 
             except Exception as e:

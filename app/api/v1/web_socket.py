@@ -22,7 +22,10 @@ from app.dependencies import (
     get_stt_service,
     get_tts_service,
 )
-from app.schemas.status import CommunicationChannel
+from app.schemas.agent import AgentConfig
+from app.schemas.llm import LLMResponse
+from app.schemas.schedule import ScheduleItem
+from app.schemas.status import AgentStatus, CommunicationChannel
 from app.schemas.web_socket import (
     AudioRequest,
     AudioResponse,
@@ -131,12 +134,14 @@ async def websocket_endpoint(
                 image_content = image_file.read()
             else:
                 text_message = request_obj.text
-            schedule_context = schedule_service.get_current_schedule_context(
-                agent_config=agent_config,
-                communication_channel=CommunicationChannel.VOICE,
-            )
-            llm_response = await llm_service.generate_response(
-                text_message, agent_config, schedule_context, image=image_content
+            llm_response = await _create_llm_response(
+                schedule_service,
+                llm_service,
+                agent_config,
+                CommunicationChannel.VOICE,
+                message,
+                request_obj.force_generate,
+                image_content,
             )
 
             agent_message = llm_response.agent_message.rstrip("\n")
@@ -211,6 +216,7 @@ def ws_test_page():
             "request_type": "text",
             "responce_type": "text",
             "agent_id": "1",
+            "force_generate": "true",
             "text": "Hello",
         },
         ensure_ascii=False,
@@ -326,3 +332,45 @@ def ws_test_page():
     </body>
     </html>
     """
+
+async def _create_llm_response(
+    schedule_service: ScheduleService,
+    llm_service: LLMService,
+    agent_config: AgentConfig,
+    channel: CommunicationChannel,
+    message: str,
+    force_generate: bool,
+    image_content: Optional[bytes] = None,
+) -> LLMResponse:
+    schedule_context = schedule_service.get_current_schedule_context(
+        agent_config=agent_config,
+        communication_channel=channel,
+    )
+    if not schedule_context.available and not force_generate:
+        return await llm_service.generate_status_response(
+            message=message,
+            context=schedule_context,
+            agent_config=agent_config,
+        )
+
+    elif not schedule_context.available and force_generate:
+        current_time = schedule_service._get_agent_local_time(agent_config)
+        current_schedule = schedule_service._get_current_schedule_item(
+            agent_config=agent_config, current_time=current_time
+        )
+        if current_schedule:
+            schedule_item = ScheduleItem(
+                start_time=current_schedule.start_time,
+                end_time=current_schedule.end_time,
+                activity="Talking",
+                status=AgentStatus.AVAILABLE,
+                description="Talk to users.",
+                location="my home",
+            )
+            schedule_service.update_current_schedule(agent_config, schedule_item)
+
+    return await llm_service.generate_response(
+        message=message,
+        agent_config=agent_config,
+        image=image_content,
+    )

@@ -49,26 +49,9 @@ Required JSON format:
         self,
         message: str,
         agent_config: AgentConfig,
-        schedule_context: ScheduleContext,
         image: Optional[bytes] = None,
     ) -> LLMResponse:
         async with conversation_history_lock:
-            if not schedule_context.available:
-                laungage = await self.generate_laungage(
-                    text=message, agent_config=agent_config
-                )
-                status_response = await self.generate_status_response(
-                    context=schedule_context,
-                    agent_config=agent_config,
-                    laungage=laungage,
-                )
-
-                return LLMResponse(
-                    user_message=message,
-                    agent_message=status_response,
-                    emotion="neutral",
-                )
-
             # If available, proceed with normal response generation
             conversation_history = await memory_service.get_conversation_history(
                 agent_config.id
@@ -326,10 +309,11 @@ Required JSON format:
         return self.get_message_content(response)
 
     async def generate_status_response(
-        self, context: ScheduleContext, agent_config: AgentConfig, laungage: str
-    ) -> str:
-        ## TODO: add status cash
+        self, message: str, context: ScheduleContext, agent_config: AgentConfig
+    ) -> LLMResponse:
         """Generate contextual status response"""
+
+        laungage = await self.generate_laungage(text=message, agent_config=agent_config)
         system_prompt = f"""
         You are an AI agent responding to a user about your current availability. 
         Craft a natural, contextual response based on your current status and schedule.
@@ -363,4 +347,8 @@ Required JSON format:
             model=agent_config.message_generate_llm_model,
             messages=messages,
         )
-        return self.get_message_content(response)
+        return LLMResponse(
+            user_message=message,
+            agent_message=self.get_message_content(response),
+            emotion="neutral",
+        )

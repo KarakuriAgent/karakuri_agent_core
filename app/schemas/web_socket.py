@@ -12,6 +12,7 @@ class BaseRequest(BaseModel):
     request_type: RequestType
     responce_type: str
     agent_id: str
+    force_generate: bool
 
 
 class TextRequest(BaseRequest):

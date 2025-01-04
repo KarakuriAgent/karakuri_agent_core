@@ -94,12 +94,18 @@ async def process_line_events_background(
                     agent_config=agent_config,
                     communication_channel=CommunicationChannel.CHAT,
                 )
-                llm_response = await llm_service.generate_response(
-                    text_message,
-                    agent_config,
-                    schedule_context,
-                    image=cached_image_bytes,
-                )
+                if not schedule_context.available:
+                     llm_response =await llm_service.generate_status_response(
+                        message=text_message,
+                        context=schedule_context,
+                        agent_config=agent_config,
+                     )
+                else:
+                    llm_response = await llm_service.generate_response(
+                        text_message,
+                        agent_config,
+                        image=cached_image_bytes,
+                    )
                 audio_data = await tts_service.generate_speech(
                     llm_response.agent_message, agent_config
                 )

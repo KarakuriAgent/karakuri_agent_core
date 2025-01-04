@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 class ScheduleService:
     def __init__(self, llm_service: LLMService):
         self._schedule_cache: Dict[str, DailySchedule] = {}
+        self._current_schedule: Dict[str, ScheduleItem] = {}
         self.llm_service = llm_service
         self._schedule_generation_task = None
         self._schedule_execution_task = None
@@ -40,8 +41,7 @@ class ScheduleService:
         for agent_id, agent in agent_manager.agents.items():
             try:
                 local_time = self._get_agent_local_time(agent)
-                tomorrow = local_time.date() + timedelta(days=1)
-                schedule = await self.generate_daily_schedule(agent, tomorrow)
+                schedule = await self.generate_daily_schedule(agent, local_time.date())
                 self._schedule_cache[agent_id] = schedule
             except Exception as e:
                 logger.error(
@@ -112,12 +112,8 @@ class ScheduleService:
                 local_time = self._get_agent_local_time(agent_config)
                 current_item = self._get_current_schedule_item(agent_config, local_time)
 
-                if (
-                    current_item
-                    and current_item.status != agent_config.status.current_status
-                ):
-                    updated_agent = agent_config.update_status(current_item.status)
-                    agent_manager.update_agent(agent_id, updated_agent)
+                if current_item:
+                    self._current_schedule[agent_id] = current_item
                     logger.info(
                         f"Updated status for agent {agent_id} to {current_item.status}"
                     )
@@ -211,7 +207,7 @@ class ScheduleService:
         self, agent_config: AgentConfig, channel: CommunicationChannel
     ) -> bool:
         """Check if the communication channel is available in current status"""
-        current_status = agent_config.status.current_status
+        current_status = self._current_schedule[agent_config.id].status
         availability = STATUS_AVAILABILITY[current_status]
         return getattr(availability, channel.value)
 
@@ -266,4 +262,24 @@ class ScheduleService:
             ),
             current_time=current_time,
             schedule=schedule,
+        )
+
+    def update_current_schedule(
+        self, agent_config: AgentConfig, new_item: ScheduleItem
+    ) -> None:
+        schedule = self._schedule_cache[agent_config.id]
+        for i, item in enumerate(schedule.items):
+            if (
+                item.start_time == new_item.start_time
+                and item.end_time == new_item.end_time
+            ):
+                schedule.items[i] = new_item
+                schedule.last_updated = datetime.now()
+                break
+
+            self._schedule_cache[agent_config.id] = schedule
+        self._current_schedule[agent_config.id] = new_item
+
+        logger.info(
+            f"Updated current schedule for agent {agent_config.id} to {new_item.status}"
         )

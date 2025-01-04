@@ -252,7 +252,7 @@ Required JSON format:
         agent_config: AgentConfig,
     ) -> str:
         """Generate a daily schedule using LLM"""
-        system_prompt = f"""
+        system_prompt = """
         You are a schedule generator for an AI agent. Create a detailed daily schedule considering the following aspects:
 
         Key Considerations:
@@ -261,9 +261,6 @@ Required JSON format:
         3. Allocate realistic time frames
         4. Account for travel time between locations
         5. Maintain consistency with the agent's established patterns
-
-        Character Profile:
-        {agent_config.llm_system_prompt}
 
         Required Output Format:
         {
@@ -353,19 +350,12 @@ Required JSON format:
 
         Generate a natural response explaining your current status and availability.
         """
-        conversation_history = await memory_service.get_conversation_history(
-            agent_config.id
-        )
-        messages = (
-            [
-                ChatCompletionSystemMessage(
-                    role="system",
-                    content=system_prompt,
-                )
-            ]
-            + conversation_history[:]
-            + [ChatCompletionUserMessage(role="user", content=user_prompt)]
-        )
+        messages = [
+            ChatCompletionSystemMessage(
+                role="system",
+                content=system_prompt,
+            )
+        ] + [ChatCompletionUserMessage(role="user", content=user_prompt)]
 
         response = await acompletion(
             base_url=agent_config.message_generate_llm_base_url,

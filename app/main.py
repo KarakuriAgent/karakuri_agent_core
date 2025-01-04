@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from app.auth.api_key import get_api_key
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import chat, line, agents, web_socket, status
+from app.api.v1 import chat, line, agents, schedule, web_socket
 from app.core.config import get_settings
 import logging
 
@@ -54,7 +54,7 @@ app.include_router(agents.router, prefix="/v1", tags=["agents"])
 
 app.include_router(web_socket.router, prefix="/v1/ws", tags=["websocket"])
 
-app.include_router(status.router, prefix="/v1", tags=["status"])
+app.include_router(schedule.router, prefix="/v1/schedule", tags=["schedule"])
 
 
 @app.get("/health")

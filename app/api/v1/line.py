@@ -103,6 +103,7 @@ async def process_line_events_background(
                 else:
                     llm_response = await llm_service.generate_response(
                         text_message,
+                        schedule_context,
                         agent_config,
                         image=cached_image_bytes,
                     )

@@ -371,6 +371,7 @@ async def _create_llm_response(
 
     return await llm_service.generate_response(
         message=message,
+        schedule_context=schedule_context,
         agent_config=agent_config,
         image=image_content,
     )

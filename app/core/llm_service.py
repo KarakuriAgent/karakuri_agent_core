@@ -23,7 +23,7 @@ from app.schemas.emotion import Emotion
 from app.schemas.llm import LLMResponse
 from app.core.config import get_settings
 from app.core.memory_service import conversation_history_lock
-from app.schemas.schedule import ScheduleContext
+from app.schemas.schedule import ScheduleContext, ScheduleItem
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -38,27 +38,36 @@ class LLMService:
         return f"""analyze the following text emotion.
         Respond ONLY in the specified JSON format without any additional explanation.
 
-Input text: {text}
+        Input text: {text}
 
-Required JSON format:
-{{
-    "emotion": One of these emotions: {', '.join(emotions)}
-}}"""
+        Required JSON format:
+        {{
+            "emotion": One of these emotions: {', '.join(emotions)}
+        }}"""
+    def create_system_prompt(self, llm_system_prompt: str, context: ScheduleContext) -> str:
+        return f"""
+        {llm_system_prompt}
+
+        Craft a natural, contextual response based on your current status.
+
+        Current time: {context.current_time}
+        Daily Schedule: {context.schedule}
+        """
 
     async def generate_response(
         self,
         message: str,
+        schedule_context: ScheduleContext,
         agent_config: AgentConfig,
         image: Optional[bytes] = None,
     ) -> LLMResponse:
         async with conversation_history_lock:
-            # If available, proceed with normal response generation
             conversation_history = await memory_service.get_conversation_history(
                 agent_config.id
             )
             systemMessage = ChatCompletionSystemMessage(
                 role="system",
-                content=agent_config.llm_system_prompt,
+                content=self.create_system_prompt(agent_config.llm_system_prompt, schedule_context),
             )
 
             if image:

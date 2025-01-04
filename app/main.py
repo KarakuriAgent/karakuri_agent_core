@@ -6,6 +6,7 @@ from app.auth.api_key import get_api_key
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import chat, line, agents, web_socket
 from app.core.config import get_settings
+from app.api.stream_voice import router as stream_voice_router
 import logging
 
 logging.basicConfig(
@@ -32,6 +33,8 @@ app.include_router(line.router, prefix="/v1/line", tags=["line"])
 app.include_router(agents.router, prefix="/v1", tags=["agents"])
 
 app.include_router(web_socket.router, prefix="/v1/ws", tags=["websocket"])
+
+app.include_router(stream_voice_router, prefix="/v1", tags=["stream_voice"])
 
 
 @app.get("/health")

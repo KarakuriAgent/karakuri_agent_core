@@ -111,28 +111,10 @@ class ScheduleService:
             try:
                 local_time = self._get_agent_local_time(agent_config)
                 current_item = self._get_current_schedule_item(agent_config, local_time)
-                wake_time = datetime.strptime(
-                    agent_config.schedule.wake_time, "%H:%M"
-                ).time()
-                sleep_time = datetime.strptime(
-                    agent_config.schedule.sleep_time, "%H:%M"
-                ).time()
                 if current_item:
                     self._current_schedule[agent_id] = current_item
                     logger.info(
                         f"Updated status for agent {agent_id} to {current_item.status}"
-                    )
-                if local_time.time() <= wake_time or local_time.time() >= sleep_time:
-                    self._current_schedule[agent_id] = ScheduleItem(
-                        start_time=agent_config.schedule.sleep_time,
-                        end_time=agent_config.schedule.wake_time,
-                        activity="Sleep",
-                        status=AgentStatus.SLEEPING,
-                        description="Sleeping comfortably.",
-                        location="Bedroom",
-                    )
-                    logger.info(
-                        f"Agent {agent_id} is outside active hours, setting schedule to None"
                     )
 
             except Exception as e:
@@ -181,7 +163,27 @@ class ScheduleService:
             for item in schedule_data["schedule"]:
                 if "status" in item:
                     item["status"] = item["status"].lower()
-            items = [ScheduleItem(**item) for item in schedule_data["schedule"]]
+            items = [
+                ScheduleItem(
+                    start_time="00:00",
+                    end_time=agent_config.schedule.wake_time,
+                    activity="Sleep",
+                    status=AgentStatus.SLEEPING,
+                    description="Sleeping comfortably.",
+                    location="Bedroom",
+                )
+            ]
+            items.extend(ScheduleItem(**item) for item in schedule_data["schedule"])
+            items.append(
+                ScheduleItem(
+                    start_time=agent_config.schedule.sleep_time,
+                    end_time="23:59",
+                    activity="Sleep",
+                    status=AgentStatus.SLEEPING,
+                    description="Sleeping comfortably.",
+                    location="Bedroom",
+                )
+            )
             return DailySchedule(
                 date=target_date,
                 items=items,
@@ -202,15 +204,15 @@ class ScheduleService:
         Agent Profile:
         - Name: {agent_config.name}
         - Role: {agent_config.llm_system_prompt}
-        - Wake time: {agent_config.schedule.wake_time}
-        - Sleep time: {agent_config.schedule.sleep_time}
+        - Active time: {agent_config.schedule.wake_time} ~ {agent_config.schedule.sleep_time}
 
         Requirements:
         1. Include regular daily activities and any special events
-        2. Account for meal times as specified
-        3. Include appropriate work/activity periods
-        4. End the day with wind-down activities before sleep time
-        5. Consider the agent's personality and preferences
+        2. Include appropriate work/activity periods
+        3. End the day with wind-down activities before sleep time
+        4. Create a schedule within active hours
+        5. The schedule is in 30 minute increments.
+        6. Consider the agent's personality and preferences
 
         Please generate a complete schedule following the specified format.
         """
@@ -294,7 +296,7 @@ class ScheduleService:
                 schedule.last_updated = datetime.now()
                 break
 
-            self._schedule_cache[agent_config.id] = schedule
+        self._schedule_cache[agent_config.id] = schedule
         self._current_schedule[agent_config.id] = new_item
 
         logger.info(

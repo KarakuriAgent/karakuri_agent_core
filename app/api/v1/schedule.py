@@ -55,7 +55,7 @@ async def get_agent_schedule(
     agent_id: str,
     api_key: str = Depends(get_api_key),
     schedule_service: ScheduleService = Depends(get_schedule_service),
-) -> DailySchedule:
+) -> Dict[str, DailySchedule]:
     """Get the current day's schedule for an agent"""
     agent_manager = get_agent_manager()
     try:

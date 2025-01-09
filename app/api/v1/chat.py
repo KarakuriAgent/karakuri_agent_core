@@ -280,8 +280,8 @@ async def _create_llm_response(
         )
 
     elif not schedule_context.available and force_generate:
-        current_time = schedule_service._get_agent_local_time(agent_config)
-        current_schedule = schedule_service._get_current_schedule_item(
+        current_time = schedule_service.get_agent_local_time(agent_config.schedule)
+        current_schedule = schedule_service.get_current_schedule_item(
             agent_config=agent_config, current_time=current_time
         )
         if current_schedule:
@@ -293,7 +293,7 @@ async def _create_llm_response(
                 description="Talk to users.",
                 location="my home",
             )
-            schedule_service.update_current_schedule(agent_config, schedule_item)
+            schedule_service.set_current_schedule(agent_config, schedule_item)
 
     return await llm_service.generate_response(
         message=message,

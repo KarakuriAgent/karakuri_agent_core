@@ -26,8 +26,8 @@ async def update_agent_schedule(
 
     try:
         agent_config = agent_manager.get_agent(agent_id=agent_id)
-        current_time = schedule_service._get_agent_local_time(agent_config)
-        current_schedule = schedule_service._get_current_schedule_item(
+        current_time = schedule_service.get_agent_local_time(agent_config.schedule)
+        current_schedule = schedule_service.get_current_schedule_item(
             agent_config=agent_config, current_time=current_time
         )
         if current_schedule:
@@ -39,7 +39,7 @@ async def update_agent_schedule(
                 description=description,
                 location=location,
             )
-            schedule_service.update_current_schedule(agent_config, schedule_item)
+            schedule_service.set_current_schedule(agent_config, schedule_item)
             return schedule_item
         else:
             raise HTTPException(status_code=404, detail="Schedule not found")
@@ -57,7 +57,7 @@ async def get_agent_schedule(
     agent_manager = get_agent_manager()
     try:
         agent_manager.get_agent(agent_id)  # Verify agent exists
-        schedule = schedule_service._schedule_cache.get(agent_id)
+        schedule = schedule_service.get_cached_schedule(agent_id)
         if not schedule:
             raise HTTPException(
                 status_code=404,

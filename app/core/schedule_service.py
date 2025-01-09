@@ -1,187 +1,284 @@
-import asyncio
-import json
 from datetime import datetime, date, timedelta
-from typing import Optional, Dict, TypeAlias
-
-from app.schemas.schedule import DailySchedule
+import json
+from typing import Dict, Optional
 import pytz
 import logging
+import asyncio
+from collections import defaultdict
 
 from app.core.config import get_settings
 from app.core.llm_service import LLMService
-from app.schemas.schedule import ScheduleItem, ScheduleContext
+from app.schemas.schedule import (
+    ScheduleItem,
+    ScheduleContext,
+    DailySchedule,
+    AgentScheduleConfig,
+)
 from app.schemas.status import AgentStatus, CommunicationChannel, STATUS_AVAILABILITY
 from app.schemas.agent import AgentConfig
+from app.core.agent_manager import get_agent_manager
 
-settings = get_settings()
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
-AgentID: TypeAlias = str
-DateKey: TypeAlias = str
-ScheduleCache: TypeAlias = Dict[AgentID, Dict[DateKey, DailySchedule]]
+
+class ScheduleCache:
+    """スケジュールキャッシュを管理するクラス"""
+
+    def __init__(self):
+        self._cache: Dict[str, Dict[str, DailySchedule]] = defaultdict(dict)
+        self._current: Dict[str, ScheduleItem] = {}
+
+    def get_schedule(self, agent_id: str) -> Optional[Dict[str, DailySchedule]]:
+        return self._cache[agent_id]
+
+    def set_schedule(self, agent_id: str, schedule: Dict[str, DailySchedule]):
+        self._cache[agent_id] = schedule
+
+    def get_daily_schedule(
+        self, agent_id: str, date_key: str
+    ) -> Optional[DailySchedule]:
+        return self._cache[agent_id].get(date_key)
+
+    def set_daily_schedule(self, agent_id: str, date_key: str, schedule: DailySchedule):
+        self._cache[agent_id][date_key] = schedule
+
+    def get_current_schedule(self, agent_id: str) -> Optional[ScheduleItem]:
+        return self._current.get(agent_id)
+
+    def set_current_schedule(self, agent_id: str, schedule: ScheduleItem):
+        self._current[agent_id] = schedule
 
 
 class ScheduleService:
+    """エージェントのスケジュール管理を行うサービス"""
+
     def __init__(self, llm_service: LLMService):
-        """Initialize schedule cache
-
-        Attributes:
-            _schedule_cache: Cache storing daily schedules per agent
-                - Outer Dict key: AgentID (agent identifier)
-                - Inner Dict key: DateKey (date string in "MM-DD" format)
-                - Value: DailySchedule (schedule for that day)
-        """
-        self._schedule_cache: ScheduleCache = {}
-        self._current_schedule: Dict[str, ScheduleItem] = {}
+        self.schedule_generation_task: Optional[asyncio.Task] = None
+        self.schedule_execution_task: Optional[asyncio.Task] = None
         self.llm_service = llm_service
-        self._schedule_generation_task = None
-        self._schedule_execution_task = None
-
-        # Initialize schedules in a way that works with FastAPI's dependency injection
+        self.cache = ScheduleCache()
+        self._schedule_tasks: Dict[str, asyncio.Task] = {}
         self._initialized = False
 
     async def initialize(self):
-        """Initialize schedules after the event loop is running"""
+        """サービスの初期化"""
         if not self._initialized:
             await self._initialize_schedules()
-            await self.start_schedule_execution()
+            await self._start_background_tasks()
             self._initialized = True
 
-    def _generate_cache_key(self, target_date: date) -> str:
-        """Generate consistent cache key from date"""
-        return f"{target_date.month:02d}-{target_date.day:02d}"
+    async def shutdown(self):
+        """サービスのシャットダウン"""
+        for task in self._schedule_tasks.values():
+            task.cancel()
+        await asyncio.gather(*self._schedule_tasks.values(), return_exceptions=True)
+
+    async def stop_schedule_generation(self):
+        """スケジュール生成タスクを停止"""
+        if self.schedule_generation_task and not self.schedule_generation_task.done():
+            self.schedule_generation_task.cancel()
+            try:
+                await self.schedule_generation_task
+            except asyncio.CancelledError:
+                logger.info("Schedule generation task cancelled")
+            self.schedule_generation_task = None
+
+    async def stop_schedule_execution(self):
+        """スケジュール実行タスクを停止"""
+        if self.schedule_execution_task and not self.schedule_execution_task.done():
+            self.schedule_execution_task.cancel()
+            try:
+                await self.schedule_execution_task
+            except asyncio.CancelledError:
+                logger.info("Schedule execution task cancelled")
+            self.schedule_execution_task = None
+
+    async def cleanup(self):
+        """全てのスケジュール関連タスクを停止"""
+        await self.stop_schedule_generation()
+        await self.stop_schedule_execution()
 
     async def _initialize_schedules(self):
-        """Generate initial schedules on server startup"""
-        from app.core.agent_manager import get_agent_manager
+        """初期スケジュールの生成"""
+        agent_manager = get_agent_manager()
+        for agent_id, agent in agent_manager.agents.items():
+            await self._generate_agent_schedules(agent_id, agent)
 
+    async def _generate_agent_schedules(self, agent_id: str, agent: AgentConfig):
+        """エージェントの今日と明日のスケジュールを生成"""
+        try:
+            local_time = self._get_local_time(agent.schedule)
+            for delta in [0, 1]:  # 今日と明日
+                target_date = local_time.date() + timedelta(days=delta)
+                schedule = await self._generate_daily_schedule(agent, target_date)
+                self.cache.set_daily_schedule(
+                    agent_id, self._format_date_key(target_date), schedule
+                )
+        except Exception as e:
+            logger.error(f"Failed to generate schedules for agent {agent_id}: {e}")
+
+    async def _start_background_tasks(self):
+        """バックグラウンドタスクの開始"""
+        self._schedule_tasks.update(
+            {
+                "schedule_generation": asyncio.create_task(
+                    self._schedule_generation_loop()
+                ),
+                "schedule_execution": asyncio.create_task(
+                    self._schedule_execution_loop()
+                ),
+            }
+        )
+
+    async def _schedule_generation_loop(self):
+        """スケジュール生成ループ"""
+        while True:
+            try:
+                await self._generate_future_schedules()
+                await asyncio.sleep(600)  # 10分間隔
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Schedule generation error: {e}")
+                await asyncio.sleep(60)
+
+    async def _schedule_execution_loop(self):
+        """スケジュール実行ループ"""
+        while True:
+            try:
+                await self._update_current_schedules()
+                await asyncio.sleep(60)  # 1分間隔
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Schedule execution error: {e}")
+                await asyncio.sleep(60)
+
+    async def _generate_future_schedules(self):
+        """将来のスケジュール生成"""
+        agent_manager = get_agent_manager()
+        tasks = [
+            self._generate_agent_schedules(agent_id, agent)
+            for agent_id, agent in agent_manager.agents.items()
+        ]
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def _update_current_schedules(self):
+        """現在のスケジュール更新"""
         agent_manager = get_agent_manager()
         for agent_id, agent in agent_manager.agents.items():
             try:
-                local_time = self._get_agent_local_time(agent)
-                today = local_time.date()
-                # Initialize cache for agent if not exists
-                if agent_id not in self._schedule_cache:
-                    self._schedule_cache[agent_id] = {}
-
-                # Generate today's schedule
-                schedule = await self.generate_daily_schedule(agent, today)
-                self._schedule_cache[agent_id][self._generate_cache_key(today)] = (
-                    schedule
-                )
-
-                # Generate tomorrow's schedule
-                tomorrow = today + timedelta(days=1)
-                schedule = await self.generate_daily_schedule(agent, tomorrow)
-                self._schedule_cache[agent_id][self._generate_cache_key(tomorrow)] = (
-                    schedule
-                )
-            except Exception as e:
-                logger.error(
-                    f"Initial schedule generation failed for agent {agent_id}: {e}"
-                )
-
-    async def start_schedule_generation(self):
-        """Start the background task for schedule generation"""
-        if self._schedule_generation_task is None:
-            self._schedule_generation_task = asyncio.create_task(
-                self.schedule_generation_task()
-            )
-
-    async def stop_schedule_generation(self):
-        """Stop the background task"""
-        if self._schedule_generation_task is not None:
-            self._schedule_generation_task.cancel()
-            try:
-                await self._schedule_generation_task
-            except asyncio.CancelledError:
-                pass
-            self._schedule_generation_task = None
-
-    async def schedule_generation_task(self):
-        """Background task for schedule generation"""
-        while True:
-            try:
-                await self._check_and_generate_schedules()
-                await asyncio.sleep(600)  # Check every 10 minutes
-            except Exception as e:
-                logger.error(f"Error in schedule generation task: {e}")
-                await asyncio.sleep(600)  # Wait before retrying
-
-    async def start_schedule_execution(self):
-        """Start the background task for schedule execution"""
-        if self._schedule_execution_task is None:
-            self._schedule_execution_task = asyncio.create_task(
-                self.schedule_execution_task()
-            )
-
-    async def stop_schedule_execution(self):
-        """Stop the background task"""
-        if self._schedule_execution_task is not None:
-            self._schedule_execution_task.cancel()
-            try:
-                await self._schedule_execution_task
-            except asyncio.CancelledError:
-                pass
-            self._schedule_execution_task = None
-
-    async def schedule_execution_task(self):
-        """Background task for schedule execution and status updates"""
-        while True:
-            try:
-                await self._execute_current_schedules()
-                await asyncio.sleep(600)  # Check every minute
-            except Exception as e:
-                logger.error(f"Error in schedule execution task: {e}")
-                await asyncio.sleep(600)  # Wait before retrying
-
-    async def _execute_current_schedules(self):
-        """Execute current schedules and update agent statuses"""
-        from app.core.agent_manager import get_agent_manager
-
-        agent_manager = get_agent_manager()
-        for agent_id, agent_config in agent_manager.agents.items():
-            try:
-                local_time = self._get_agent_local_time(agent_config)
-                current_item = self._get_current_schedule_item(agent_config, local_time)
+                current_item = self._get_current_schedule_item(agent)
                 if current_item:
-                    self._current_schedule[agent_id] = current_item
-                    logger.info(
-                        f"Updated status for agent {agent_id} to {current_item.status}"
-                    )
-
+                    self.cache.set_current_schedule(agent_id, current_item)
             except Exception as e:
-                logger.error(f"Failed to execute schedule for agent {agent_id}: {e}")
+                logger.error(f"Failed to update schedule for agent {agent_id}: {e}")
 
-    async def _check_and_generate_schedules(self):
-        """Check and generate schedules for agents"""
-        from app.core.agent_manager import get_agent_manager
-
-        agent_manager = get_agent_manager()
-
-        for agent_id, agent_config in agent_manager.agents.items():
-            try:
-                local_time = self._get_agent_local_time(agent_config)
-                tomorrow = local_time.date() + timedelta(days=1)
-                schedule = await self.generate_daily_schedule(agent_config, tomorrow)
-                cache_key = self._generate_cache_key(tomorrow)
-                if not self._schedule_cache[agent_id][cache_key]:
-                    self._schedule_cache[agent_id][cache_key] = schedule
-
-            except Exception as e:
-                logger.error(f"Schedule generation failed for agent {agent_id}: {e}")
-
-    async def generate_daily_schedule(
+    async def _generate_daily_schedule(
         self, agent_config: AgentConfig, target_date: date
     ) -> DailySchedule:
-        """Generate a daily schedule for the agent"""
+        """1日分のスケジュール生成"""
         schedule_prompt = self._create_schedule_prompt(agent_config, target_date)
-        schedule_response = await self.llm_service.generate_schedule(
+        schedule_json = await self.llm_service.generate_schedule(
             schedule_prompt, agent_config
         )
+        return self._parse_schedule_response(schedule_json, target_date, agent_config)
 
+    def get_current_schedule_context(
+        self, agent_config: AgentConfig, communication_channel: CommunicationChannel
+    ) -> ScheduleContext:
+        """現在のスケジュールコンテキストを取得"""
+        return ScheduleContext(
+            available=self.get_current_availability(
+                agent_config, communication_channel
+            ),
+            current_time=self._get_local_time(agent_config.schedule),
+            schedule=self.get_today_schedule(agent_config),
+        )
+
+    def get_current_availability(
+        self, agent_config: AgentConfig, channel: CommunicationChannel
+    ) -> bool:
+        """現在の利用可能状態を取得"""
+        current_item = self.cache.get_current_schedule(agent_config.id)
+        if not current_item:
+            return False
+        availability = STATUS_AVAILABILITY[current_item.status]
+        return getattr(availability, channel.value)
+
+    def get_today_schedule(self, agent_config: AgentConfig) -> Optional[DailySchedule]:
+        """今日のスケジュールを取得"""
+        current_time = self._get_local_time(agent_config.schedule)
+        date_key = self._format_date_key(current_time.date())
+        return self.cache.get_daily_schedule(agent_config.id, date_key)
+
+    def get_current_schedule_item(
+        self, agent_config: AgentConfig, current_time: Optional[datetime] = None
+    ) -> Optional[ScheduleItem]:
+        """現在のスケジュールアイテムを取得"""
+        schedule = self.get_today_schedule(agent_config)
+        if not schedule:
+            return None
+
+        if current_time is None:
+            current_time = self.get_agent_local_time(agent_config.schedule)
+
+        current_time_str = current_time.strftime("%H:%M")
+
+        for item in schedule.items:
+            if item.start_time <= current_time_str <= item.end_time:
+                return item
+        return None
+
+    def _get_current_schedule_item(
+        self, agent_config: AgentConfig
+    ) -> Optional[ScheduleItem]:
+        """内部使用の現在のスケジュールアイテム取得メソッド"""
+        return self.get_current_schedule_item(agent_config)
+
+    @staticmethod
+    def get_agent_local_time(schedule_config: AgentScheduleConfig) -> datetime:
+        """エージェントのローカル時間を取得"""
+        tz = pytz.timezone(schedule_config.timezone)
+        return datetime.now(tz)
+
+    @staticmethod
+    def _get_local_time(schedule_config: AgentScheduleConfig) -> datetime:
+        """ローカル時間を取得"""
+        return ScheduleService.get_agent_local_time(schedule_config)
+
+    @staticmethod
+    def _format_date_key(target_date: date) -> str:
+        """日付キーをフォーマット"""
+        return f"{target_date.month:02d}-{target_date.day:02d}"
+
+    @staticmethod
+    def _create_schedule_prompt(agent_config: AgentConfig, target_date: date) -> str:
+        """スケジュール生成用プロンプトを作成"""
+        return f"""
+        Generate a daily schedule for {agent_config.name} for {target_date.strftime('%Y-%m-%d')}.
+        
+        Agent Profile:
+        - Name: {agent_config.name}
+        - Role: {agent_config.llm_system_prompt}
+        - Active time: {agent_config.schedule.wake_time} ~ {agent_config.schedule.sleep_time}
+        
+        Requirements:
+        1. Include regular daily activities and any special events
+        2. Include appropriate work/activity periods
+        3. End the day with wind-down activities before sleep time
+        4. Create a schedule within active hours
+        5. The schedule is in 30 minute increments
+        6. Consider the agent's personality and preferences
+        """
+
+    def _parse_schedule_response(
+        self, schedule_json: str, target_date: date, agent_config: AgentConfig
+    ) -> DailySchedule:
+        """スケジュールレスポンスをパース"""
         try:
-            schedule_data = json.loads(schedule_response)
+            schedule_data = json.loads(schedule_json)
             for item in schedule_data["schedule"]:
                 if "status" in item:
                     item["status"] = item["status"].lower()
@@ -216,130 +313,46 @@ class ScheduleService:
             logger.error(f"Failed to parse schedule response: {e}")
             raise
 
-    def _create_schedule_prompt(
-        self, agent_config: AgentConfig, target_date: date
-    ) -> str:
-        """Create prompt for schedule generation"""
-        return f"""
-        Generate a daily schedule for {agent_config.name} for {target_date.strftime('%Y-%m-%d')}.
+    def get_cached_schedule(self, agent_id: str) -> Optional[Dict[str, DailySchedule]]:
+        """キャッシュされたスケジュールを取得"""
+        return self.cache.get_schedule(agent_id)
 
-        Agent Profile:
-        - Name: {agent_config.name}
-        - Role: {agent_config.llm_system_prompt}
-        - Active time: {agent_config.schedule.wake_time} ~ {agent_config.schedule.sleep_time}
-
-        Requirements:
-        1. Include regular daily activities and any special events
-        2. Include appropriate work/activity periods
-        3. End the day with wind-down activities before sleep time
-        4. Create a schedule within active hours
-        5. The schedule is in 30 minute increments.
-        6. Consider the agent's personality and preferences
-
-        Please generate a complete schedule following the specified format.
-        """
-
-    def _get_agent_local_time(self, agent_config: AgentConfig) -> datetime:
-        """Get the current time in agent's timezone"""
-        tz = pytz.timezone(agent_config.schedule.timezone)
-        return datetime.now(tz)
-
-    def get_current_availability(
-        self, agent_config: AgentConfig, channel: CommunicationChannel
-    ) -> bool:
-        """Check if the communication channel is available in current status"""
-        current_status = self._current_schedule[agent_config.id].status
-        availability = STATUS_AVAILABILITY[current_status]
-        return getattr(availability, channel.value)
-
-    def _get_current_schedule_item(
-        self, agent_config: AgentConfig, current_time: datetime
-    ) -> Optional[ScheduleItem]:
-        """Get current schedule item"""
-        schedule = self.get_today_schedule(agent_config)
-
-        if not schedule:
-            return None
-
-        for item in schedule.items:
-            start = datetime.strptime(item.start_time, "%H:%M").time()
-            end = datetime.strptime(item.end_time, "%H:%M").time()
-            if start <= current_time.time() <= end:
-                return item
-
-        return None
-
-    def _get_next_available_schedule(
-        self,
-        agent_config: AgentConfig,
-        channel: CommunicationChannel,
-        current_time: datetime,
-    ) -> Optional[ScheduleItem]:
-        """Get next schedule item where the requested channel is available"""
-        schedule = self.get_today_schedule(agent_config)
-
-        if not schedule:
-            return None
-
-        for item in schedule.items:
-            start = datetime.strptime(item.start_time, "%H:%M").time()
-            if start > current_time.time():
-                availability = STATUS_AVAILABILITY[item.status]
-                if (
-                    (channel == CommunicationChannel.CHAT and availability.chat)
-                    or (channel == CommunicationChannel.VOICE and availability.voice)
-                    or (channel == CommunicationChannel.VIDEO and availability.video)
-                ):
-                    return item
-
-        return None
-
-    def get_current_schedule_context(
-        self, agent_config: AgentConfig, communication_channel: CommunicationChannel
-    ) -> ScheduleContext:
-        current_time = self._get_agent_local_time(agent_config=agent_config)
-        schedule = self.get_today_schedule(agent_config)
-        return ScheduleContext(
-            available=self.get_current_availability(
-                agent_config=agent_config, channel=communication_channel
-            ),
-            current_time=current_time,
-            schedule=schedule,
-        )
-
-    def update_current_schedule(
-        self, agent_config: AgentConfig, new_item: ScheduleItem
+    def set_cached_schedule(
+        self, agent_id: str, schedule: Dict[str, DailySchedule]
     ) -> None:
-        schedule = self.get_today_schedule(agent_config)
+        """スケジュールをキャッシュに設定"""
+        self.cache.set_schedule(agent_id, schedule)
 
-        if not schedule:
-            return None
+    def set_current_schedule(
+        self, agent_config: AgentConfig, schedule_item: ScheduleItem
+    ) -> None:
+        """現在のスケジュールを更新"""
+        agent_id = agent_config.id
+        current_time = self._get_local_time(agent_config.schedule)
+        date_key = self._format_date_key(current_time.date())
+        
+        daily_schedule = self.cache.get_daily_schedule(agent_id, date_key)
+        if daily_schedule:
+            current_time_str = current_time.strftime("%H:%M")
+            updated_items = []
+            
+            for item in daily_schedule.items:
+                if item.start_time <= current_time_str <= item.end_time:
+                    updated_items.append(schedule_item)
+                else:
+                    updated_items.append(item)
+            
+            updated_schedule = DailySchedule(
+                date=daily_schedule.date,
+                items=updated_items,
+                generated_at=daily_schedule.generated_at,
+                last_updated=datetime.now()
+            )
+            
+            self.cache.set_daily_schedule(agent_id, date_key, updated_schedule)
+        
+        self.cache.set_current_schedule(agent_id, schedule_item)
 
-        for i, item in enumerate(schedule.items):
-            if (
-                item.start_time == new_item.start_time
-                and item.end_time == new_item.end_time
-            ):
-                schedule.items[i] = new_item
-                schedule.last_updated = datetime.now()
-                break
-
-        local_time = self._get_agent_local_time(agent_config)
-        today = local_time.date()
-        self._schedule_cache[agent_config.id][self._generate_cache_key(today)] = (
-            schedule
-        )
-        self._current_schedule[agent_config.id] = new_item
-
-        logger.info(
-            f"Updated current schedule for agent {agent_config.id} to {new_item.status}"
-        )
-
-    def get_today_schedule(self, agent_config: AgentConfig) -> Optional[DailySchedule]:
-        schedules = self._schedule_cache.get(agent_config.id)
-        if not schedules:
-            return None
-
-        local_time = self._get_agent_local_time(agent_config)
-        today = local_time.date()
-        return schedules.get(self._generate_cache_key(today))
+    def get_cached_current_schedule(self, agent_id: str) -> Optional[ScheduleItem]:
+        """キャッシュされた現在のスケジュールアイテムを取得"""
+        return self.cache.get_current_schedule(agent_id)

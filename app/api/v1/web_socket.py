@@ -16,12 +16,7 @@ from jsonschema import ValidationError
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 from app.core.schedule_service import ScheduleService
-from app.dependencies import (
-    get_llm_service,
-    get_schedule_service,
-    get_stt_service,
-    get_tts_service,
-)
+from app.core.service_factory import ServiceFactory
 from app.schemas.agent import AgentConfig
 from app.schemas.llm import LLMResponse
 from app.schemas.schedule import ScheduleItem
@@ -43,13 +38,13 @@ from app.auth.api_key import get_api_key
 
 router = APIRouter()
 settings = get_settings()
+service_factory = ServiceFactory()
 logger = logging.getLogger(__name__)
 UPLOAD_DIR = settings.web_socket_audio_files_dir
 MAX_FILES = settings.web_socket_max_audio_files
 
 ws_tokens: dict[str, tuple[str, float]] = {}
 TOKEN_LIFETIME = 10
-router = APIRouter()
 
 
 # TODO: トークン取得時にAgentIdとComunitcationChannelを指定する
@@ -66,10 +61,10 @@ async def get_ws_token(api_key: str = Depends(get_api_key)):
 async def websocket_endpoint(
     websocket: WebSocket,
     token: Optional[str] = Query(None),
-    llm_service: LLMService = Depends(get_llm_service),
-    stt_service: STTService = Depends(get_stt_service),
-    tts_service: TTSService = Depends(get_tts_service),
-    schedule_service: ScheduleService = Depends(get_schedule_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    stt_service: STTService = Depends(service_factory.get_stt_service),
+    tts_service: TTSService = Depends(service_factory.get_tts_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     clean_expired_tokens()
     if not token or token not in ws_tokens:

@@ -3,12 +3,7 @@
 # Please see the LICENSE file in the project root.
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, File, Request
 from app.core.schedule_service import ScheduleService
-from app.dependencies import (
-    get_llm_service,
-    get_schedule_service,
-    get_tts_service,
-    get_stt_service,
-)
+from app.core.service_factory import ServiceFactory
 from app.auth.api_key import get_api_key
 from app.core.llm_service import LLMService
 from app.core.tts_service import TTSService
@@ -28,6 +23,7 @@ from app.schemas.chat import TextChatResponse, VoiceChatResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+service_factory = ServiceFactory()
 settings = get_settings()
 UPLOAD_DIR = settings.chat_audio_files_dir
 MAX_FILES = settings.chat_max_audio_files
@@ -41,8 +37,8 @@ async def chat_text_to_text(
     force_generate: bool = Form(...),
     image_file: Optional[UploadFile] = None,
     api_key: str = Depends(get_api_key),
-    llm_service: LLMService = Depends(get_llm_service),
-    schedule_service: ScheduleService = Depends(get_schedule_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
@@ -86,9 +82,9 @@ async def chat_text_to_voice(
     force_generate: bool = Form(...),
     image_file: Optional[UploadFile] = None,
     api_key: str = Depends(get_api_key),
-    llm_service: LLMService = Depends(get_llm_service),
-    tts_service: TTSService = Depends(get_tts_service),
-    schedule_service: ScheduleService = Depends(get_schedule_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    tts_service: TTSService = Depends(service_factory.get_tts_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
@@ -146,9 +142,9 @@ async def chat_voice_to_text(
     image_file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
     api_key: str = Depends(get_api_key),
-    llm_service: LLMService = Depends(get_llm_service),
-    stt_service: STTService = Depends(get_stt_service),
-    schedule_service: ScheduleService = Depends(get_schedule_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    stt_service: STTService = Depends(service_factory.get_stt_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
@@ -196,10 +192,10 @@ async def chat_voice_to_voice(
     image_file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
     api_key: str = Depends(get_api_key),
-    llm_service: LLMService = Depends(get_llm_service),
-    stt_service: STTService = Depends(get_stt_service),
-    tts_service: TTSService = Depends(get_tts_service),
-    schedule_service: ScheduleService = Depends(get_schedule_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    stt_service: STTService = Depends(service_factory.get_stt_service),
+    tts_service: TTSService = Depends(service_factory.get_tts_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)

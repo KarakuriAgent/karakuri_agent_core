@@ -9,26 +9,24 @@ from app.api.v1 import chat, line, agents, schedule, web_socket
 from app.core.config import get_settings
 import logging
 
-from app.dependencies import get_schedule_service
+from app.core.service_factory import ServiceFactory
 
 logging.basicConfig(
     level=logging.INFO,
 )
 
+service_factory = ServiceFactory()
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global schedule_service
-    schedule_service = get_schedule_service()
-    await schedule_service.initialize()
+    service_factory = ServiceFactory()
+    await service_factory.initialize()
 
     yield
 
-    if schedule_service:
-        await schedule_service.stop_schedule_generation()
-        await schedule_service.stop_schedule_execution()
+    await service_factory.cleanup()
 
 
 app = FastAPI(

@@ -7,14 +7,9 @@ from starlette.requests import ClientDisconnect
 from starlette.responses import FileResponse
 from app.core.llm_service import LLMService
 from app.core.schedule_service import ScheduleService
+from app.core.service_factory import ServiceFactory
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
-from app.dependencies import (
-    get_llm_service,
-    get_schedule_service,
-    get_stt_service,
-    get_tts_service,
-)
 from app.schemas.status import CommunicationChannel
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 from pathlib import Path
@@ -46,6 +41,7 @@ from linebot.v3.webhooks import (  # type: ignore
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+service_factory = ServiceFactory()
 settings = get_settings()
 UPLOAD_DIR = settings.line_audio_files_dir
 MAX_FILES = settings.line_max_audio_files
@@ -147,10 +143,10 @@ async def handle_line_callback(
     background_tasks: BackgroundTasks,
     request: Request,
     agent_id: str,
-    llm_service: LLMService = Depends(get_llm_service),
-    tts_service: TTSService = Depends(get_tts_service),
-    stt_service: STTService = Depends(get_stt_service),
-    schedule_service: ScheduleService = Depends(get_schedule_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    tts_service: TTSService = Depends(service_factory.get_tts_service),
+    stt_service: STTService = Depends(service_factory.get_stt_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     signature, body = await extract_line_request_data(request)
     agent_manager = get_agent_manager()

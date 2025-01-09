@@ -1,17 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Optional
-
-
 from app.auth.api_key import get_api_key
 from app.core.agent_manager import get_agent_manager
 from app.core.schedule_service import ScheduleService
-from app.dependencies import get_schedule_service
+from app.core.service_factory import ServiceFactory
 from app.schemas.status import AgentStatus
 from app.schemas.schedule import DailySchedule, ScheduleItem
-from app.core.llm_service import LLMService
 
 router = APIRouter()
-llm_service = LLMService()
+service_factory = ServiceFactory()
 
 
 @router.put("/{agent_id}/update")
@@ -22,7 +19,7 @@ async def update_agent_schedule(
     description: Optional[str] = None,
     location: Optional[str] = None,
     api_key: str = Depends(get_api_key),
-    schedule_service: ScheduleService = Depends(get_schedule_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ) -> ScheduleItem:
     """Update the status of an agent"""
     agent_manager = get_agent_manager()
@@ -54,7 +51,7 @@ async def update_agent_schedule(
 async def get_agent_schedule(
     agent_id: str,
     api_key: str = Depends(get_api_key),
-    schedule_service: ScheduleService = Depends(get_schedule_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ) -> Dict[str, DailySchedule]:
     """Get the current day's schedule for an agent"""
     agent_manager = get_agent_manager()
@@ -75,7 +72,7 @@ async def get_agent_schedule(
 async def get_agent_availability(
     agent_id: str,
     api_key: str = Depends(get_api_key),
-    schedule_service: ScheduleService = Depends(get_schedule_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ) -> Dict[str, bool]:
     """Get the current availability of all communication channels for an agent"""
     agent_manager = get_agent_manager()

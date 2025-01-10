@@ -5,7 +5,7 @@ from app.core.agent_manager import get_agent_manager
 from app.core.schedule_service import ScheduleService
 from app.core.service_factory import ServiceFactory
 from app.schemas.status import AgentStatus
-from app.schemas.schedule import DailySchedule, ScheduleItem
+from app.schemas.schedule import ScheduleItem
 
 router = APIRouter()
 service_factory = ServiceFactory()
@@ -26,10 +26,7 @@ async def update_agent_schedule(
 
     try:
         agent_config = agent_manager.get_agent(agent_id=agent_id)
-        current_time = schedule_service.get_agent_local_time(agent_config.schedule)
-        current_schedule = schedule_service.get_current_schedule_item(
-            agent_config=agent_config, current_time=current_time
-        )
+        current_schedule = schedule_service.get_current_schedule(agent_config.id)
         if current_schedule:
             schedule_item = ScheduleItem(
                 start_time=current_schedule.start_time,
@@ -39,7 +36,10 @@ async def update_agent_schedule(
                 description=description,
                 location=location,
             )
-            schedule_service.set_current_schedule(agent_config, schedule_item)
+            await schedule_service.update_current_schedule(
+                agent_id=agent_config.id,
+                schedule_item=schedule_item,
+            )
             return schedule_item
         else:
             raise HTTPException(status_code=404, detail="Schedule not found")
@@ -52,12 +52,12 @@ async def get_agent_schedule(
     agent_id: str,
     api_key: str = Depends(get_api_key),
     schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
-) -> Dict[str, DailySchedule]:
+) -> ScheduleItem:
     """Get the current day's schedule for an agent"""
     agent_manager = get_agent_manager()
     try:
         agent_manager.get_agent(agent_id)  # Verify agent exists
-        schedule = schedule_service.get_cached_schedule(agent_id)
+        schedule = schedule_service.get_current_schedule(agent_id)
         if not schedule:
             raise HTTPException(
                 status_code=404,

@@ -23,7 +23,7 @@ from app.schemas.emotion import Emotion
 from app.schemas.llm import LLMResponse
 from app.core.config import get_settings
 from app.core.memory_service import conversation_history_lock
-from app.schemas.schedule import ScheduleContext
+from app.schemas.schedule import ScheduleItem
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -46,21 +46,20 @@ class LLMService:
         }}"""
 
     def create_system_prompt(
-        self, llm_system_prompt: str, context: ScheduleContext
+        self, llm_system_prompt: str, schedule: Optional[ScheduleItem]
     ) -> str:
         return f"""
         {llm_system_prompt}
 
         Craft a natural, contextual response based on your current status.
 
-        Current time: {context.current_time}
-        Daily Schedule: {context.schedule}
+        Current Schedule: {schedule}
         """
 
     async def generate_response(
         self,
         message: str,
-        schedule_context: ScheduleContext,
+        schedule: Optional[ScheduleItem],
         agent_config: AgentConfig,
         image: Optional[bytes] = None,
     ) -> LLMResponse:
@@ -71,7 +70,7 @@ class LLMService:
             systemMessage = ChatCompletionSystemMessage(
                 role="system",
                 content=self.create_system_prompt(
-                    agent_config.llm_system_prompt, schedule_context
+                    agent_config.llm_system_prompt, schedule
                 ),
             )
 
@@ -243,44 +242,36 @@ class LLMService:
             logger.error(f"Error parsing emotion response: {str(e)}")
             return Emotion.NEUTRAL.value
 
-    async def generate_schedule(
+    async def generate_next_schedule(
         self,
         prompt: str,
         agent_config: AgentConfig,
     ) -> str:
-        """Generate a daily schedule using LLM"""
+        """Generate the next schedule item using LLM"""
         system_prompt = """
-        You are a schedule generator for an AI agent. Create a detailed daily schedule considering the following aspects:
-
-        Key Considerations:
-        1. Activities should align with the agent's personality and role
-        2. Include appropriate break times
-        3. Allocate realistic time frames
-        4. Account for travel time between locations
-        5. Maintain consistency with the agent's established patterns
+        You are a schedule generator for an AI agent. Create the next schedule item considering:
+        
+        1. The current context and recent activities
+        2. The agent's personality and daily routine
+        3. Natural flow and transitions between activities
+        4. Appropriate time allocation for the activity
 
         Required Output Format:
         {
-            "schedule": [
-                {
-                    "start_time": "HH:MM",
-                    "end_time": "HH:MM",
-                    "activity": "Brief activity description",
-                    "status": "AVAILABLE|SLEEPING|EATING|WORKING|OUT|MAINTENANCE",
-                    "description": "Detailed description of the activity",
-                    "location": "Location of the activity"
-                }
-            ]
+            "start_time": "HH:MM",
+            "end_time": "HH:MM",
+            "activity": "Activity name",
+            "status": "available/working/eating/etc",
+            "description": "Brief description",
+            "location": "Location"
         }
 
         Guidelines:
         - Times must be in 24-hour format (HH:MM)
         - Status must match one of the defined status types
-        - Activities should be specific and meaningful
-        - Descriptions should provide context for the activity
-        - Locations should be specific when relevant
-
-        Note: Ensure the schedule maintains a natural flow and includes necessary transition times between activities.
+        - Activity should be specific and meaningful
+        - Description should provide context for the activity
+        - Location should be specific when relevant
         """
 
         messages = [
@@ -323,7 +314,7 @@ class LLMService:
         return self.get_message_content(response)
 
     async def generate_status_response(
-        self, message: str, context: ScheduleContext, agent_config: AgentConfig
+        self, message: str, schedule: Optional[ScheduleItem], agent_config: AgentConfig
     ) -> LLMResponse:
         """Generate contextual status response"""
 
@@ -340,8 +331,7 @@ class LLMService:
         5. Keep the response concise but informative
         6. Speak {laungage}
 
-        Current time: {context.current_time}
-        Daily Schedule: {context.schedule}
+        Current Schedule: {schedule}
         """
 
         user_prompt = """

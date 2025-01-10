@@ -338,22 +338,18 @@ async def _create_llm_response(
     force_generate: bool,
     image_content: Optional[bytes] = None,
 ) -> LLMResponse:
-    schedule_context = schedule_service.get_current_schedule_context(
-        agent_config=agent_config,
-        communication_channel=channel,
+    isAvailable = schedule_service.get_current_availability(
+        agent_config=agent_config, channel=CommunicationChannel.CHAT
     )
-    if not schedule_context.available and not force_generate:
+    current_schedule = schedule_service.get_current_schedule(agent_config.id)
+    if not isAvailable and not force_generate:
         return await llm_service.generate_status_response(
             message=message,
-            context=schedule_context,
+            schedule=current_schedule,
             agent_config=agent_config,
         )
 
-    elif not schedule_context.available and force_generate:
-        current_time = schedule_service.get_agent_local_time(agent_config.schedule)
-        current_schedule = schedule_service.get_current_schedule_item(
-            agent_config=agent_config, current_time=current_time
-        )
+    elif not isAvailable and force_generate:
         if current_schedule:
             schedule_item = ScheduleItem(
                 start_time=current_schedule.start_time,
@@ -363,11 +359,14 @@ async def _create_llm_response(
                 description="Talk to users.",
                 location="my home",
             )
-            schedule_service.set_current_schedule(agent_config, schedule_item)
+            await schedule_service.update_current_schedule(
+                agent_id=agent_config.id,
+                schedule_item=schedule_item,
+            )
 
     return await llm_service.generate_response(
         message=message,
-        schedule_context=schedule_context,
+        schedule=current_schedule,
         agent_config=agent_config,
         image=image_content,
     )

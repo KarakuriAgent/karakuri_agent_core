@@ -29,8 +29,7 @@ class ServiceFactory:
     async def cleanup(self):
         schedule_service = self.get_schedule_service()
         if schedule_service:
-            await schedule_service.stop_schedule_generation()
-            await schedule_service.stop_schedule_execution()
+            await schedule_service.stop_schedule_monitoring()
 
     def _get_or_create(self, service_class: Type[T], key: str, **kwargs) -> T:
         if key not in self._instances:

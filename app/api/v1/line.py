@@ -86,20 +86,22 @@ async def process_line_events_background(
                 else:
                     continue
                 cached_image_bytes = user_image_cache.pop(event.source.user_id, None)  # type: ignore
-                schedule_context = schedule_service.get_current_schedule_context(
-                    agent_config=agent_config,
-                    communication_channel=CommunicationChannel.CHAT,
+                isAvailable = schedule_service.get_current_availability(
+                    agent_config=agent_config, channel=CommunicationChannel.CHAT
                 )
-                if not schedule_context.available:
+                current_schedule = schedule_service.get_current_schedule(
+                    agent_config.id
+                )
+                if not isAvailable:
                     llm_response = await llm_service.generate_status_response(
                         message=text_message,
-                        context=schedule_context,
+                        schedule=current_schedule,
                         agent_config=agent_config,
                     )
                 else:
                     llm_response = await llm_service.generate_response(
                         text_message,
-                        schedule_context,
+                        current_schedule,
                         agent_config,
                         image=cached_image_bytes,
                     )

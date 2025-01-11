@@ -3,6 +3,7 @@ from app.core.llm_service import LLMService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
 from app.core.schedule_service import ScheduleService
+from app.core.memory_service import MemoryService
 
 T = TypeVar("T")
 
@@ -37,7 +38,8 @@ class ServiceFactory:
         return cast(T, self._instances[key])
 
     def get_llm_service(self) -> LLMService:
-        return self._get_or_create(LLMService, "llm")
+        memory_service = self.get_memory_service()
+        return self._get_or_create(LLMService, "llm", memory_service=memory_service)
 
     def get_tts_service(self) -> TTSService:
         return self._get_or_create(TTSService, "tts")
@@ -45,6 +47,15 @@ class ServiceFactory:
     def get_stt_service(self) -> STTService:
         return self._get_or_create(STTService, "stt")
 
+    def get_memory_service(self) -> MemoryService:
+        return self._get_or_create(MemoryService, "memory")
+
     def get_schedule_service(self) -> ScheduleService:
         llm_service = self.get_llm_service()
-        return self._get_or_create(ScheduleService, "schedule", llm_service=llm_service)
+        memory_service = self.get_memory_service()
+        return self._get_or_create(
+            ScheduleService,
+            "schedule",
+            llm_service=llm_service,
+            memory_service=memory_service,
+        )

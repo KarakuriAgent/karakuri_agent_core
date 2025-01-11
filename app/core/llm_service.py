@@ -29,10 +29,14 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 CHECK_SUPPORT_VISION_MODEL = settings.check_support_vision_model
 
-memory_service = MemoryService()
-
 
 class LLMService:
+    def __init__(
+        self,
+        memory_service: MemoryService,
+    ):
+        self.memory_service = memory_service
+
     def create_emotion_analysis_prompt(self, text: str) -> str:
         emotions = Emotion.to_request_values()
         return f"""analyze the following text emotion.
@@ -64,7 +68,7 @@ class LLMService:
         image: Optional[bytes] = None,
     ) -> LLMResponse:
         async with conversation_history_lock:
-            conversation_history = await memory_service.get_conversation_history(
+            conversation_history = await self.memory_service.get_conversation_history(
                 agent_config.id
             )
             systemMessage = ChatCompletionSystemMessage(
@@ -138,7 +142,7 @@ class LLMService:
             )
 
             asyncio.create_task(
-                memory_service.update_conversation_history(
+                self.memory_service.update_conversation_history(
                     agent_config.message_generate_llm_model,
                     agent_config.id,
                     systemMessage,

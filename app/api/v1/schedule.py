@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from app.auth.api_key import get_api_key
 from app.core.agent_manager import get_agent_manager
 from app.core.schedule_service import ScheduleService
 from app.core.service_factory import ServiceFactory
 from app.schemas.status import AgentStatus
-from app.schemas.schedule import ScheduleItem
+from app.schemas.schedule import ScheduleItem, ScheduleHistory
 
 router = APIRouter()
 service_factory = ServiceFactory()
@@ -64,6 +64,22 @@ async def get_agent_schedule(
                 detail="Schedule not found. Wait for next schedule generation.",
             )
         return schedule
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+
+@router.get("/history/{agent_id}")
+async def get_agent_schedule_history(
+    agent_id: str,
+    api_key: str = Depends(get_api_key),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
+) -> Optional[List[ScheduleHistory]]:
+    """Get the schedule history for an agent"""
+    agent_manager = get_agent_manager()
+    try:
+        agent_manager.get_agent(agent_id)
+        history = await schedule_service.get_agent_schedule_history(agent_id)
+        return history
     except KeyError:
         raise HTTPException(status_code=404, detail="Agent not found")
 

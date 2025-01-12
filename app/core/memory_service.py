@@ -88,7 +88,7 @@ class MemoryService:
             )
             # BaseModelのjson()メソッドを使用
             await redis_client.set(
-                key, json.dumps([h.model_dump() for h in existing_history])
+                key, json.dumps([h.model_dump_json() for h in existing_history])
             )
 
     async def get_schedule_history(self, agent_id: str) -> List[ScheduleHistory]:
@@ -97,7 +97,7 @@ class MemoryService:
         history_json = await redis_client.get(key)
         if history_json:
             # pydanticモデルとして解析
-            return [ScheduleHistory.model_validate(h) for h in json.loads(history_json)]
+            return [ScheduleHistory.model_validate_json(h) for h in json.loads(history_json)]
         return []
 
     async def update_schedule_history(

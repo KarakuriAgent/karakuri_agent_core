@@ -16,6 +16,7 @@ async def update_agent_schedule(
     agent_id: str,
     activity: str,
     status: AgentStatus,
+    end_time: Optional[str] = None,
     description: Optional[str] = None,
     location: Optional[str] = None,
     api_key: str = Depends(get_api_key),
@@ -30,7 +31,7 @@ async def update_agent_schedule(
         if current_schedule:
             schedule_item = ScheduleItem(
                 start_time=current_schedule.start_time,
-                end_time=current_schedule.end_time,
+                end_time=end_time or current_schedule.end_time,
                 activity=activity,
                 status=status,
                 description=description,

@@ -33,8 +33,6 @@ class AgentScheduleConfig(BaseModel):
 
 class ScheduleHistory(BaseModel):
     """スケジュール履歴を保持するクラス"""
-    model_config = ConfigDict(json_encoders={datetime: lambda dt: dt.isoformat()})
-
     schedule_item: ScheduleItem
     actual_start: datetime
     actual_end: datetime

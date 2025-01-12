@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from typing import List, Optional
+from litellm import ConfigDict
 from pydantic import BaseModel
 import asyncio
 from typing import Dict
@@ -8,6 +9,7 @@ from app.schemas.status import AgentStatus
 
 
 class ScheduleItem(BaseModel):
+    # TODO date timeのほうが良い？
     start_time: str  # HH:MM format
     end_time: str  # HH:MM format
     activity: str
@@ -31,6 +33,7 @@ class AgentScheduleConfig(BaseModel):
 
 class ScheduleHistory(BaseModel):
     """スケジュール履歴を保持するクラス"""
+    model_config = ConfigDict(json_encoders={datetime: lambda dt: dt.isoformat()})
 
     schedule_item: ScheduleItem
     actual_start: datetime

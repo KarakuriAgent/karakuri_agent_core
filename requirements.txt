@@ -12,3 +12,4 @@ pydub==0.25.1
 pyright==1.1.391
 ruff==0.8.4
 redis==5.2.1
+pytz==2024.2

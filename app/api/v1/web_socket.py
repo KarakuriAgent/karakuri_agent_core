@@ -13,9 +13,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.websockets import WebSocket
 from jsonschema import ValidationError
+import pytz
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
-from app.dependencies import get_llm_service, get_stt_service, get_tts_service
+from app.core.schedule_service import ScheduleService
+from app.core.service_factory import ServiceFactory
+from app.schemas.agent import AgentConfig
+from app.schemas.llm import LLMResponse
+from app.schemas.schedule import ScheduleItem
+from app.schemas.status import AgentStatus, CommunicationChannel
 from app.schemas.web_socket import (
     AudioRequest,
     AudioResponse,
@@ -33,15 +39,16 @@ from app.auth.api_key import get_api_key
 
 router = APIRouter()
 settings = get_settings()
+service_factory = ServiceFactory()
 logger = logging.getLogger(__name__)
 UPLOAD_DIR = settings.web_socket_audio_files_dir
 MAX_FILES = settings.web_socket_max_audio_files
 
 ws_tokens: dict[str, tuple[str, float]] = {}
 TOKEN_LIFETIME = 10
-router = APIRouter()
 
 
+# TODO: トークン取得時にAgentIdとComunitcationChannelを指定する
 @router.get("/get_ws_token")
 async def get_ws_token(api_key: str = Depends(get_api_key)):
     clean_expired_tokens()
@@ -55,9 +62,10 @@ async def get_ws_token(api_key: str = Depends(get_api_key)):
 async def websocket_endpoint(
     websocket: WebSocket,
     token: Optional[str] = Query(None),
-    llm_service: LLMService = Depends(get_llm_service),
-    stt_service: STTService = Depends(get_stt_service),
-    tts_service: TTSService = Depends(get_tts_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    stt_service: STTService = Depends(service_factory.get_stt_service),
+    tts_service: TTSService = Depends(service_factory.get_tts_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     clean_expired_tokens()
     if not token or token not in ws_tokens:
@@ -122,8 +130,14 @@ async def websocket_endpoint(
                 image_content = image_file.read()
             else:
                 text_message = request_obj.text
-            llm_response = await llm_service.generate_response(
-                "websocket", text_message, agent_config, image=image_content
+            llm_response = await _create_llm_response(
+                schedule_service,
+                llm_service,
+                agent_config,
+                CommunicationChannel.VOICE,
+                message,
+                request_obj.force_generate,
+                image_content,
             )
 
             agent_message = llm_response.agent_message.rstrip("\n")
@@ -198,6 +212,7 @@ def ws_test_page():
             "request_type": "text",
             "responce_type": "text",
             "agent_id": "1",
+            "force_generate": "true",
             "text": "Hello",
         },
         ensure_ascii=False,
@@ -313,3 +328,47 @@ def ws_test_page():
     </body>
     </html>
     """
+
+
+async def _create_llm_response(
+    schedule_service: ScheduleService,
+    llm_service: LLMService,
+    agent_config: AgentConfig,
+    channel: CommunicationChannel,
+    message: str,
+    force_generate: bool,
+    image_content: Optional[bytes] = None,
+) -> LLMResponse:
+    isAvailable = schedule_service.get_current_availability(
+        agent_config=agent_config, channel=CommunicationChannel.CHAT
+    )
+    current_schedule = schedule_service.get_current_schedule(agent_config.id)
+    if not isAvailable and not force_generate:
+        return await llm_service.generate_status_response(
+            message=message,
+            schedule=current_schedule,
+            agent_config=agent_config,
+        )
+
+    elif not isAvailable and force_generate:
+        if current_schedule:
+            tz = pytz.timezone(agent_config.schedule.timezone)
+            schedule_item = ScheduleItem(
+                start_time=tz.localize(current_schedule.start_time),
+                end_time=tz.localize(current_schedule.end_time),
+                activity="Talking",
+                status=AgentStatus.AVAILABLE,
+                description="Talk to users.",
+                location="my home",
+            )
+            await schedule_service.update_current_schedule(
+                agent_id=agent_config.id,
+                schedule_item=schedule_item,
+            )
+
+    return await llm_service.generate_response(
+        message=message,
+        schedule=current_schedule,
+        agent_config=agent_config,
+        image=image_content,
+    )

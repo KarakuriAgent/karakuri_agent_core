@@ -2,12 +2,18 @@
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, File, Request
-from app.dependencies import get_llm_service, get_tts_service, get_stt_service
+import pytz
+from app.core.schedule_service import ScheduleService
+from app.core.service_factory import ServiceFactory
 from app.auth.api_key import get_api_key
 from app.core.llm_service import LLMService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
 from app.core.agent_manager import get_agent_manager
+from app.schemas.agent import AgentConfig
+from app.schemas.llm import LLMResponse
+from app.schemas.schedule import ScheduleItem
+from app.schemas.status import AgentStatus, CommunicationChannel
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 import logging
 from starlette.responses import FileResponse
@@ -18,6 +24,7 @@ from app.schemas.chat import TextChatResponse, VoiceChatResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+service_factory = ServiceFactory()
 settings = get_settings()
 UPLOAD_DIR = settings.chat_audio_files_dir
 MAX_FILES = settings.chat_max_audio_files
@@ -27,9 +34,12 @@ MAX_FILES = settings.chat_max_audio_files
 async def chat_text_to_text(
     agent_id: str = Form(...),
     message: str = Form(...),
+    channel: str = Form(...),
+    force_generate: bool = Form(...),
     image_file: Optional[UploadFile] = None,
     api_key: str = Depends(get_api_key),
-    llm_service: LLMService = Depends(get_llm_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
@@ -43,12 +53,16 @@ async def chat_text_to_text(
         image_content = None
 
     try:
-        llm_response = await llm_service.generate_response(
-            message_type="text_to_text",
-            message=message,
-            agent_config=agent_config,
-            image=image_content,
+        llm_response = await _create_llm_response(
+            schedule_service,
+            llm_service,
+            agent_config,
+            CommunicationChannel(channel),
+            message,
+            force_generate,
+            image_content,
         )
+
         return TextChatResponse(
             user_message=llm_response.user_message,
             agent_message=llm_response.agent_message,
@@ -65,10 +79,13 @@ async def chat_text_to_voice(
     request: Request,
     agent_id: str = Form(...),
     message: str = Form(...),
+    channel: str = Form(...),
+    force_generate: bool = Form(...),
     image_file: Optional[UploadFile] = None,
     api_key: str = Depends(get_api_key),
-    llm_service: LLMService = Depends(get_llm_service),
-    tts_service: TTSService = Depends(get_tts_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    tts_service: TTSService = Depends(service_factory.get_tts_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
@@ -82,11 +99,14 @@ async def chat_text_to_voice(
         image_content = None
 
     try:
-        llm_response = await llm_service.generate_response(
-            message_type="text_to_voice",
-            message=message,
-            agent_config=agent_config,
-            image=image_content,
+        llm_response = await _create_llm_response(
+            schedule_service,
+            llm_service,
+            agent_config,
+            CommunicationChannel(channel),
+            message,
+            force_generate,
+            image_content,
         )
 
         audio_data = await tts_service.generate_speech(
@@ -118,11 +138,14 @@ async def chat_text_to_voice(
 @router.post("/voice/text")
 async def chat_voice_to_text(
     agent_id: str = Form(...),
+    channel: str = Form(...),
+    force_generate: bool = Form(...),
     image_file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
     api_key: str = Depends(get_api_key),
-    llm_service: LLMService = Depends(get_llm_service),
-    stt_service: STTService = Depends(get_stt_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    stt_service: STTService = Depends(service_factory.get_stt_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
@@ -140,11 +163,14 @@ async def chat_voice_to_text(
 
         text_message = await stt_service.transcribe_audio(audio_content, agent_config)
 
-        llm_response = await llm_service.generate_response(
-            message_type="voice_to_text",
-            message=text_message,
-            agent_config=agent_config,
-            image=image_content,
+        llm_response = await _create_llm_response(
+            schedule_service,
+            llm_service,
+            agent_config,
+            CommunicationChannel(channel),
+            text_message,
+            force_generate,
+            image_content,
         )
 
         return TextChatResponse(
@@ -162,12 +188,15 @@ async def chat_voice_to_text(
 async def chat_voice_to_voice(
     request: Request,
     agent_id: str = Form(...),
+    channel: str = Form(...),
+    force_generate: bool = Form(...),
     image_file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
     api_key: str = Depends(get_api_key),
-    llm_service: LLMService = Depends(get_llm_service),
-    stt_service: STTService = Depends(get_stt_service),
-    tts_service: TTSService = Depends(get_tts_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    stt_service: STTService = Depends(service_factory.get_stt_service),
+    tts_service: TTSService = Depends(service_factory.get_tts_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     agent_manager = get_agent_manager()
     agent_config = agent_manager.get_agent(agent_id)
@@ -185,11 +214,14 @@ async def chat_voice_to_voice(
 
         text_message = await stt_service.transcribe_audio(audio_content, agent_config)
 
-        llm_response = await llm_service.generate_response(
-            message_type="voice_to_voice",
-            message=text_message,
-            agent_config=agent_config,
-            image=image_content,
+        llm_response = await _create_llm_response(
+            schedule_service,
+            llm_service,
+            agent_config,
+            CommunicationChannel(channel),
+            text_message,
+            force_generate,
+            image_content,
         )
 
         audio_data = await tts_service.generate_speech(
@@ -226,3 +258,48 @@ async def get_audio(file_name: str):
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Audio file not found")
     return FileResponse(file_path)
+
+
+async def _create_llm_response(
+    schedule_service: ScheduleService,
+    llm_service: LLMService,
+    agent_config: AgentConfig,
+    channel: CommunicationChannel,
+    message: str,
+    force_generate: bool,
+    image_content: Optional[bytes] = None,
+) -> LLMResponse:
+    isAvailable = schedule_service.get_current_availability(
+        agent_config=agent_config,
+        channel=channel,
+    )
+    current_schedule = schedule_service.get_current_schedule(agent_config.id)
+    if not isAvailable and not force_generate:
+        return await llm_service.generate_status_response(
+            message=message,
+            schedule=current_schedule,
+            agent_config=agent_config,
+        )
+
+    elif not isAvailable and force_generate:
+        tz = pytz.timezone(agent_config.schedule.timezone)
+        if current_schedule:
+            schedule_item = ScheduleItem(
+                start_time=tz.localize(current_schedule.start_time),
+                end_time=tz.localize(current_schedule.end_time),
+                activity="Talking",
+                status=AgentStatus.AVAILABLE,
+                description="Talk to users.",
+                location="my home",
+            )
+            await schedule_service.update_current_schedule(
+                agent_id=agent_config.id,
+                schedule_item=schedule_item,
+            )
+
+    return await llm_service.generate_response(
+        message=message,
+        schedule=current_schedule,
+        agent_config=agent_config,
+        image=image_content,
+    )

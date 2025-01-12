@@ -6,9 +6,11 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from starlette.requests import ClientDisconnect
 from starlette.responses import FileResponse
 from app.core.llm_service import LLMService
+from app.core.schedule_service import ScheduleService
+from app.core.service_factory import ServiceFactory
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
-from app.dependencies import get_llm_service, get_stt_service, get_tts_service
+from app.schemas.status import CommunicationChannel
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 from pathlib import Path
 from typing import Dict, cast, List
@@ -39,6 +41,7 @@ from linebot.v3.webhooks import (  # type: ignore
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+service_factory = ServiceFactory()
 settings = get_settings()
 UPLOAD_DIR = settings.line_audio_files_dir
 MAX_FILES = settings.line_max_audio_files
@@ -52,6 +55,7 @@ async def process_line_events_background(
     request: Request,
     llm_service: LLMService,
     tts_service: TTSService,
+    schedule_service: ScheduleService,
 ):
     aio_session = aiohttp.ClientSession()
     async_client: AsyncApiClient | None = None
@@ -82,9 +86,25 @@ async def process_line_events_background(
                 else:
                     continue
                 cached_image_bytes = user_image_cache.pop(event.source.user_id, None)  # type: ignore
-                llm_response = await llm_service.generate_response(
-                    "line", text_message, agent_config, image=cached_image_bytes
+                isAvailable = schedule_service.get_current_availability(
+                    agent_config=agent_config, channel=CommunicationChannel.CHAT
                 )
+                current_schedule = schedule_service.get_current_schedule(
+                    agent_config.id
+                )
+                if not isAvailable:
+                    llm_response = await llm_service.generate_status_response(
+                        message=text_message,
+                        schedule=current_schedule,
+                        agent_config=agent_config,
+                    )
+                else:
+                    llm_response = await llm_service.generate_response(
+                        text_message,
+                        current_schedule,
+                        agent_config,
+                        image=cached_image_bytes,
+                    )
                 audio_data = await tts_service.generate_speech(
                     llm_response.agent_message, agent_config
                 )
@@ -125,9 +145,10 @@ async def handle_line_callback(
     background_tasks: BackgroundTasks,
     request: Request,
     agent_id: str,
-    llm_service: LLMService = Depends(get_llm_service),
-    tts_service: TTSService = Depends(get_tts_service),
-    stt_service: STTService = Depends(get_stt_service),
+    llm_service: LLMService = Depends(service_factory.get_llm_service),
+    tts_service: TTSService = Depends(service_factory.get_tts_service),
+    stt_service: STTService = Depends(service_factory.get_stt_service),
+    schedule_service: ScheduleService = Depends(service_factory.get_schedule_service),
 ):
     signature, body = await extract_line_request_data(request)
     agent_manager = get_agent_manager()
@@ -149,6 +170,7 @@ async def handle_line_callback(
         request,
         llm_service,
         tts_service,
+        schedule_service,
     )
     return "OK"
 

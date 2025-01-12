@@ -5,6 +5,7 @@ from functools import lru_cache
 from typing import Dict, List, Tuple
 from app.schemas.agent import AgentConfig
 from app.core.config import get_settings
+from app.schemas.schedule import AgentScheduleConfig
 
 
 class AgentManager:
@@ -23,18 +24,26 @@ class AgentManager:
             message_generate_llm_model = self.settings.get_agent_env(
                 i, "MESSAGE_GENERATE_LLM_MODEL"
             )
-            emotion_generate_llm_api_key = self.settings.get_agent_env(
-                i, "EMOTION_GENERATE_LLM_API_KEY"
+            analyze_generate_llm_api_key = self.settings.get_agent_env(
+                i, "ANALYZE_GENERATE_LLM_API_KEY"
             )
-            emotion_generate_llm_model = self.settings.get_agent_env(
-                i, "EMOTION_GENERATE_LLM_MODEL"
+            analyze_generate_llm_model = self.settings.get_agent_env(
+                i, "ANALYZE_GENERATE_LLM_MODEL"
+            )
+            schedule_generate_llm_api_key = self.settings.get_agent_env(
+                i, "SCHEDULE_GENERATE_LLM_API_KEY"
+            )
+            schedule_generate_llm_model = self.settings.get_agent_env(
+                i, "SCHEDULE_GENERATE_LLM_MODEL"
             )
             required_values = [
                 name,
                 message_generate_llm_api_key,
                 message_generate_llm_model,
-                emotion_generate_llm_api_key,
-                emotion_generate_llm_model,
+                analyze_generate_llm_api_key,
+                analyze_generate_llm_model,
+                schedule_generate_llm_api_key,
+                schedule_generate_llm_model,
             ]
 
             if not all(required_values):
@@ -45,14 +54,20 @@ class AgentManager:
                 name=name,
                 message_generate_llm_api_key=message_generate_llm_api_key,
                 message_generate_llm_model=message_generate_llm_model,
-                emotion_generate_llm_api_key=emotion_generate_llm_api_key,
-                emotion_generate_llm_model=emotion_generate_llm_model,
+                analyze_generate_llm_api_key=analyze_generate_llm_api_key,
+                analyze_generate_llm_model=analyze_generate_llm_model,
+                schedule_generate_llm_api_key=schedule_generate_llm_api_key,
+                schedule_generate_llm_model=schedule_generate_llm_model,
                 message_generate_llm_base_url=self.settings.get_agent_env(
                     i, "MESSAGE_GENERATE_LLM_BASE_URL"
                 )
                 or "",
-                emotion_generate_llm_base_url=self.settings.get_agent_env(
-                    i, "EMOTION_GENERATE_LLM_BASE_URL"
+                analyze_generate_llm_base_url=self.settings.get_agent_env(
+                    i, "ANALYZE_GENERATE_LLM_BASE_URL"
+                )
+                or "",
+                schedule_generate_llm_base_url=self.settings.get_agent_env(
+                    i, "SCHEDULE_GENERATE_LLM_BASE_URL"
                 )
                 or "",
                 vision_generate_llm_base_url=self.settings.get_agent_env(
@@ -83,6 +98,7 @@ class AgentManager:
                     i, "LINE_CHANNEL_ACCESS_TOKEN"
                 )
                 or "",
+                schedule=AgentScheduleConfig(),
             )
             i += 1
         return agents

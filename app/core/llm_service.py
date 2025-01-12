@@ -23,41 +23,59 @@ from app.schemas.emotion import Emotion
 from app.schemas.llm import LLMResponse
 from app.core.config import get_settings
 from app.core.memory_service import conversation_history_lock
+from app.schemas.schedule import ScheduleItem
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 CHECK_SUPPORT_VISION_MODEL = settings.check_support_vision_model
 
-memory_service = MemoryService()
-
 
 class LLMService:
+    def __init__(
+        self,
+        memory_service: MemoryService,
+    ):
+        self.memory_service = memory_service
+
     def create_emotion_analysis_prompt(self, text: str) -> str:
         emotions = Emotion.to_request_values()
         return f"""analyze the following text emotion.
         Respond ONLY in the specified JSON format without any additional explanation.
 
-Input text: {text}
+        Input text: {text}
 
-Required JSON format:
-{{
-    "emotion": One of these emotions: {', '.join(emotions)}
-}}"""
+        Required JSON format:
+        {{
+            "emotion": One of these emotions: {', '.join(emotions)}
+        }}"""
+
+    def create_system_prompt(
+        self, llm_system_prompt: str, schedule: Optional[ScheduleItem]
+    ) -> str:
+        return f"""
+        {llm_system_prompt}
+
+        Craft a natural, contextual response based on your current status.
+
+        Current Schedule: {schedule}
+        """
 
     async def generate_response(
         self,
-        message_type: str,
         message: str,
+        schedule: Optional[ScheduleItem],
         agent_config: AgentConfig,
         image: Optional[bytes] = None,
     ) -> LLMResponse:
         async with conversation_history_lock:
-            conversation_history = await memory_service.get_conversation_history(
+            conversation_history = await self.memory_service.get_conversation_history(
                 agent_config.id
             )
             systemMessage = ChatCompletionSystemMessage(
                 role="system",
-                content=agent_config.llm_system_prompt,
+                content=self.create_system_prompt(
+                    agent_config.llm_system_prompt, schedule
+                ),
             )
 
             if image:
@@ -124,7 +142,7 @@ Required JSON format:
             )
 
             asyncio.create_task(
-                memory_service.update_conversation_history(
+                self.memory_service.update_conversation_history(
                     agent_config.message_generate_llm_model,
                     agent_config.id,
                     systemMessage,
@@ -206,9 +224,9 @@ Required JSON format:
             ),
         ]
         emotion_response = await acompletion(
-            base_url=agent_config.emotion_generate_llm_base_url,
-            api_key=agent_config.emotion_generate_llm_api_key,
-            model=agent_config.emotion_generate_llm_model,
+            base_url=agent_config.analyze_generate_llm_base_url,
+            api_key=agent_config.analyze_generate_llm_api_key,
+            model=agent_config.analyze_generate_llm_model,
             messages=emotion_messages,
             response_format={"type": "json_object"},
         )
@@ -227,3 +245,117 @@ Required JSON format:
         except (json.JSONDecodeError, ValueError) as e:
             logger.error(f"Error parsing emotion response: {str(e)}")
             return Emotion.NEUTRAL.value
+
+    async def generate_next_schedule(
+        self,
+        prompt: str,
+        agent_config: AgentConfig,
+    ) -> str:
+        """Generate the next schedule item using LLM"""
+        system_prompt = """
+        You are a schedule generator for an AI agent. Create the next schedule item considering:
+        
+        1. The current context and recent activities
+        2. The agent's personality and daily routine
+        3. Natural flow and transitions between activities
+        4. Appropriate time allocation for the activity
+
+        Required Output Format:
+        {
+            "start_time": "YYYY-MM-DD HH:MM",
+            "end_time": "YYYY-MM-DD HH:MM",
+            "activity": "Activity name",
+            "status": "available/working/eating/etc",
+            "description": "Brief description",
+            "location": "Location"
+        }
+
+        Guidelines:
+        - Times must be in 24-hour format (HH:MM)
+        - Status must match one of the defined status types
+        - Activity should be specific and meaningful
+        - Description should provide context for the activity
+        - Location should be specific when relevant
+        """
+
+        messages = [
+            ChatCompletionSystemMessage(role="system", content=system_prompt),
+            ChatCompletionUserMessage(role="user", content=prompt),
+        ]
+
+        response = await acompletion(
+            base_url=agent_config.schedule_generate_llm_base_url,
+            api_key=agent_config.schedule_generate_llm_api_key,
+            model=agent_config.schedule_generate_llm_model,
+            messages=messages,
+            response_format={"type": "json_object"},
+        )
+        return self.get_message_content(response)
+
+    async def generate_laungage(self, text: str, agent_config: AgentConfig) -> str:
+        systemMessage = ChatCompletionSystemMessage(
+            role="system",
+            content="You are an expert language analyzer. Always respond in the exact JSON format requested.",
+        )
+        userMessage = ChatCompletionUserMessage(
+            role="user",
+            content=f"""analyze the following text language.
+        Respond ONLY in the specified JSON format without any additional explanation.
+
+        Input text: {text}
+
+        Required JSON format:
+        {{
+            "language": One language
+        }}""",
+        )
+        response = await acompletion(
+            base_url=agent_config.analyze_generate_llm_base_url,
+            api_key=agent_config.analyze_generate_llm_api_key,
+            model=agent_config.analyze_generate_llm_model,
+            messages=[systemMessage, userMessage],
+        )
+        return self.get_message_content(response)
+
+    async def generate_status_response(
+        self, message: str, schedule: Optional[ScheduleItem], agent_config: AgentConfig
+    ) -> LLMResponse:
+        """Generate contextual status response"""
+
+        laungage = await self.generate_laungage(text=message, agent_config=agent_config)
+        system_prompt = f"""
+        You are an AI agent responding to a user about your current availability. 
+        Craft a natural, contextual response based on your current status and schedule.
+
+        Guidelines:
+        1. Be polite and empathetic
+        2. Explain your current status/activity naturally
+        3. Provide clear information about when you'll be available next
+        4. If you're partially available (e.g., can respond to chat but not voice), explain this
+        5. Keep the response concise but informative
+        6. Speak {laungage}
+
+        Current Schedule: {schedule}
+        """
+
+        user_prompt = """
+        Please describe your current status.
+        """
+        messages = [
+            ChatCompletionSystemMessage(
+                role="system",
+                content=system_prompt,
+            )
+        ] + [ChatCompletionUserMessage(role="user", content=user_prompt)]
+
+        response = await acompletion(
+            base_url=agent_config.message_generate_llm_base_url,
+            api_key=agent_config.message_generate_llm_api_key,
+            model=agent_config.message_generate_llm_model,
+            messages=messages,
+        )
+        return LLMResponse(
+            user_message=message,
+            agent_message=self.get_message_content(response),
+            emotion="neutral",
+        )

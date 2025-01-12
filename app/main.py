@@ -1,20 +1,43 @@
 # Copyright (c) 0235 Inc.
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from app.auth.api_key import get_api_key
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import chat, line, agents, web_socket
+from app.api.v1 import chat, line, agents, schedule, web_socket
 from app.core.config import get_settings
 import logging
+
+from app.core.service_factory import ServiceFactory
 
 logging.basicConfig(
     level=logging.INFO,
 )
 
+logger = logging.getLogger(__name__)
+service_factory = ServiceFactory()
 settings = get_settings()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
+    logger.info("Initializing service factory")
+    service_factory = ServiceFactory()
+    await service_factory.initialize()
+
+    yield
+    
+    logger.info("cleanup service factory")
+    await service_factory.cleanup()
+
+
 app = FastAPI(
-    title="Karakuri_agentAPI", description="Karakuri_agentAPI", version="0.2.1+12"
+    title="Karakuri_agentAPI",
+    description="Karakuri_agentAPI",
+    version="0.2.1+12",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -32,6 +55,8 @@ app.include_router(line.router, prefix="/v1/line", tags=["line"])
 app.include_router(agents.router, prefix="/v1", tags=["agents"])
 
 app.include_router(web_socket.router, prefix="/v1/ws", tags=["websocket"])
+
+app.include_router(schedule.router, prefix="/v1/schedule", tags=["schedule"])
 
 
 @app.get("/health")

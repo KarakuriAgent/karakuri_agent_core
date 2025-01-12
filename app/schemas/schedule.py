@@ -1,7 +1,6 @@
 from datetime import date, datetime
 from typing import List, Optional
-from litellm import ConfigDict
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import asyncio
 from typing import Dict
 
@@ -19,6 +18,7 @@ class ScheduleItem(BaseModel):
 
 
 class DailySchedule(BaseModel):
+    model_config = ConfigDict(json_encoders={datetime: lambda dt: dt.isoformat()})
     date: date
     items: List[ScheduleItem]
     generated_at: datetime

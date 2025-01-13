@@ -2,12 +2,14 @@
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, File, Request
+from litellm import cast
 from app.dependencies import get_llm_service, get_tts_service, get_stt_service
-from app.auth.api_key import get_api_key
+from app.auth.api_key import verify_token
 from app.core.llm_service import LLMService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
 from app.core.agent_manager import get_agent_manager
+from app.schemas.llm import LLMResponse
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 import logging
 from starlette.responses import FileResponse
@@ -28,7 +30,7 @@ async def chat_text_to_text(
     agent_id: str = Form(...),
     message: str = Form(...),
     image_file: Optional[UploadFile] = None,
-    api_key: str = Depends(get_api_key),
+    api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
 ):
     agent_manager = get_agent_manager()
@@ -43,11 +45,14 @@ async def chat_text_to_text(
         image_content = None
 
     try:
-        llm_response = await llm_service.generate_response(
-            message_type="text_to_text",
-            message=message,
-            agent_config=agent_config,
-            image=image_content,
+        llm_response = cast(
+            LLMResponse,
+            await llm_service.generate_response(
+                message_type="text_to_text",
+                message=message,
+                agent_config=agent_config,
+                image=image_content,
+            ),
         )
         return TextChatResponse(
             user_message=llm_response.user_message,
@@ -66,7 +71,7 @@ async def chat_text_to_voice(
     agent_id: str = Form(...),
     message: str = Form(...),
     image_file: Optional[UploadFile] = None,
-    api_key: str = Depends(get_api_key),
+    api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
     tts_service: TTSService = Depends(get_tts_service),
 ):
@@ -82,11 +87,14 @@ async def chat_text_to_voice(
         image_content = None
 
     try:
-        llm_response = await llm_service.generate_response(
-            message_type="text_to_voice",
-            message=message,
-            agent_config=agent_config,
-            image=image_content,
+        llm_response = cast(
+            LLMResponse,
+            await llm_service.generate_response(
+                message_type="text_to_voice",
+                message=message,
+                agent_config=agent_config,
+                image=image_content,
+            ),
         )
 
         audio_data = await tts_service.generate_speech(
@@ -120,7 +128,7 @@ async def chat_voice_to_text(
     agent_id: str = Form(...),
     image_file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
-    api_key: str = Depends(get_api_key),
+    api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
     stt_service: STTService = Depends(get_stt_service),
 ):
@@ -140,11 +148,14 @@ async def chat_voice_to_text(
 
         text_message = await stt_service.transcribe_audio(audio_content, agent_config)
 
-        llm_response = await llm_service.generate_response(
-            message_type="voice_to_text",
-            message=text_message,
-            agent_config=agent_config,
-            image=image_content,
+        llm_response = cast(
+            LLMResponse,
+            await llm_service.generate_response(
+                message_type="voice_to_text",
+                message=text_message,
+                agent_config=agent_config,
+                image=image_content,
+            ),
         )
 
         return TextChatResponse(
@@ -164,7 +175,7 @@ async def chat_voice_to_voice(
     agent_id: str = Form(...),
     image_file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
-    api_key: str = Depends(get_api_key),
+    api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
     stt_service: STTService = Depends(get_stt_service),
     tts_service: TTSService = Depends(get_tts_service),
@@ -185,11 +196,14 @@ async def chat_voice_to_voice(
 
         text_message = await stt_service.transcribe_audio(audio_content, agent_config)
 
-        llm_response = await llm_service.generate_response(
-            message_type="voice_to_voice",
-            message=text_message,
-            agent_config=agent_config,
-            image=image_content,
+        llm_response = cast(
+            LLMResponse,
+            await llm_service.generate_response(
+                message_type="voice_to_voice",
+                message=text_message,
+                agent_config=agent_config,
+                image=image_content,
+            ),
         )
 
         audio_data = await tts_service.generate_speech(

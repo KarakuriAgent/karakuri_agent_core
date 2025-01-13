@@ -50,7 +50,8 @@ Required JSON format:
         message: str,
         agent_config: AgentConfig,
         image: Optional[bytes] = None,
-    ) -> LLMResponse:
+        openai_request: bool = False,
+    ) -> Union[Union[ModelResponse, CustomStreamWrapper], LLMResponse]:
         async with conversation_history_lock:
             conversation_history = await memory_service.get_conversation_history(
                 agent_config.id
@@ -131,8 +132,10 @@ Required JSON format:
                     conversation_history,
                 )
             )
-
-        return llm_response
+        if openai_request:
+            return response
+        else:
+            return llm_response
 
     def get_message_content(
         self, response: Union[ModelResponse, CustomStreamWrapper]

@@ -13,9 +13,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.websockets import WebSocket
 from jsonschema import ValidationError
+from litellm import cast
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 from app.dependencies import get_llm_service, get_stt_service, get_tts_service
+from app.schemas.llm import LLMResponse
 from app.schemas.web_socket import (
     AudioRequest,
     AudioResponse,
@@ -29,7 +31,7 @@ from app.utils.audio import calculate_audio_duration, upload_to_storage
 from app.core.llm_service import LLMService
 from app.core.stt_service import STTService
 from app.core.tts_service import TTSService
-from app.auth.api_key import get_api_key
+from app.auth.api_key import verify_token
 
 router = APIRouter()
 settings = get_settings()
@@ -43,7 +45,7 @@ router = APIRouter()
 
 
 @router.get("/get_ws_token")
-async def get_ws_token(api_key: str = Depends(get_api_key)):
+async def get_ws_token(api_key: str = Depends(verify_token)):
     clean_expired_tokens()
     token = secrets.token_urlsafe(16)
     expire_at = time.time() + TOKEN_LIFETIME
@@ -122,8 +124,11 @@ async def websocket_endpoint(
                 image_content = image_file.read()
             else:
                 text_message = request_obj.text
-            llm_response = await llm_service.generate_response(
-                "websocket", text_message, agent_config, image=image_content
+            llm_response = cast(
+                LLMResponse,
+                await llm_service.generate_response(
+                    "websocket", text_message, agent_config, image=image_content
+                ),
             )
 
             agent_message = llm_response.agent_message.rstrip("\n")

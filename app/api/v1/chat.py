@@ -87,7 +87,7 @@ async def chat_text_to_voice(
         image_content = None
 
     try:
-        llm_response = llm_response = cast(
+        llm_response = cast(
             LLMResponse,
             await llm_service.generate_response(
                 message_type="text_to_voice",

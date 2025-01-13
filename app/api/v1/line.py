@@ -9,6 +9,7 @@ from app.core.llm_service import LLMService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
 from app.dependencies import get_llm_service, get_stt_service, get_tts_service
+from app.schemas.llm import LLMResponse
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 from pathlib import Path
 from typing import Dict, cast, List
@@ -82,8 +83,11 @@ async def process_line_events_background(
                 else:
                     continue
                 cached_image_bytes = user_image_cache.pop(event.source.user_id, None)  # type: ignore
-                llm_response = await llm_service.generate_response(
-                    "line", text_message, agent_config, image=cached_image_bytes
+                llm_response = cast(
+                    LLMResponse,
+                    await llm_service.generate_response(
+                        "line", text_message, agent_config, image=cached_image_bytes
+                    ),
                 )
                 audio_data = await tts_service.generate_speech(
                     llm_response.agent_message, agent_config

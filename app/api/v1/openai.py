@@ -1,21 +1,24 @@
 # Copyright (c) 0235 Inc.
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
+from typing import AsyncGenerator, cast
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from litellm import ChatCompletionRequest, CustomStreamWrapper, ModelResponse  # type: ignore
+from fastapi.responses import StreamingResponse
+from litellm import CustomStreamWrapper
 from app.dependencies import get_llm_service
 from app.core.llm_service import LLMService
 from app.core.agent_manager import get_agent_manager
 import logging
-from app.core.config import get_settings
+import json
+
+from app.schemas.openai import ChatCompletionRequest
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-settings = get_settings()
 
 
-@router.post("/chat/completions", response_model=ModelResponse)
+@router.post("/chat/completions")
 async def openai_chat_completions(
     request: ChatCompletionRequest,
     token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
@@ -28,26 +31,50 @@ async def openai_chat_completions(
     if not agent_config:
         raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
 
-    # if image_file is not None:
-    #     image_content = await image_file.read()
-    # else:
-    image_content = None
-
     try:
+        stream = request["stream"]
         llm_response = await llm_service.generate_response(
             message_type="text_to_text",
             message=get_content_from_message(request["messages"][-1]),
             agent_config=agent_config,
-            image=image_content,
+            image=None,
             openai_request=True,
+            stream=stream,
         )
-        if isinstance(llm_response, CustomStreamWrapper):
-            raise HTTPException(status_code=400, detail="Streaming not supported")
-        return llm_response
+        if stream:
+            stream_response = cast(CustomStreamWrapper, llm_response)
+            return StreamingResponse(
+                generate_stream_response(stream_response),
+                media_type="text/event-stream",
+            )
+        else:
+            return llm_response
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error processing request: {str(e)}"
         )
+
+
+def convert_none_to_null(obj):
+    if obj is None:
+        return "null"
+    return obj
+
+
+async def generate_stream_response(
+    response: CustomStreamWrapper,
+) -> AsyncGenerator[bytes, None]:
+    try:
+        async for chunk in response:
+            if chunk:
+                yield f"data: {json.dumps(chunk.model_dump(), default=convert_none_to_null)}\n\n".encode(
+                    "utf-8"
+                )
+    except Exception as e:
+        logger.error(f"Error in stream generation: {str(e)}")
+        yield f"data: [ERROR] {str(e)}\n\n".encode("utf-8")
+    finally:
+        yield b"data: [DONE]\n\n"
 
 
 def get_content_from_message(message):
@@ -62,10 +89,5 @@ def get_content_from_message(message):
         return content
     elif isinstance(content, list):
         raise HTTPException(status_code=400, detail="Only text content is supported")
-        # text_contents = [
-        #     block["text"] for block in content
-        #     if isinstance(block, dict) and "text" in block
-        # ]
-        # return " ".join(text_contents)
     else:
         return str(content)

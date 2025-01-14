@@ -51,6 +51,7 @@ Required JSON format:
         agent_config: AgentConfig,
         image: Optional[bytes] = None,
         openai_request: bool = False,
+        stream: bool = False,
     ) -> Union[Union[ModelResponse, CustomStreamWrapper], LLMResponse]:
         async with conversation_history_lock:
             conversation_history = await memory_service.get_conversation_history(
@@ -105,7 +106,11 @@ Required JSON format:
                 api_key=agent_config.message_generate_llm_api_key,
                 model=agent_config.message_generate_llm_model,
                 messages=[systemMessage] + conversation_history[:],
+                stream=stream,
             )
+            if isinstance(response, CustomStreamWrapper):
+                return response
+
             agent_message = self.get_message_content(response)
             conversation_history.append(
                 ChatCompletionAssistantMessage(

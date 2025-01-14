@@ -108,6 +108,7 @@ Required JSON format:
                 messages=[systemMessage] + conversation_history[:],
                 stream=stream,
             )
+            # TODO: Responds to emotions and update conversation history
             if isinstance(response, CustomStreamWrapper):
                 return response
 

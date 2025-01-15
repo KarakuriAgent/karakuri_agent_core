@@ -106,6 +106,7 @@ Required JSON format:
                 model=agent_config.message_generate_llm_model,
                 messages=[systemMessage] + conversation_history[:],
             )
+
             agent_message = self.get_message_content(response)
             conversation_history.append(
                 ChatCompletionAssistantMessage(

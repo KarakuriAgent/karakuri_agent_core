@@ -53,6 +53,7 @@ Once installed via `requirements.txt`, it's ready to use.
 | video to text   | ❌ Not supported yet (planned) |
 | video to voice  | ❌ Not supported yet (planned) |
 | video to video  | ❌ Not supported yet (planned) |
+| OpenAI Chat API | 🟢 Supported (agent ID as model name) |
 
 ### **Service Integrations**
 

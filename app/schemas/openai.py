@@ -24,7 +24,7 @@ class Choice(TypedDict, total=False):
     logprobs: Optional[Dict]
 
 
-class StreamChatCompletionResponce(TypedDict, total=False):
+class StreamChatCompletionResponse(TypedDict, total=False):
     id: str
     created: int
     model: Optional[str]

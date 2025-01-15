@@ -16,7 +16,7 @@ from app.schemas.openai import (
     ChatCompletionRequest,
     Choice,
     DeltaContent,
-    StreamChatCompletionResponce,
+    StreamChatCompletionResponse,
 )
 
 router = APIRouter()
@@ -89,7 +89,7 @@ async def generate_stream_response(
                 )
                 choice_list.append(choice_obj)
 
-            response_data = StreamChatCompletionResponce(
+            response_data = StreamChatCompletionResponse(
                 id=response.id,
                 created=response.created,
                 model=response.model,

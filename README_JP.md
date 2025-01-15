@@ -51,6 +51,7 @@ VoicevoxEngineはローカルで稼働させる必要があります。
 | video to text   | ❌ 未対応(将来対応予定)   |
 | video to voice  | ❌ 未対応(将来対応予定)   |
 | video to video  | ❌ 未対応(将来対応予定)   |
+| OpenAI Chat API | 🟢 対応済 (エージェントIDをモデル名として使用) |
 
 ### **サービス統合**
 

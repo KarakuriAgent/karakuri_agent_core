@@ -14,7 +14,7 @@ logging.basicConfig(
 
 settings = get_settings()
 app = FastAPI(
-    title="Karakuri_agentAPI", description="Karakuri_agentAPI", version="0.2.1+12"
+    title="Karakuri_agentAPI", description="Karakuri_agentAPI", version="0.3.0+13"
 )
 
 app.add_middleware(

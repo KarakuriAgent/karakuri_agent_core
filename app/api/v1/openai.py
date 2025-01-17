@@ -36,8 +36,10 @@ async def openai_chat_completions(
 
     try:
         stream = request["stream"]
-        message, image_data = await get_content_and_image_from_message(request["messages"][-1])
-        
+        message, image_data = await get_content_and_image_from_message(
+            request["messages"][-1]
+        )
+
         llm_response = await llm_service.generate_response(
             message_type="text_to_text",
             message=message,
@@ -46,7 +48,7 @@ async def openai_chat_completions(
             openai_request=True,
         )
         litellm_response = cast(ModelResponse, llm_response)
-        
+
         if stream:
             return StreamingResponse(
                 StreamChatCompletionResponse.generate_stream(litellm_response),
@@ -71,31 +73,33 @@ async def get_content_and_image_from_message(message):
         raise HTTPException(status_code=400, detail="Message content is required")
 
     content = message["content"]
-    
+
     # Handle string content (backward compatibility)
     if isinstance(content, str):
         return content, None
-        
+
     # Handle list content (new format with possible image)
     if isinstance(content, list):
         text_parts = []
         image_data = None
-        
+
         for item in content:
             if not isinstance(item, dict) or "type" not in item:
                 raise HTTPException(status_code=400, detail="Invalid content format")
-                
+
             if item["type"] == "text":
                 if "text" not in item:
                     raise HTTPException(status_code=400, detail="Text content missing")
                 text_parts.append(item["text"])
-                
+
             elif item["type"] == "image_url":
                 if "image_url" not in item or "url" not in item["image_url"]:
                     raise HTTPException(status_code=400, detail="Image URL missing")
                 if image_data is not None:
-                    raise HTTPException(status_code=400, detail="Multiple images not supported")
-                    
+                    raise HTTPException(
+                        status_code=400, detail="Multiple images not supported"
+                    )
+
                 url = item["image_url"]["url"]
                 # Handle base64 data URLs
                 if url.startswith("data:image/"):
@@ -104,7 +108,10 @@ async def get_content_and_image_from_message(message):
                         base64_data = url.split(",", 1)[1]
                         image_data = base64.b64decode(base64_data)
                     except Exception as e:
-                        raise HTTPException(status_code=400, detail=f"Invalid base64 image data: {str(e)}")
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Invalid base64 image data: {str(e)}",
+                        )
                 # Handle HTTP(S) URLs
                 else:
                     try:
@@ -113,11 +120,16 @@ async def get_content_and_image_from_message(message):
                             response.raise_for_status()
                             image_data = response.content
                     except Exception as e:
-                        raise HTTPException(status_code=400, detail=f"Failed to fetch image from URL: {str(e)}")
-                
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Failed to fetch image from URL: {str(e)}",
+                        )
+
             else:
-                raise HTTPException(status_code=400, detail=f"Unsupported content type: {item['type']}")
-                
+                raise HTTPException(
+                    status_code=400, detail=f"Unsupported content type: {item['type']}"
+                )
+
         return " ".join(text_parts), image_data
-        
+
     raise HTTPException(status_code=400, detail="Invalid content format")

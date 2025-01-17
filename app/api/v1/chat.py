@@ -11,6 +11,7 @@ from app.core.stt_service import STTService
 from app.core.agent_manager import get_agent_manager
 from app.schemas.llm import LLMResponse
 from app.utils.audio import calculate_audio_duration, upload_to_storage
+from app.utils.file_processor import process_uploaded_file
 import logging
 from starlette.responses import FileResponse
 from pathlib import Path
@@ -29,7 +30,7 @@ MAX_FILES = settings.chat_max_audio_files
 async def chat_text_to_text(
     agent_id: str = Form(...),
     message: str = Form(...),
-    image_file: Optional[UploadFile] = None,
+    file: Optional[UploadFile] = None,
     api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
 ):
@@ -39,12 +40,14 @@ async def chat_text_to_text(
     if not agent_config:
         raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
 
-    if image_file is not None:
-        image_content = await image_file.read()
-    else:
-        image_content = None
-
     try:
+        # ファイル処理
+        image_content, extracted_text = await process_uploaded_file(file)
+        
+        # テキストの結合
+        if extracted_text:
+            message = f"{message}\n\n[File: {file.filename}]\n{extracted_text}"
+
         llm_response = cast(
             LLMResponse,
             await llm_service.generate_response(
@@ -59,6 +62,8 @@ async def chat_text_to_text(
             agent_message=llm_response.agent_message,
             emotion=llm_response.emotion,
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error processing request: {str(e)}"
@@ -70,7 +75,7 @@ async def chat_text_to_voice(
     request: Request,
     agent_id: str = Form(...),
     message: str = Form(...),
-    image_file: Optional[UploadFile] = None,
+    file: Optional[UploadFile] = None,
     api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
     tts_service: TTSService = Depends(get_tts_service),
@@ -81,12 +86,13 @@ async def chat_text_to_voice(
     if not agent_config:
         raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
 
-    if image_file is not None:
-        image_content = await image_file.read()
-    else:
-        image_content = None
-
     try:
+        # ファイル処理
+        image_content, extracted_text = await process_uploaded_file(file)
+        
+        # テキストの結合
+        if extracted_text:
+            message = f"{message}\n\n[File: {file.filename}]\n{extracted_text}"
         llm_response = cast(
             LLMResponse,
             await llm_service.generate_response(
@@ -126,7 +132,7 @@ async def chat_text_to_voice(
 @router.post("/voice/text")
 async def chat_voice_to_text(
     agent_id: str = Form(...),
-    image_file: Optional[UploadFile] = None,
+    file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
     api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
@@ -138,12 +144,10 @@ async def chat_voice_to_text(
     if not agent_config:
         raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
 
-    if image_file is not None:
-        image_content = await image_file.read()
-    else:
-        image_content = None
-
     try:
+        # ファイル処理
+        image_content, extracted_text = await process_uploaded_file(file)
+        
         audio_content = await audio_file.read()
 
         text_message = await stt_service.transcribe_audio(audio_content, agent_config)
@@ -173,7 +177,7 @@ async def chat_voice_to_text(
 async def chat_voice_to_voice(
     request: Request,
     agent_id: str = Form(...),
-    image_file: Optional[UploadFile] = None,
+    file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
     api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
@@ -186,12 +190,10 @@ async def chat_voice_to_voice(
     if not agent_config:
         raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
 
-    if image_file is not None:
-        image_content = await image_file.read()
-    else:
-        image_content = None
-
     try:
+        # ファイル処理
+        image_content, extracted_text = await process_uploaded_file(file)
+        
         audio_content = await audio_file.read()
 
         text_message = await stt_service.transcribe_audio(audio_content, agent_config)

@@ -36,11 +36,8 @@ async def openai_chat_completions(
         stream = request["stream"]
         message, image_url = get_content_and_image_from_message(request["messages"][-1])
         
-        # Determine message type based on presence of image
-        message_type = "text_to_text" if image_url is None else "vision_to_text"
-        
         llm_response = await llm_service.generate_response(
-            message_type=message_type,
+            message_type="text_to_text",
             message=message,
             agent_config=agent_config,
             image=image_url,

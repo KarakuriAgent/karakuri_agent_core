@@ -1,7 +1,7 @@
 # Copyright (c) 0235 Inc.
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
-from typing import List, AsyncGenerator, Optional, Dict, cast
+from typing import List, AsyncGenerator, Optional, Dict, cast, Union, Literal
 import json
 import logging
 from litellm import AllMessageValues, Required, TypedDict, Choices
@@ -9,6 +9,23 @@ from litellm.files.main import ModelResponse
 from app.utils.json_utils import convert_none_to_null
 
 logger = logging.getLogger(__name__)
+
+
+class ImageUrl(TypedDict):
+    url: str
+
+
+class TextContent(TypedDict):
+    type: Literal["text"]
+    text: str
+
+
+class ImageUrlContent(TypedDict):
+    type: Literal["image_url"]
+    image_url: ImageUrl
+
+
+MessageContent = Union[str, List[Union[TextContent, ImageUrlContent]]]
 
 
 class ChatCompletionRequest(TypedDict, total=False):

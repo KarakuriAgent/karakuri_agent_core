@@ -34,14 +34,20 @@ async def openai_chat_completions(
 
     try:
         stream = request["stream"]
+        message, image_url = get_content_and_image_from_message(request["messages"][-1])
+        
+        # Determine message type based on presence of image
+        message_type = "text_to_text" if image_url is None else "vision_to_text"
+        
         llm_response = await llm_service.generate_response(
-            message_type="text_to_text",
-            message=get_content_from_message(request["messages"][-1]),
+            message_type=message_type,
+            message=message,
             agent_config=agent_config,
-            image=None,
+            image=image_url,
             openai_request=True,
         )
         litellm_response = cast(ModelResponse, llm_response)
+        
         if stream:
             return StreamingResponse(
                 StreamChatCompletionResponse.generate_stream(litellm_response),
@@ -57,17 +63,44 @@ async def openai_chat_completions(
         )
 
 
-def get_content_from_message(message):
+def get_content_and_image_from_message(message):
+    """
+    Extract text content and image URL from a message.
+    Returns a tuple of (text_content: str, image_url: Optional[str])
+    """
     if "content" not in message or message["content"] is None:
         raise HTTPException(status_code=400, detail="Message content is required")
-    if "content" not in message:
-        return ""
+
     content = message["content"]
-    if content is None:
-        return ""
-    elif isinstance(content, str):
-        return content
-    elif isinstance(content, list):
-        raise HTTPException(status_code=400, detail="Only text content is supported")
-    else:
-        return str(content)
+    
+    # Handle string content (backward compatibility)
+    if isinstance(content, str):
+        return content, None
+        
+    # Handle list content (new format with possible image)
+    if isinstance(content, list):
+        text_parts = []
+        image_url = None
+        
+        for item in content:
+            if not isinstance(item, dict) or "type" not in item:
+                raise HTTPException(status_code=400, detail="Invalid content format")
+                
+            if item["type"] == "text":
+                if "text" not in item:
+                    raise HTTPException(status_code=400, detail="Text content missing")
+                text_parts.append(item["text"])
+                
+            elif item["type"] == "image_url":
+                if "image_url" not in item or "url" not in item["image_url"]:
+                    raise HTTPException(status_code=400, detail="Image URL missing")
+                if image_url is not None:
+                    raise HTTPException(status_code=400, detail="Multiple images not supported")
+                image_url = item["image_url"]["url"]
+                
+            else:
+                raise HTTPException(status_code=400, detail=f"Unsupported content type: {item['type']}")
+                
+        return " ".join(text_parts), image_url
+        
+    raise HTTPException(status_code=400, detail="Invalid content format")

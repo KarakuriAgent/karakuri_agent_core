@@ -43,9 +43,9 @@ async def chat_text_to_text(
     try:
         # ファイル処理
         image_content, extracted_text = await process_uploaded_file(file)
-        
+
         # テキストの結合
-        if extracted_text:
+        if extracted_text and file and file.filename:
             message = f"{message}\n\n[File: {file.filename}]\n{extracted_text}"
 
         llm_response = cast(
@@ -89,9 +89,9 @@ async def chat_text_to_voice(
     try:
         # ファイル処理
         image_content, extracted_text = await process_uploaded_file(file)
-        
+
         # テキストの結合
-        if extracted_text:
+        if extracted_text and file and file.filename:
             message = f"{message}\n\n[File: {file.filename}]\n{extracted_text}"
         llm_response = cast(
             LLMResponse,
@@ -147,7 +147,7 @@ async def chat_voice_to_text(
     try:
         # ファイル処理
         image_content, extracted_text = await process_uploaded_file(file)
-        
+
         audio_content = await audio_file.read()
 
         text_message = await stt_service.transcribe_audio(audio_content, agent_config)
@@ -193,7 +193,7 @@ async def chat_voice_to_voice(
     try:
         # ファイル処理
         image_content, extracted_text = await process_uploaded_file(file)
-        
+
         audio_content = await audio_file.read()
 
         text_message = await stt_service.transcribe_audio(audio_content, agent_config)

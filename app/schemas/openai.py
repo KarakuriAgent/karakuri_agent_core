@@ -31,7 +31,7 @@ MessageContent = Union[str, List[Union[TextContent, ImageUrlContent]]]
 class ChatCompletionRequest(TypedDict, total=False):
     model: Required[str]
     messages: Required[List[AllMessageValues]]
-    stream: Required[bool]
+    stream: Optional[bool]
 
 
 class DeltaContent(TypedDict, total=False):

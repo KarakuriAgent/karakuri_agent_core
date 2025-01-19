@@ -23,6 +23,9 @@ services:
              sleep infinity"
     depends_on:
       - redis
+      - zep
+    networks:
+      - karakuri-agent-dev-network
 
   redis:
     container_name: "karakuri-redis-dev"
@@ -38,8 +41,103 @@ services:
           memory: 512M
     volumes:
       - redis_data:/data
+    networks:
+      - karakuri-agent-dev-network
+
+  zep:
+    container_name: "karakuri-zep-dev"
+    image: zepai/zep:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./zep.yaml:/app/zep.yaml
+    environment:
+      - ZEP_CONFIG_FILE=zep.yaml
+      - ZEP_API_SECRET=${ZEP_API_SECRET}
+    networks:
+      - karakuri-agent-dev-network
+    depends_on:
+      graphiti:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+
+  db:
+    container_name: "karakuri-zep-ce-postgres-dev"
+    image: ankane/pgvector:v0.5.1
+    restart: on-failure
+    shm_size: "128mb"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - karakuri-agent-dev-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - zep-db:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  graphiti:
+    container_name: "karakuri-graphiti-dev"
+    image: zepai/graphiti:0.3
+    ports:
+      - "8004:8003"
+    env_file:
+      - .env
+    networks:
+      - karakuri-agent-dev-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8003/healthcheck')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    environment:
+      - OPENAI_BASE_URL=${ZEP_OPENAI_BASE_URL}
+      - OPENAI_API_KEY=${ZEP_OPENAI_API_KEY}
+      - MODEL_NAME=${ZEP_OPENAI_MODEL_NAME}
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=zepzepzep
+
+  neo4j:
+    container_name: "karakuri-neo4j-dev"
+    image: neo4j:5.13.0
+    ports:
+      - "7475:7474"
+      - "7688:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/zepzepzep
+    networks:
+      - karakuri-agent-dev-network
+    healthcheck:
+      test: ["CMD", "wget", "http://localhost:7474"]
+      interval: 1s
+      timeout: 30s
+      retries: 30
+    volumes:
+      - neo4j_data:/data
 
 volumes:
   redis_data:
   pip-cache:
   pip-local:
+  zep-db:
+  neo4j_data:
+
+networks:
+  karakuri-agent-dev-network:
+    driver: bridge

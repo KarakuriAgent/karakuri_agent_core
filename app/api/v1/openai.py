@@ -7,7 +7,12 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.responses import StreamingResponse
-from litellm import AllMessageValues, ChatCompletionImageUrlObject, ChatCompletionTextObject, ModelResponse  # type: ignore
+from litellm import (
+    AllMessageValues,
+    ChatCompletionImageUrlObject,
+    ChatCompletionTextObject,
+    ModelResponse, # type: ignore
+)
 from app.dependencies import get_llm_service
 from app.core.llm_service import LLMService
 from app.core.agent_manager import get_agent_manager

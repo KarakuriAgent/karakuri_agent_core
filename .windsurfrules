@@ -1,0 +1,2 @@
+1. After making corrections, run the following three commands: ruff check --fix, pyright, and ruff format.
+2. Write the commit message, PR title, and description in English.

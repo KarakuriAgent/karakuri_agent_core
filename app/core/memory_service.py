@@ -37,9 +37,10 @@ class MemoryService:
     ):
         async with conversation_history_lock:
             try:
-                max_tokens: int = model_cost[model]["max_input_tokens"] or 8192
+                max_tokens: int
+                max_tokens = model_cost[model]["max_input_tokens"] or 8192
             except Exception:
-                max_tokens: int = 8192
+                max_tokens = 8192
 
             threshold = int(max_tokens * threshold_tokens_percentage)
             current_tokens = token_counter(

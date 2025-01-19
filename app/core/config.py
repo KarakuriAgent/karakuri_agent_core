@@ -33,7 +33,9 @@ class Settings:
         self.check_support_vision_model = (
             os.getenv("CHECK_SUPPORT_VISION_MODEL", "True").lower() == "true"
         )
-        self.redis_url = str(os.getenv("REDIS_URL", "redis://karakuri-redis"))
+        self.zep_url = str(os.getenv("ZEP_URL", "http://zep:8000"))
+        self.zep_api_secret = str(os.getenv("ZEP_API_SECRET", "Zep_P@ssw0rd123"))
+        self.redis_url = str(os.getenv("REDIS_URL", "redis://redis"))
         self.redis_password = str(os.getenv("REDIS_PASSWORD", "Redis_P@ssw0rd123"))
         self.threshold_tokens_percentage = double(
             os.getenv("THRESHOLD_TOKENS_PERCENTAGE", 0.8)

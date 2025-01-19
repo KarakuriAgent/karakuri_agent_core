@@ -11,7 +11,7 @@ from litellm import (
     AllMessageValues,
     ChatCompletionImageUrlObject,
     ChatCompletionTextObject,
-    ModelResponse, # type: ignore
+    ModelResponse,  # type: ignore
 )
 from app.dependencies import get_llm_service
 from app.core.llm_service import LLMService

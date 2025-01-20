@@ -13,6 +13,7 @@ from litellm import (
     ChatCompletionTextObject,
     ModelResponse,  # type: ignore
 )
+from app.core.user_manager import get_user_manager
 from app.dependencies import get_llm_service
 from app.core.llm_service import LLMService
 from app.core.agent_manager import get_agent_manager
@@ -32,12 +33,20 @@ async def openai_chat_completions(
     token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     llm_service: LLMService = Depends(get_llm_service),
 ):
-    agent_id = request["model"]
+    agent_id, user_id = request["model"].split("/")
     agent_manager = get_agent_manager()
-    agent_config = agent_manager.get_agent(agent_id)
-
-    if not agent_config:
+    try:
+        agent_config = agent_manager.get_agent(agent_id)
+    except KeyError:
         raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
+
+    user_manager = get_user_manager()
+    try:
+        user_config = user_manager.get_user(user_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404, detail=f"User with user_id '{user_id}' not found."
+        )
 
     try:
         stream = request.get("stream")
@@ -49,6 +58,7 @@ async def openai_chat_completions(
             message_type="text_to_text",
             message=message,
             agent_config=agent_config,
+            user_config=user_config,
             image=image_data,
             openai_request=True,
         )

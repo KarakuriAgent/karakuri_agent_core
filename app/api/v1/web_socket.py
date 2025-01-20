@@ -16,6 +16,7 @@ from jsonschema import ValidationError
 from litellm import cast
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
+from app.core.user_manager import get_user_manager
 from app.dependencies import get_llm_service, get_stt_service, get_tts_service
 from app.schemas.llm import LLMResponse
 from app.schemas.web_socket import (
@@ -76,6 +77,7 @@ async def websocket_endpoint(
         f"Hello! Connected with token associated to API key: {api_key}"
     )
     agent_manager = get_agent_manager()
+    user_manager = get_user_manager()
     while True:
         try:
             message = await websocket.receive_text()
@@ -97,6 +99,7 @@ async def websocket_endpoint(
                 continue
 
             agent_config = agent_manager.get_agent(request_obj.agent_id)
+            user_config = user_manager.get_user(request_obj.user_id)
             image_content: Optional[bytes] = None
             text_message: str = ""
 
@@ -127,7 +130,11 @@ async def websocket_endpoint(
             llm_response = cast(
                 LLMResponse,
                 await llm_service.generate_response(
-                    "websocket", text_message, agent_config, image=image_content
+                    "websocket",
+                    text_message,
+                    agent_config,
+                    user_config,
+                    image=image_content,
                 ),
             )
 

@@ -3,6 +3,7 @@
 # Please see the LICENSE file in the project root.
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, File, Request
 from litellm import cast
+from app.core.user_manager import get_user_manager
 from app.dependencies import get_llm_service, get_tts_service, get_stt_service
 from app.auth.api_key import verify_token
 from app.core.llm_service import LLMService
@@ -28,16 +29,27 @@ MAX_FILES = settings.chat_max_audio_files
 @router.post("/text/text")
 async def chat_text_to_text(
     agent_id: str = Form(...),
+    user_id: str = Form(...),
     message: str = Form(...),
     image_file: Optional[UploadFile] = None,
     api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
 ):
     agent_manager = get_agent_manager()
-    agent_config = agent_manager.get_agent(agent_id)
+    try:
+        agent_config = agent_manager.get_agent(agent_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404, detail=f"Agent with ID '{agent_id}' not found."
+        )
 
-    if not agent_config:
-        raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
+    user_manager = get_user_manager()
+    try:
+        user_config = user_manager.get_user(user_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404, detail=f"User with user_id '{user_id}' not found."
+        )
 
     if image_file is not None:
         image_content = await image_file.read()
@@ -51,6 +63,7 @@ async def chat_text_to_text(
                 message_type="text_to_text",
                 message=message,
                 agent_config=agent_config,
+                user_config=user_config,
                 image=image_content,
             ),
         )
@@ -69,6 +82,7 @@ async def chat_text_to_text(
 async def chat_text_to_voice(
     request: Request,
     agent_id: str = Form(...),
+    user_id: str = Form(...),
     message: str = Form(...),
     image_file: Optional[UploadFile] = None,
     api_key: str = Depends(verify_token),
@@ -76,10 +90,20 @@ async def chat_text_to_voice(
     tts_service: TTSService = Depends(get_tts_service),
 ):
     agent_manager = get_agent_manager()
-    agent_config = agent_manager.get_agent(agent_id)
+    try:
+        agent_config = agent_manager.get_agent(agent_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404, detail=f"Agent with ID '{agent_id}' not found."
+        )
 
-    if not agent_config:
-        raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
+    user_manager = get_user_manager()
+    try:
+        user_config = user_manager.get_user(user_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404, detail=f"User with user_id '{user_id}' not found."
+        )
 
     if image_file is not None:
         image_content = await image_file.read()
@@ -93,6 +117,7 @@ async def chat_text_to_voice(
                 message_type="text_to_voice",
                 message=message,
                 agent_config=agent_config,
+                user_config=user_config,
                 image=image_content,
             ),
         )
@@ -126,6 +151,7 @@ async def chat_text_to_voice(
 @router.post("/voice/text")
 async def chat_voice_to_text(
     agent_id: str = Form(...),
+    user_id: str = Form(...),
     image_file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
     api_key: str = Depends(verify_token),
@@ -133,10 +159,25 @@ async def chat_voice_to_text(
     stt_service: STTService = Depends(get_stt_service),
 ):
     agent_manager = get_agent_manager()
-    agent_config = agent_manager.get_agent(agent_id)
+    try:
+        agent_config = agent_manager.get_agent(agent_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404, detail=f"Agent with ID '{agent_id}' not found."
+        )
 
-    if not agent_config:
-        raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
+    user_manager = get_user_manager()
+    try:
+        user_config = user_manager.get_user(user_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404, detail=f"User with user_id '{user_id}' not found."
+        )
+
+    if user_config is None:
+        raise HTTPException(
+            status_code=404, detail=f"User with user_id '{user_id}' not found."
+        )
 
     if image_file is not None:
         image_content = await image_file.read()
@@ -154,6 +195,7 @@ async def chat_voice_to_text(
                 message_type="voice_to_text",
                 message=text_message,
                 agent_config=agent_config,
+                user_config=user_config,
                 image=image_content,
             ),
         )
@@ -173,6 +215,7 @@ async def chat_voice_to_text(
 async def chat_voice_to_voice(
     request: Request,
     agent_id: str = Form(...),
+    user_id: str = Form(...),
     image_file: Optional[UploadFile] = None,
     audio_file: UploadFile = File(...),
     api_key: str = Depends(verify_token),
@@ -181,10 +224,25 @@ async def chat_voice_to_voice(
     tts_service: TTSService = Depends(get_tts_service),
 ):
     agent_manager = get_agent_manager()
-    agent_config = agent_manager.get_agent(agent_id)
+    try:
+        agent_config = agent_manager.get_agent(agent_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404, detail=f"Agent with ID '{agent_id}' not found."
+        )
 
-    if not agent_config:
-        raise HTTPException(status_code=404, detail=f"Agent ID {agent_id} not found")
+    user_manager = get_user_manager()
+    try:
+        user_config = user_manager.get_user(user_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404, detail=f"User with user_id '{user_id}' not found."
+        )
+
+    if user_config is None:
+        raise HTTPException(
+            status_code=404, detail=f"User with user_id '{user_id}' not found."
+        )
 
     if image_file is not None:
         image_content = await image_file.read()
@@ -202,6 +260,7 @@ async def chat_voice_to_voice(
                 message_type="voice_to_voice",
                 message=text_message,
                 agent_config=agent_config,
+                user_config=user_config,
                 image=image_content,
             ),
         )

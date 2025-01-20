@@ -8,8 +8,10 @@ from starlette.responses import FileResponse
 from app.core.llm_service import LLMService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
+from app.core.user_manager import get_user_manager
 from app.dependencies import get_llm_service, get_stt_service, get_tts_service
 from app.schemas.llm import LLMResponse
+from app.schemas.user import UserConfig
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 from pathlib import Path
 from typing import Dict, cast, List
@@ -50,6 +52,7 @@ async def process_line_events_background(
     body: str,
     signature: str,
     agent_config: AgentConfig,
+    user_config: UserConfig,
     request: Request,
     llm_service: LLMService,
     tts_service: TTSService,
@@ -86,7 +89,11 @@ async def process_line_events_background(
                 llm_response = cast(
                     LLMResponse,
                     await llm_service.generate_response(
-                        "line", text_message, agent_config, image=cached_image_bytes
+                        "line",
+                        text_message,
+                        agent_config,
+                        user_config,
+                        image=cached_image_bytes,
                     ),
                 )
                 audio_data = await tts_service.generate_speech(
@@ -124,11 +131,12 @@ async def process_line_events_background(
             await async_client.close()
 
 
-@router.post("/callback/{agent_id}")
+@router.post("/callback/{agent_id}/{user_id}")
 async def handle_line_callback(
     background_tasks: BackgroundTasks,
     request: Request,
     agent_id: str,
+    user_id: str,
     llm_service: LLMService = Depends(get_llm_service),
     tts_service: TTSService = Depends(get_tts_service),
     stt_service: STTService = Depends(get_stt_service),
@@ -142,6 +150,14 @@ async def handle_line_callback(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
+    user_manager = get_user_manager()
+    try:
+        user_config = user_manager.get_user(user_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404, detail=f"User with user_id '{user_id}' not found."
+        )
+
     # Verify signature before returning OK
     parse_line_events(body, signature, agent_config.line_channel_secret)
 
@@ -150,6 +166,7 @@ async def handle_line_callback(
         body,
         signature,
         agent_config,
+        user_config,
         request,
         llm_service,
         tts_service,

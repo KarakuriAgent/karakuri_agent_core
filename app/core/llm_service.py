@@ -23,6 +23,7 @@ from app.schemas.emotion import Emotion
 from app.schemas.llm import LLMResponse
 from app.core.config import get_settings
 from app.core.memory_service import conversation_history_lock
+from app.schemas.user import UserConfig
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -49,12 +50,13 @@ Required JSON format:
         message_type: str,
         message: str,
         agent_config: AgentConfig,
+        user_config: UserConfig,
         image: Optional[bytes] = None,
         openai_request: bool = False,
     ) -> Union[Union[ModelResponse, CustomStreamWrapper], LLMResponse]:
         async with conversation_history_lock:
             conversation_history = await memory_service.get_conversation_history(
-                agent_config.id
+                agent_config.id, user_config.id
             )
             systemMessage = ChatCompletionSystemMessage(
                 role="system",
@@ -129,6 +131,7 @@ Required JSON format:
                 memory_service.update_conversation_history(
                     agent_config.message_generate_llm_model,
                     agent_config.id,
+                    user_config.id,
                     systemMessage,
                     conversation_history,
                 )

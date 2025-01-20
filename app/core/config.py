@@ -33,9 +33,7 @@ class Settings:
         self.check_support_vision_model = (
             os.getenv("CHECK_SUPPORT_VISION_MODEL", "True").lower() == "true"
         )
-        self.zep_url = str(os.getenv("ZEP_URL", "http://zep:8000"))
-        self.zep_api_secret = str(os.getenv("ZEP_API_SECRET", "Zep_P@ssw0rd123"))
-        self.redis_url = str(os.getenv("REDIS_URL", "redis://redis"))
+        self.redis_url = str(os.getenv("REDIS_URL", "redis://karakuri-redis"))
         self.redis_password = str(os.getenv("REDIS_PASSWORD", "Redis_P@ssw0rd123"))
         self.threshold_tokens_percentage = double(
             os.getenv("THRESHOLD_TOKENS_PERCENTAGE", 0.8)
@@ -43,6 +41,9 @@ class Settings:
 
     def get_agent_env(self, agent_id: int, key: str) -> str:
         return os.getenv(f"AGENT_{agent_id}_{key}") or ""
+
+    def get_user_env(self, user_id: int, key: str) -> str:
+        return os.getenv(f"USER_{user_id}_{key}") or ""
 
     def is_valid_api_key(self, api_key: str) -> bool:
         return api_key in self.api_keys

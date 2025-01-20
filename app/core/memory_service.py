@@ -26,9 +26,11 @@ conversation_history_lock = asyncio.Lock()
 
 
 class MemoryService:
-    async def get_conversation_history(self, agent_id: str) -> List[AllMessageValues]:
+    async def get_conversation_history(
+        self, agent_id: str, user_id: str
+    ) -> List[AllMessageValues]:
         try:
-            memory = await zep_client.memory.get(session_id=agent_id)
+            memory = await zep_client.memory.get(session_id=agent_id, user_id=user_id)
             conversation_history = []
             if memory and memory.messages:
                 for msg in memory.messages:
@@ -54,6 +56,7 @@ class MemoryService:
         self,
         model,
         agent_id: str,
+        user_id: str,
         systemMessage: ChatCompletionSystemMessage,
         conversation_history: List[AllMessageValues],
     ):
@@ -95,7 +98,9 @@ class MemoryService:
                     Message(role_type=msg["role"], content=text_content)
                 )
 
-            await zep_client.memory.add(session_id=agent_id, messages=zep_messages)
+            await zep_client.memory.add(
+                session_id=agent_id, user_id=user_id, messages=zep_messages
+            )
 
     # def _remove_first_user_to_next_user(
     #     self, conversation_history: List[AllMessageValues]

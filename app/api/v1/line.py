@@ -6,9 +6,15 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from starlette.requests import ClientDisconnect
 from starlette.responses import FileResponse
 from app.core.llm_service import LLMService
+from app.core.memory_service import MemoryService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
-from app.dependencies import get_llm_service, get_stt_service, get_tts_service
+from app.dependencies import (
+    get_llm_service,
+    get_memory_service,
+    get_stt_service,
+    get_tts_service,
+)
 from app.schemas.llm import LLMResponse
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 from pathlib import Path
@@ -50,6 +56,7 @@ async def process_line_events_background(
     body: str,
     signature: str,
     agent_config: AgentConfig,
+    user_id: str,
     request: Request,
     llm_service: LLMService,
     tts_service: TTSService,
@@ -86,7 +93,11 @@ async def process_line_events_background(
                 llm_response = cast(
                     LLMResponse,
                     await llm_service.generate_response(
-                        "line", text_message, agent_config, image=cached_image_bytes
+                        "line",
+                        text_message,
+                        agent_config,
+                        user_id,
+                        image=cached_image_bytes,
                     ),
                 )
                 audio_data = await tts_service.generate_speech(
@@ -124,14 +135,16 @@ async def process_line_events_background(
             await async_client.close()
 
 
-@router.post("/callback/{agent_id}")
+@router.post("/callback/{agent_id}/{user_id}")
 async def handle_line_callback(
     background_tasks: BackgroundTasks,
     request: Request,
     agent_id: str,
+    user_id: str,
     llm_service: LLMService = Depends(get_llm_service),
     tts_service: TTSService = Depends(get_tts_service),
     stt_service: STTService = Depends(get_stt_service),
+    memory_service: MemoryService = Depends(get_memory_service),
 ):
     signature, body = await extract_line_request_data(request)
     agent_manager = get_agent_manager()
@@ -142,6 +155,11 @@ async def handle_line_callback(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
+    if await memory_service.get_user(user_id) is None:
+        raise HTTPException(
+            status_code=404, detail=f"User with user_id '{user_id}' not found."
+        )
+
     # Verify signature before returning OK
     parse_line_events(body, signature, agent_config.line_channel_secret)
 
@@ -150,6 +168,7 @@ async def handle_line_callback(
         body,
         signature,
         agent_config,
+        user_id,
         request,
         llm_service,
         tts_service,

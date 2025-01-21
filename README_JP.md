@@ -8,6 +8,8 @@
 
 ### 🚀 **サーバーサイド**:
 - フレームワーク: FastAPI
+- メモリ管理: Zep
+- データベース: PostgreSQL, Neo4j
 
 ### 🪶 **モデル対応 (LLM)**: 
 LiteLLMを利用し、[LiteLLM](https://github.com/BerriAI/litellm)がサポートしているモデル(例: OpenAI, Ollama)にアクセス可能。  
@@ -71,6 +73,16 @@ VoicevoxEngineはローカルで稼働させる必要があります。
   - 🎤 Voice to Text 
   - 🔄 Voice to Voice
 
+- **長期記憶システム**
+  - 🧠 永続的な会話履歴
+  - 👤 ユーザーごとのコンテキスト管理
+  - 📝 セッションベースのメモリ管理
+
+- **ユーザー管理機能**
+  - 👥 ユーザーの登録・削除
+  - 📊 ユーザー情報の取得
+  - 📋 ユーザー一覧の表示
+
 - **モデル選択の柔軟性**  
   LiteLLMを用いているため、LiteLLMがサポートしているモデル (例: OpenAI, Ollama) に対応可能。
 
@@ -89,8 +101,11 @@ Flutterクライアントの画面や音声インタラクションのGIFを公�
 
 - **サーバーサイド**  
   - Python 3.8以上  
+  - PostgreSQL（メモリストレージ用）
+  - Neo4j（グラフ関係管理用）
   - (任意) VoicevoxEngine (TTS用)  
-    - ローカルでVoicevoxEngineを起動し、`.env`でそのURLを設定してください  
+    - ローカルでVoicevoxEngineを起動し、  
+    - そのエンドポイント（例: `http://localhost:50021`）を `.env` ファイルの `AGENT_1_TTS_BASE_URL` に指定してください  
   - (任意) LINE連携を利用する場合は、[LINE Developer Console](https://developers.line.biz/ja/)よりトークン・シークレット取得が必要
 
 - **各種LLMサービスモデル利用時**  
@@ -148,6 +163,13 @@ CHAT_MAX_AUDIO_FILES=Chatエンドポイントで利用する音声ファイル�
 CHAT_AUDIO_FILES_DIR=chat_audio_files
 WEB_SOCKET_MAX_AUDIO_FILES=WebSocketエンドポイントで利用する音声ファイルの最大保存件数 (例:5)
 WEB_SOCKET_AUDIO_FILES_DIR=websocket_audio_files
+
+# メモリシステム設定
+ZEP_URL=ZepサーバーのURL
+ZEP_API_SECRET=Zep APIシークレットキー
+ZEP_OPENAI_BASE_URL=Zep用OpenAIベースURL
+ZEP_OPENAI_API_KEY=Zep用OpenAI APIキー
+ZEP_OPENAI_MODEL_NAME=Zep用OpenAIモデル名
 
 AGENT_1_NAME=エージェントの名前
 AGENT_1_MESSAGE_GENERATE_LLM_BASE_URL=メッセージ生成用LLMのURL(LiteLLM形式)

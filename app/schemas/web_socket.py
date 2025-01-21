@@ -12,6 +12,7 @@ class BaseRequest(BaseModel):
     request_type: RequestType
     responce_type: str
     agent_id: str
+    user_id: str
 
 
 class TextRequest(BaseRequest):

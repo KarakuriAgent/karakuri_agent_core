@@ -35,6 +35,8 @@ class Settings:
         )
         self.redis_url = str(os.getenv("REDIS_URL", "redis://karakuri-redis"))
         self.redis_password = str(os.getenv("REDIS_PASSWORD", "Redis_P@ssw0rd123"))
+        self.zep_url = str(os.getenv("ZEP_URL", "http://zep:8000"))
+        self.zep_api_secret = str(os.getenv("ZEP_API_SECRET", "Zpe_P@ssw0rd123"))
         self.threshold_tokens_percentage = double(
             os.getenv("THRESHOLD_TOKENS_PERCENTAGE", 0.8)
         )

@@ -1,3 +1,6 @@
+# Copyright (c) 0235 Inc.
+# This file is licensed under the karakuri_agent Personal Use & No Warranty License.
+# Please see the LICENSE file in the project root.
 import asyncio
 from typing import List, Optional, Union
 import base64
@@ -55,7 +58,7 @@ Required JSON format:
     ) -> Union[Union[ModelResponse, CustomStreamWrapper], LLMResponse]:
         async with conversation_history_lock:
             conversation_history = await self.memory_service.get_conversation_history(
-                agent_config.id, user_id
+                agent_config.id, user_id, message_type
             )
             systemMessage = ChatCompletionSystemMessage(
                 role="system",
@@ -131,6 +134,7 @@ Required JSON format:
                     agent_config.message_generate_llm_model,
                     agent_config.id,
                     user_id,
+                    message_type,
                     systemMessage,
                     conversation_history,
                 )

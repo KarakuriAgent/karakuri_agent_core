@@ -1,10 +1,17 @@
+# Copyright (c) 0235 Inc.
+# This file is licensed under the karakuri_agent Personal Use & No Warranty License.
+# Please see the LICENSE file in the project root.
+
 # import redis.asyncio as redis  # type: ignore
 # import json
 import asyncio
 from typing import List
 import logging
 from zep_python.client import AsyncZep
-from zep_python.types import Message
+from zep_python.memory.client import Message
+from zep_python.errors.bad_request_error import BadRequestError
+from zep_python.types import Memory
+from app.core.date_util import DateUtil
 
 from litellm import (
     AllMessageValues,
@@ -30,10 +37,15 @@ conversation_history_lock = asyncio.Lock()
 
 class MemoryService:
     async def get_conversation_history(
-        self, agent_id: str, user_id: str
+        self,
+        agent_id: str,
+        user_id: str,
+        message_type: str,
     ) -> List[AllMessageValues]:
         try:
-            memory = await zep_client.memory.get(session_id=agent_id, user_id=user_id)
+            memory: Memory = await zep_client.memory.get(
+                session_id=self._create_session_id(agent_id, user_id, message_type),
+            )
             conversation_history = []
             if memory and memory.messages:
                 for msg in memory.messages:
@@ -60,6 +72,7 @@ class MemoryService:
         model,
         agent_id: str,
         user_id: str,
+        message_type: str,
         systemMessage: ChatCompletionSystemMessage,
         conversation_history: List[AllMessageValues],
     ):
@@ -100,10 +113,23 @@ class MemoryService:
                 zep_messages.append(
                     Message(role_type=msg["role"], content=text_content)
                 )
-
+            session_id = self._create_session_id(agent_id, user_id, message_type)
+            try:
+                await zep_client.memory.add_session(
+                    session_id=session_id,
+                    user_id=user_id,
+                )
+            except BadRequestError as e:
+                if "session already exists" not in str(e):
+                    logger.error(f"Failed to add session: {e}")
+                    raise
             await zep_client.memory.add(
-                session_id=agent_id, user_id=user_id, messages=zep_messages
+                session_id=session_id,
+                messages=zep_messages,
             )
+
+    def _create_session_id(self, agent_id: str, user_id: str, message_type: str) -> str:
+        return f"{str(DateUtil.today())}_{agent_id}_{user_id}_{message_type}"
 
     async def add_user(self, user_id: str):
         await zep_client.user.add(user_id=user_id)

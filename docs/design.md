@@ -17,13 +17,20 @@ Karakuri Agent is an open-source AI agent platform that enables dialogue through
 - Supports from system states (noticed, progress) to detailed emotion expressions
 
 ### Memory System
-- Conversation history management using Redis
-- Automatic history adjustment based on token count
-- Independent conversation context for each agent
+- Long-term memory management using Zep
+  - Persistent conversation history
+  - User-specific context management
+  - Conversation session management
+- User management functionality
+  - Add and delete users
+  - Retrieve user information
+  - List all users
 
-## Technology Stack
+### Technology Stack
 - FastAPI (Web Framework)
-- Redis (Memory Management)
+- Zep (Memory Management)
+- PostgreSQL (Database)
+- Neo4j (Graph Database)
 - Docker (Environment Setup)
 - LiteLLM (LLM Integration)
 - LINE Messaging API (LINE Bot Integration)
@@ -40,6 +47,7 @@ Karakuri Agent is an open-source AI agent platform that enables dialogue through
 1. RESTful API
    - Text/voice chat endpoints
    - Agent management
+   - User management
    - Health check
    - OpenAI Chat API compatibility
 
@@ -68,6 +76,11 @@ Karakuri Agent is an open-source AI agent platform that enables dialogue through
 ## Configuration & Deployment
 - Flexible configuration through environment variables
 - Easy deployment with Docker Compose
+  - Karakuri Agent Server
+  - Zep Memory Server
+  - PostgreSQL Database
+  - Neo4j Graph Database
+  - Redis Cache
 - Separation of development and production environments
 - Redis persistence support
 

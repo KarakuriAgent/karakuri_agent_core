@@ -16,8 +16,13 @@ from jsonschema import ValidationError
 from litellm import cast
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
-from app.core.user_manager import get_user_manager
-from app.dependencies import get_llm_service, get_stt_service, get_tts_service
+from app.core.memory_service import MemoryService
+from app.dependencies import (
+    get_llm_service,
+    get_memory_service,
+    get_stt_service,
+    get_tts_service,
+)
 from app.schemas.llm import LLMResponse
 from app.schemas.web_socket import (
     AudioRequest,
@@ -61,6 +66,7 @@ async def websocket_endpoint(
     llm_service: LLMService = Depends(get_llm_service),
     stt_service: STTService = Depends(get_stt_service),
     tts_service: TTSService = Depends(get_tts_service),
+    memory_service: MemoryService = Depends(get_memory_service),
 ):
     clean_expired_tokens()
     if not token or token not in ws_tokens:
@@ -77,7 +83,6 @@ async def websocket_endpoint(
         f"Hello! Connected with token associated to API key: {api_key}"
     )
     agent_manager = get_agent_manager()
-    user_manager = get_user_manager()
     while True:
         try:
             message = await websocket.receive_text()
@@ -98,8 +103,13 @@ async def websocket_endpoint(
                 )
                 continue
 
+            user_id = request_obj.user_id
+            if await memory_service.get_user(user_id) is None:
+                raise HTTPException(
+                    status_code=404, detail=f"User with user_id '{user_id}' not found."
+                )
+
             agent_config = agent_manager.get_agent(request_obj.agent_id)
-            user_config = user_manager.get_user(request_obj.user_id)
             image_content: Optional[bytes] = None
             text_message: str = ""
 
@@ -133,7 +143,7 @@ async def websocket_endpoint(
                     "websocket",
                     text_message,
                     agent_config,
-                    user_config,
+                    user_id,
                     image=image_content,
                 ),
             )

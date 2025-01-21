@@ -4,11 +4,5 @@
 from pydantic import BaseModel
 
 
-class UserConfig(BaseModel):
-    id: str
-    display_name: str
-
-
 class UserResponse(BaseModel):
     user_id: str
-    display_name: str

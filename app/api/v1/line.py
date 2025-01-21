@@ -6,12 +6,16 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from starlette.requests import ClientDisconnect
 from starlette.responses import FileResponse
 from app.core.llm_service import LLMService
+from app.core.memory_service import MemoryService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
-from app.core.user_manager import get_user_manager
-from app.dependencies import get_llm_service, get_stt_service, get_tts_service
+from app.dependencies import (
+    get_llm_service,
+    get_memory_service,
+    get_stt_service,
+    get_tts_service,
+)
 from app.schemas.llm import LLMResponse
-from app.schemas.user import UserConfig
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 from pathlib import Path
 from typing import Dict, cast, List
@@ -52,7 +56,7 @@ async def process_line_events_background(
     body: str,
     signature: str,
     agent_config: AgentConfig,
-    user_config: UserConfig,
+    user_id: str,
     request: Request,
     llm_service: LLMService,
     tts_service: TTSService,
@@ -92,7 +96,7 @@ async def process_line_events_background(
                         "line",
                         text_message,
                         agent_config,
-                        user_config,
+                        user_id,
                         image=cached_image_bytes,
                     ),
                 )
@@ -140,6 +144,7 @@ async def handle_line_callback(
     llm_service: LLMService = Depends(get_llm_service),
     tts_service: TTSService = Depends(get_tts_service),
     stt_service: STTService = Depends(get_stt_service),
+    memory_service: MemoryService = Depends(get_memory_service),
 ):
     signature, body = await extract_line_request_data(request)
     agent_manager = get_agent_manager()
@@ -150,10 +155,7 @@ async def handle_line_callback(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    user_manager = get_user_manager()
-    try:
-        user_config = user_manager.get_user(user_id)
-    except KeyError:
+    if await memory_service.get_user(user_id) is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )
@@ -166,7 +168,7 @@ async def handle_line_callback(
         body,
         signature,
         agent_config,
-        user_config,
+        user_id,
         request,
         llm_service,
         tts_service,

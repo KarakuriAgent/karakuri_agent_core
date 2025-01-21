@@ -3,8 +3,13 @@
 # Please see the LICENSE file in the project root.
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, File, Request
 from litellm import cast
-from app.core.user_manager import get_user_manager
-from app.dependencies import get_llm_service, get_tts_service, get_stt_service
+from app.core.memory_service import MemoryService
+from app.dependencies import (
+    get_llm_service,
+    get_memory_service,
+    get_tts_service,
+    get_stt_service,
+)
 from app.auth.api_key import verify_token
 from app.core.llm_service import LLMService
 from app.core.tts_service import TTSService
@@ -34,6 +39,7 @@ async def chat_text_to_text(
     image_file: Optional[UploadFile] = None,
     api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
+    memory_service: MemoryService = Depends(get_memory_service),
 ):
     agent_manager = get_agent_manager()
     try:
@@ -43,10 +49,7 @@ async def chat_text_to_text(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    user_manager = get_user_manager()
-    try:
-        user_config = user_manager.get_user(user_id)
-    except KeyError:
+    if await memory_service.get_user(user_id) is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )
@@ -63,7 +66,7 @@ async def chat_text_to_text(
                 message_type="text_to_text",
                 message=message,
                 agent_config=agent_config,
-                user_config=user_config,
+                user_id=user_id,
                 image=image_content,
             ),
         )
@@ -88,6 +91,7 @@ async def chat_text_to_voice(
     api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
     tts_service: TTSService = Depends(get_tts_service),
+    memory_service: MemoryService = Depends(get_memory_service),
 ):
     agent_manager = get_agent_manager()
     try:
@@ -97,10 +101,7 @@ async def chat_text_to_voice(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    user_manager = get_user_manager()
-    try:
-        user_config = user_manager.get_user(user_id)
-    except KeyError:
+    if await memory_service.get_user(user_id) is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )
@@ -117,7 +118,7 @@ async def chat_text_to_voice(
                 message_type="text_to_voice",
                 message=message,
                 agent_config=agent_config,
-                user_config=user_config,
+                user_id=user_id,
                 image=image_content,
             ),
         )
@@ -157,6 +158,7 @@ async def chat_voice_to_text(
     api_key: str = Depends(verify_token),
     llm_service: LLMService = Depends(get_llm_service),
     stt_service: STTService = Depends(get_stt_service),
+    memory_service: MemoryService = Depends(get_memory_service),
 ):
     agent_manager = get_agent_manager()
     try:
@@ -166,15 +168,7 @@ async def chat_voice_to_text(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    user_manager = get_user_manager()
-    try:
-        user_config = user_manager.get_user(user_id)
-    except KeyError:
-        raise HTTPException(
-            status_code=404, detail=f"User with user_id '{user_id}' not found."
-        )
-
-    if user_config is None:
+    if await memory_service.get_user(user_id) is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )
@@ -195,7 +189,7 @@ async def chat_voice_to_text(
                 message_type="voice_to_text",
                 message=text_message,
                 agent_config=agent_config,
-                user_config=user_config,
+                user_id=user_id,
                 image=image_content,
             ),
         )
@@ -222,6 +216,7 @@ async def chat_voice_to_voice(
     llm_service: LLMService = Depends(get_llm_service),
     stt_service: STTService = Depends(get_stt_service),
     tts_service: TTSService = Depends(get_tts_service),
+    memory_service: MemoryService = Depends(get_memory_service),
 ):
     agent_manager = get_agent_manager()
     try:
@@ -231,15 +226,7 @@ async def chat_voice_to_voice(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    user_manager = get_user_manager()
-    try:
-        user_config = user_manager.get_user(user_id)
-    except KeyError:
-        raise HTTPException(
-            status_code=404, detail=f"User with user_id '{user_id}' not found."
-        )
-
-    if user_config is None:
+    if await memory_service.get_user(user_id) is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )
@@ -260,7 +247,7 @@ async def chat_voice_to_voice(
                 message_type="voice_to_voice",
                 message=text_message,
                 agent_config=agent_config,
-                user_config=user_config,
+                user_id=user_id,
                 image=image_content,
             ),
         )

@@ -17,22 +17,21 @@ from litellm import (
     ModelResponse,  # type: ignore
     utils,  # type: ignore
 )
-from app.core.memory_service import MemoryService
 from app.schemas.agent import AgentConfig
 from app.schemas.emotion import Emotion
 from app.schemas.llm import LLMResponse
 from app.core.config import get_settings
-from app.core.memory_service import conversation_history_lock
-from app.schemas.user import UserConfig
+from app.core.memory_service import MemoryService, conversation_history_lock
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 CHECK_SUPPORT_VISION_MODEL = settings.check_support_vision_model
 
-memory_service = MemoryService()
-
 
 class LLMService:
+    def __init__(self, memory_service: MemoryService):
+        self.memory_service = memory_service
+
     def create_emotion_analysis_prompt(self, text: str) -> str:
         emotions = Emotion.to_request_values()
         return f"""analyze the following text emotion.
@@ -50,13 +49,13 @@ Required JSON format:
         message_type: str,
         message: str,
         agent_config: AgentConfig,
-        user_config: UserConfig,
+        user_id: str,
         image: Optional[bytes] = None,
         openai_request: bool = False,
     ) -> Union[Union[ModelResponse, CustomStreamWrapper], LLMResponse]:
         async with conversation_history_lock:
-            conversation_history = await memory_service.get_conversation_history(
-                agent_config.id, user_config.id
+            conversation_history = await self.memory_service.get_conversation_history(
+                agent_config.id, user_id
             )
             systemMessage = ChatCompletionSystemMessage(
                 role="system",
@@ -128,10 +127,10 @@ Required JSON format:
             )
 
             asyncio.create_task(
-                memory_service.update_conversation_history(
+                self.memory_service.update_conversation_history(
                     agent_config.message_generate_llm_model,
                     agent_config.id,
-                    user_config.id,
+                    user_id,
                     systemMessage,
                     conversation_history,
                 )

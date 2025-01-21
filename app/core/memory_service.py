@@ -2,6 +2,7 @@
 # import json
 import asyncio
 from typing import List
+import logging
 from zep_python.client import AsyncZep
 from zep_python.types import Message
 
@@ -15,7 +16,9 @@ from litellm import (
 )
 
 from app.core.config import get_settings
+from app.schemas.user import UserResponse
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 # threshold_tokens_percentage = settings.threshold_tokens_percentage
 # redis_client = redis.from_url(
@@ -101,6 +104,20 @@ class MemoryService:
             await zep_client.memory.add(
                 session_id=agent_id, user_id=user_id, messages=zep_messages
             )
+
+    async def add_user(self, user_id: str):
+        await zep_client.user.add(user_id=user_id)
+
+    async def delete_user(self, user_id: str):
+        await zep_client.user.delete(user_id=user_id)
+
+    async def get_user(self, user_id: str) -> UserResponse:
+        user = await zep_client.user.get(user_id=user_id)
+        return UserResponse(user_id=user.user_id)
+
+    async def list_users(self) -> List[UserResponse]:
+        response = await zep_client.user.list_ordered()
+        return [UserResponse(user_id=user.user_id) for user in response.users]
 
     # def _remove_first_user_to_next_user(
     #     self, conversation_history: List[AllMessageValues]

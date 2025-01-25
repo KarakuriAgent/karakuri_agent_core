@@ -13,7 +13,7 @@ from litellm import (
     ChatCompletionTextObject,
     ModelResponse,  # type: ignore
 )
-from app.core.memory_service import MemoryService
+from app.core.memory.memory_service import MemoryService
 from app.dependencies import get_llm_service, get_memory_service
 from app.core.llm_service import LLMService
 from app.core.agent_manager import get_agent_manager

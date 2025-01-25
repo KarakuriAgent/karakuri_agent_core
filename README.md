@@ -79,6 +79,8 @@ For unsupported features or services, please check the [Project tab](https://git
   - 🧠 Persistent conversation history
   - 👤 User-specific context management
   - 📝 Session-based memory organization
+  - 🌐 Support for both self-hosted Zep and Zep Cloud
+  - 🔍 Relevant facts extraction and context enhancement
 
 - **User Management**
   - 👥 User registration and deletion
@@ -166,9 +168,6 @@ WEB_SOCKET_AUDIO_FILES_DIR=web_socket_audio_files
 # Memory System Configuration
 ZEP_URL=Zep server URL
 ZEP_API_SECRET=Zep API secret key
-ZEP_OPENAI_BASE_URL=OpenAI base URL for Zep
-ZEP_OPENAI_API_KEY=OpenAI API key for Zep
-ZEP_OPENAI_MODEL_NAME=OpenAI model name for Zep
 
 # Agent Configuration
 AGENT_1_NAME=Name of the agent

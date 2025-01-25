@@ -6,7 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from starlette.requests import ClientDisconnect
 from starlette.responses import FileResponse
 from app.core.llm_service import LLMService
-from app.core.memory_service import MemoryService
+from app.core.memory.memory_service import MemoryService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
 from app.dependencies import (

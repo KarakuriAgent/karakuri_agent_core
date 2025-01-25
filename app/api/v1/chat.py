@@ -3,7 +3,7 @@
 # Please see the LICENSE file in the project root.
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, File, Request
 from litellm import cast
-from app.core.memory_service import MemoryService
+from app.core.memory.memory_service import MemoryService
 from app.dependencies import (
     get_llm_service,
     get_memory_service,

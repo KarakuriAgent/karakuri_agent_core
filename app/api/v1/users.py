@@ -4,7 +4,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.auth.api_key import verify_token
 from app.schemas.user import UserResponse
-from app.core.memory_service import MemoryService
+from app.core.memory.memory_service import MemoryService
 from app.dependencies import get_memory_service
 import logging
 

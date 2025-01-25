@@ -18,9 +18,11 @@ Karakuri Agent is an open-source AI agent platform that enables dialogue through
 
 ### Memory System
 - Long-term memory management using Zep
+  - Support for both self-hosted Zep and Zep Cloud
   - Persistent conversation history
   - User-specific context management
   - Conversation session management
+  - Relevant facts extraction and utilization in system prompts
 - User management functionality
   - Add and delete users
   - Retrieve user information

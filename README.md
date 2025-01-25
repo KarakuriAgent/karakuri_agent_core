@@ -80,6 +80,9 @@ For unsupported features or services, please check the [Project tab](https://git
   - 📝 Session-based memory organization
   - 🌐 Support for both self-hosted Zep and Zep Cloud
   - 🔍 Relevant facts extraction and context enhancement
+  - ⚡ Redis caching for optimized performance
+    - Session memory caching
+    - Cross-session context preservation
 
 - **User Management**
   - 👥 User registration and deletion

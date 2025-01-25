@@ -10,7 +10,6 @@ You can also define multiple agents simultaneously, each with unique roles, pers
 ### 🚀 **Server-Side**
 - Framework: FastAPI
 - Memory Management: Zep
-- Database: PostgreSQL, Neo4j
 
 ### 🪶 **Model Support (LLM)**
 By utilizing LiteLLM, you can access models supported by [LiteLLM](https://github.com/BerriAI/litellm), such as OpenAI and Ollama.  
@@ -105,8 +104,6 @@ We plan to provide screenshots or GIFs showing the Flutter client and voice inte
 
 - **Server-Side**  
   - Python 3.8 or later  
-  - PostgreSQL for memory storage
-  - Neo4j for graph relationships
   - (Optional) VoicevoxEngine for TTS  
     - Run VoicevoxEngine locally and set the URL in `.env`.  
   - (Optional) For LINE integration, obtain tokens and a secret from the [LINE Developer Console](https://developers.line.biz/en/).

@@ -20,11 +20,12 @@ from litellm import (
     ModelResponse,  # type: ignore
     utils,  # type: ignore
 )
+from app.core.date_util import DateUtil
 from app.schemas.agent import AgentConfig
 from app.schemas.emotion import Emotion
 from app.schemas.llm import LLMResponse
 from app.core.config import get_settings
-from app.core.memory_service import MemoryService, conversation_history_lock
+from app.core.memory.memory_service import MemoryService, conversation_history_lock
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -57,14 +58,20 @@ Required JSON format:
         openai_request: bool = False,
     ) -> Union[Union[ModelResponse, CustomStreamWrapper], LLMResponse]:
         async with conversation_history_lock:
-            conversation_history = await self.memory_service.get_conversation_history(
+            session_memory = await self.memory_service.get_session_memory(
                 agent_config.id, user_id, message_type
             )
+            conversation_history = session_memory.messages
             systemMessage = ChatCompletionSystemMessage(
                 role="system",
-                content=agent_config.llm_system_prompt,
+                content="\n\n".join(
+                    [
+                        agent_config.llm_system_prompt,
+                        f"current date time: {DateUtil.now()}",
+                        session_memory.context,
+                    ]
+                ),
             )
-
             if image:
                 image_data_b64 = base64.b64encode(image).decode("utf-8")
                 data_url = f"data:image/jpeg;base64,{image_data_b64}"
@@ -104,6 +111,7 @@ Required JSON format:
                     )
                 )
 
+            logger.info([systemMessage] + conversation_history[:])
             response = await acompletion(
                 base_url=agent_config.message_generate_llm_base_url,
                 api_key=agent_config.message_generate_llm_api_key,
@@ -130,12 +138,10 @@ Required JSON format:
             )
 
             asyncio.create_task(
-                self.memory_service.update_conversation_history(
-                    agent_config.message_generate_llm_model,
+                self.memory_service.update_session_memory(
                     agent_config.id,
                     user_id,
                     message_type,
-                    systemMessage,
                     conversation_history,
                 )
             )

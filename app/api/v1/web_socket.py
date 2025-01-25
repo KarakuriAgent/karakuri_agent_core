@@ -16,7 +16,7 @@ from jsonschema import ValidationError
 from litellm import cast
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
-from app.core.memory_service import MemoryService
+from app.core.memory.memory_service import MemoryService
 from app.dependencies import (
     get_llm_service,
     get_memory_service,

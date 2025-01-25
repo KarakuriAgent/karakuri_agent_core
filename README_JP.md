@@ -9,7 +9,6 @@
 ### 🚀 **サーバーサイド**:
 - フレームワーク: FastAPI
 - メモリ管理: Zep
-- データベース: PostgreSQL, Neo4j
 
 ### 🪶 **モデル対応 (LLM)**: 
 LiteLLMを利用し、[LiteLLM](https://github.com/BerriAI/litellm)がサポートしているモデル(例: OpenAI, Ollama)にアクセス可能。  
@@ -103,8 +102,6 @@ Flutterクライアントの画面や音声インタラクションのGIFを公�
 
 - **サーバーサイド**  
   - Python 3.8以上  
-  - PostgreSQL（メモリストレージ用）
-  - Neo4j（グラフ関係管理用）
   - (任意) VoicevoxEngine (TTS用)  
     - ローカルでVoicevoxEngineを起動し、  
     - そのエンドポイント（例: `http://localhost:50021`）を `.env` ファイルの `AGENT_1_TTS_BASE_URL` に指定してください  

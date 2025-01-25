@@ -77,6 +77,8 @@ VoicevoxEngineはローカルで稼働させる必要があります。
   - 🧠 永続的な会話履歴
   - 👤 ユーザーごとのコンテキスト管理
   - 📝 セッションベースのメモリ管理
+  - 🌐 セルフホストZepとZep Cloudの両対応
+  - 🔍 関連情報の抽出とコンテキスト強化
 
 - **ユーザー管理機能**
   - 👥 ユーザーの登録・削除
@@ -167,9 +169,6 @@ WEB_SOCKET_AUDIO_FILES_DIR=websocket_audio_files
 # メモリシステム設定
 ZEP_URL=ZepサーバーのURL
 ZEP_API_SECRET=Zep APIシークレットキー
-ZEP_OPENAI_BASE_URL=Zep用OpenAIベースURL
-ZEP_OPENAI_API_KEY=Zep用OpenAI APIキー
-ZEP_OPENAI_MODEL_NAME=Zep用OpenAIモデル名
 
 AGENT_1_NAME=エージェントの名前
 AGENT_1_MESSAGE_GENERATE_LLM_BASE_URL=メッセージ生成用LLMのURL(LiteLLM形式)

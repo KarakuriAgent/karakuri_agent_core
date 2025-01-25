@@ -2,10 +2,11 @@
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
 
+import redis.asyncio as redis  # type: ignore
+import json
 import asyncio
 from typing import List
 import logging
-from fastapi import HTTPException
 from app.core.date_util import DateUtil
 
 from litellm import (
@@ -22,7 +23,15 @@ settings = get_settings()
 zep_client = create_zep_client(
     base_url=settings.zep_url, api_key=settings.zep_api_secret
 )
+redis_client = redis.from_url(
+    settings.redis_url, password=settings.redis_password, decode_responses=True
+)
 conversation_history_lock = asyncio.Lock()
+
+# Redis keys
+REDIS_KEYS = {
+    "FACTS": "facts",
+}
 
 
 class MemoryService:
@@ -32,13 +41,14 @@ class MemoryService:
         user_id: str,
         message_type: str,
     ) -> KarakuriMemory:
-        try:
-            return await zep_client.get_memory(
-                session_id=self._create_session_id(agent_id, user_id, message_type),
-                lastn=30,
-            )
-        except Exception:
-            raise HTTPException(status_code=500, detail="Failed to get session memory")
+        memory_json = await redis_client.get(
+            self._create_session_id(agent_id, user_id, message_type)
+        )
+        if memory_json:
+            return KarakuriMemory.model_validate(json.loads(memory_json))
+        else:
+            facts_json = await redis_client.get(REDIS_KEYS["FACTS"])
+            return KarakuriMemory(messages=[], facts=None, context=facts_json)
 
     async def update_session_memory(
         self,
@@ -65,6 +75,12 @@ class MemoryService:
                 user_id=user_id,
                 messages=messages,
             )
+            memory = await zep_client.get_memory(
+                session_id=self._create_session_id(agent_id, user_id, message_type),
+                lastn=30,
+            )
+            await redis_client.set(session_id, memory.model_dump_json())
+            await redis_client.set(REDIS_KEYS["FACTS"], memory.facts or "")
 
     def _create_session_id(self, agent_id: str, user_id: str, message_type: str) -> str:
         return f"{str(DateUtil.today())}_{agent_id}_{user_id}_{message_type}"

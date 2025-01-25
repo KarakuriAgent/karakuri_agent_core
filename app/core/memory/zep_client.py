@@ -18,6 +18,10 @@ from app.schemas.user import UserResponse
 
 class ZepClient(ABC):
     @abstractmethod
+    async def add_session(self, user_id: str, session_id: str):
+        pass
+
+    @abstractmethod
     async def get_memory(self, session_id: str, lastn: int) -> KarakuriMemory:
         pass
 
@@ -48,6 +52,14 @@ class ZepPythonClient(ZepClient):
     def __init__(self, base_url: str, api_key: str):
         self.client = zep_python.client.AsyncZep(base_url=base_url, api_key=api_key)
 
+    async def add_session(self, user_id: str, session_id: str):
+        try:
+            await self.client.memory.add_session(user_id=user_id, session_id=session_id)
+        except zep_python.BadRequestError as e:
+            if "session already exists" not in str(e):
+                # logger.error(f"Failed to add session: {e}")
+                raise
+
     async def get_memory(self, session_id: str, lastn: int) -> KarakuriMemory:
         memory = await self.client.memory.get(session_id=session_id, lastn=lastn)
         context = (
@@ -57,21 +69,17 @@ class ZepPythonClient(ZepClient):
         )
         return KarakuriMemory(
             messages=_create_litellm_messages(memory),
+            facts=context,
             context=context,
         )
 
     async def add_memory(
         self, user_id: str, session_id: str, messages: list[AllMessageValues]
     ):
-        try:
-            await self.client.memory.add_session(
-                session_id=session_id,
-                user_id=user_id,
-            )
-        except zep_python.BadRequestError as e:
-            if "session already exists" not in str(e):
-                # logger.error(f"Failed to add session: {e}")
-                raise
+        await self.add_session(
+            session_id=session_id,
+            user_id=user_id,
+        )
         zep_messages = _create_zep_messeges(is_cloud=False, messages=messages)
         await self.client.memory.add(
             session_id=session_id,
@@ -107,6 +115,14 @@ class ZepCloudClient(ZepClient):
     def __init__(self, api_key: str):
         self.client = zep_cloud.client.AsyncZep(api_key=api_key)
 
+    async def add_session(self, user_id: str, session_id: str):
+        try:
+            await self.client.memory.add_session(user_id=user_id, session_id=session_id)
+        except zep_python.BadRequestError as e:
+            if "session already exists" not in str(e):
+                # logger.error(f"Failed to add session: {e}")
+                raise
+
     async def get_memory(self, session_id: str, lastn: int) -> KarakuriMemory:
         memory = await self.client.memory.get(session_id=session_id, lastn=lastn)
         context = (
@@ -116,23 +132,21 @@ class ZepCloudClient(ZepClient):
             if memory.relevant_facts
             else ""
         )
+        facts = (
+            f"relevant_facts: ({','.join(fact.json() for fact in memory.relevant_facts)})"
+            if memory.relevant_facts
+            else ""
+        )
         return KarakuriMemory(
             messages=_create_litellm_messages(memory),
+            facts=facts,
             context=context,
         )
 
     async def add_memory(
         self, user_id: str, session_id: str, messages: list[AllMessageValues]
     ):
-        try:
-            await self.client.memory.add_session(
-                session_id=session_id,
-                user_id=user_id,
-            )
-        except zep_cloud.BadRequestError as e:
-            if "session already exists" not in str(e):
-                # logger.error(f"Failed to add session: {e}")
-                raise
+        await self.add_session(user_id=user_id, session_id=session_id)
         zep_messages = _create_zep_messeges(is_cloud=True, messages=messages)
         await self.client.memory.add(
             session_id=session_id,

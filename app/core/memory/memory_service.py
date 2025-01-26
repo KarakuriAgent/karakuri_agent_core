@@ -2,6 +2,7 @@
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
 
+import uuid
 import redis.asyncio as redis  # type: ignore
 import json
 import asyncio
@@ -38,9 +39,9 @@ class MemoryService:
         user_id: str,
         message_type: str,
     ) -> KarakuriMemory:
-        memory_json = await redis_client.get(
-            self._create_session_id(agent_id, user_id, message_type)
-        )
+        session_key = self._create_session_key(agent_id, user_id, message_type)
+        session_id = await self._get_session_id(session_key)
+        memory_json = await redis_client.get(session_id)
         if memory_json:
             return KarakuriMemory.model_validate(json.loads(memory_json))
         else:
@@ -70,7 +71,8 @@ class MemoryService:
                 ) :
             ]
 
-            session_id = self._create_session_id(agent_id, user_id, message_type)
+            session_key = self._create_session_key(agent_id, user_id, message_type)
+            session_id = await self._get_session_id(session_key)
             await zep_client.add_memory(
                 session_id=session_id,
                 user_id=user_id,
@@ -83,8 +85,19 @@ class MemoryService:
             await redis_client.set(session_id, memory.model_dump_json())
             await redis_client.set(REDIS_KEYS["FACTS"], memory.facts or "")
 
-    def _create_session_id(self, agent_id: str, user_id: str, message_type: str) -> str:
-        return f"{str(DateUtil.today())}_{agent_id}_{user_id}_{message_type}"
+    def _create_session_key(
+        self, agent_id: str, user_id: str, message_type: str
+    ) -> str:
+        return f"karakuri_agent_{str(DateUtil.today())}_{agent_id}_{user_id}_{message_type}"
+
+    async def _get_session_id(self, session_key: str) -> str:
+        session_id = await redis_client.hget("session_id", session_key)  # type: ignore
+        if not session_id:
+            session_id = uuid.uuid4().hex
+            await redis_client.hset("session_id", session_key, session_id)  # type: ignore
+            return session_id
+        else:
+            return str(session_id)
 
     async def add_user(self, agent_id: str, user_id: str):
         agent_config = get_agent_manager().get_agent(agent_id)

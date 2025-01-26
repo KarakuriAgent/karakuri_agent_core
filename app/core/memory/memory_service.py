@@ -28,7 +28,6 @@ redis_client = redis.from_url(
 )
 conversation_history_lock = asyncio.Lock()
 
-# Redis keys
 REDIS_KEYS = {
     "FACTS": "facts",
 }
@@ -47,8 +46,8 @@ class MemoryService:
         if memory_json:
             return KarakuriMemory.model_validate(json.loads(memory_json))
         else:
-            facts_json = await redis_client.get(REDIS_KEYS["FACTS"])
-            return KarakuriMemory(messages=[], facts=None, context=facts_json)
+            facts_json = await redis_client.get(REDIS_KEYS["FACTS"]) or ""
+            return KarakuriMemory(messages=[], facts=facts_json, context=facts_json)
 
     async def update_session_memory(
         self,
@@ -76,7 +75,7 @@ class MemoryService:
                 messages=messages,
             )
             memory = await zep_client.get_memory(
-                session_id=self._create_session_id(agent_id, user_id, message_type),
+                session_id=session_id,
                 lastn=30,
             )
             await redis_client.set(session_id, memory.model_dump_json())

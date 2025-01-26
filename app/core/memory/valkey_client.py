@@ -2,11 +2,15 @@
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
 
+import logging
 import uuid
 import json
 import valkey.asyncio as valkey
 
 from app.schemas.memory import KarakuriMemory
+
+
+logger = logging.getLogger(__name__)
 
 
 class ValkeyClient:
@@ -27,7 +31,7 @@ class ValkeyClient:
             f"{self.VALKEY_KEYS['SESSION_ID']}:{session_key}"
         )  # type: ignore
         if not session_id:
-            session_id = uuid.uuid4().hex
+            session_id = f"{session_key}_{uuid.uuid4().hex}"
             await self._valkey_client.set(
                 f"{self.VALKEY_KEYS['SESSION_ID']}:{session_key}", session_id
             )  # type: ignore

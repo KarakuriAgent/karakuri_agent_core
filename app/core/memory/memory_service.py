@@ -65,6 +65,14 @@ class MemoryService:
             await _valkey_client.update_memory(session_id, memory)
             await _valkey_client.update_facts(agent_id, user_id, memory.facts or "")
 
+    async def search_facts(self, agent_id: str, user_id: str, query: str):
+        zep_client = self._create_zep_client(agent_id)
+        return await zep_client.search_facts(user_id, query)
+
+    async def search_nodes(self, agent_id: str, user_id: str, query: str):
+        zep_client = self._create_zep_client(agent_id)
+        return await zep_client.search_nodes(user_id, query)
+
     def _create_zep_client(self, agent_id: str) -> ZepClient:
         agent_config = get_agent_manager().get_agent(agent_id)
         return create_zep_client(

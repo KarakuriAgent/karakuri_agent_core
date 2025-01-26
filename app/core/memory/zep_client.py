@@ -47,6 +47,14 @@ class ZepClient(ABC):
     async def list_users(self) -> list[UserResponse]:
         pass
 
+    @abstractmethod
+    async def search_facts(self, user_id: str, query: str, limit: int = 5) -> list[str]:
+        pass
+
+    @abstractmethod
+    async def search_nodes(self, user_id: str, query: str, limit: int = 5) -> list[str]:
+        pass
+
 
 class ZepPythonClient(ZepClient):
     def __init__(self, base_url: str, api_key: str):
@@ -110,6 +118,21 @@ class ZepPythonClient(ZepClient):
             if user.user_id is not None
         ]
 
+    async def search_facts(self, user_id: str, query: str, limit: int = 5) -> list[str]:
+        edges = await self.client.memory.search_sessions(
+            user_id=user_id, text=query, limit=limit, search_scope="facts"
+        )
+        if edges.results is None:
+            return []
+        return [
+            edge.fact.fact
+            for edge in edges.results
+            if edge.fact is not None and edge.fact.fact is not None
+        ]
+
+    async def search_nodes(self, user_id: str, query: str, limit: int = 5) -> list[str]:
+        return []
+
 
 class ZepCloudClient(ZepClient):
     def __init__(self, api_key: str):
@@ -125,13 +148,6 @@ class ZepCloudClient(ZepClient):
 
     async def get_memory(self, session_id: str, lastn: int) -> KarakuriMemory:
         memory = await self.client.memory.get(session_id=session_id, lastn=lastn)
-        context = (
-            "\n".join(
-                fact.fact for fact in memory.relevant_facts if fact.fact is not None
-            )
-            if memory.relevant_facts
-            else ""
-        )
         facts = (
             f"relevant_facts: ({','.join(fact.json() for fact in memory.relevant_facts)})"
             if memory.relevant_facts
@@ -140,7 +156,7 @@ class ZepCloudClient(ZepClient):
         return KarakuriMemory(
             messages=_create_litellm_messages(memory),
             facts=facts,
-            context=context,
+            context=memory.context or "",
         )
 
     async def add_memory(
@@ -176,6 +192,22 @@ class ZepCloudClient(ZepClient):
             for user in response.users
             if user.user_id is not None
         ]
+
+    async def search_facts(self, user_id: str, query: str, limit: int = 5) -> list[str]:
+        edges = await self.client.graph.search(
+            user_id=user_id, query=query, limit=limit, scope="edges"
+        )
+        if edges.edges is None:
+            return []
+        return [edge.fact for edge in edges.edges]
+
+    async def search_nodes(self, user_id: str, query: str, limit: int = 5) -> list[str]:
+        nodes = await self.client.graph.search(
+            user_id=user_id, query=query, limit=limit, scope="nodes"
+        )
+        if nodes.nodes is None:
+            return []
+        return [node.summary for node in nodes.nodes]
 
 
 def create_zep_client(base_url: str, api_key: str) -> ZepClient:

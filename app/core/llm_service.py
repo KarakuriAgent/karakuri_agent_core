@@ -2,15 +2,18 @@
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
 import asyncio
-from typing import List, Optional, Union
+from typing import List, Optional, Union, cast
 import base64
 import logging
 import json
 from litellm import (
     AllMessageValues,
+    ChatCompletionFunctionMessage,
     ChatCompletionImageObject,
     ChatCompletionImageUrlObject,
+    ChatCompletionMessageToolCall,
     ChatCompletionTextObject,
+    ChatCompletionToolMessage,
     ChatCompletionUserMessage,
     ChatCompletionSystemMessage,
     ChatCompletionAssistantMessage,
@@ -35,36 +38,6 @@ CHECK_SUPPORT_VISION_MODEL = settings.check_support_vision_model
 class LLMService:
     def __init__(self, memory_service: MemoryService):
         self.memory_service = memory_service
-        self.tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "search_facts",
-                    "description": "Search user's facts",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "query": {"type": "string", "description": "Search query"}
-                        },
-                        "required": ["query"],
-                    },
-                },
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "search_nodes",
-                    "description": "Search user's memory nodes",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "query": {"type": "string", "description": "Search query"}
-                        },
-                        "required": ["query"],
-                    },
-                },
-            },
-        ]
 
     def create_emotion_analysis_prompt(self, text: str) -> str:
         emotions = Emotion.to_request_values()
@@ -95,29 +68,32 @@ Required JSON format:
             api_key=agent_config.message_generate_llm_api_key,
             model=agent_config.message_generate_llm_model,
             messages=[systemMessage] + conversation_history[:],
-            tools=self.tools,
+            tools=self.memory_service.get_support_tools(agent_config.id),
             tool_choice="auto",
         )
 
-        if isinstance(response, dict) and "tool_calls" in response:
-            tool_calls = response["tool_calls"]
-            tool_results = await self._handle_tool_calls(
-                tool_calls, agent_config.id, user_id
+        if (
+            isinstance(response, ModelResponse)
+            and isinstance(response.choices[0], Choices)
+            and response.choices[0].message.tool_calls
+        ):
+            tool_calls = response.choices[0].message.tool_calls
+            conversation_history.append(
+                cast(ChatCompletionFunctionMessage, response.choices[0].message)
             )
+            for tool_call in tool_calls:
+                tool_results = await self._handle_tool_call(
+                    tool_call, agent_config.id, user_id
+                )
+                logger.info(f"tool_results: {tool_results}")
 
-            conversation_history.append(
-                ChatCompletionAssistantMessage(
-                    role="assistant",
-                    content="",
-                    tool_calls=tool_calls,
+                conversation_history.append(
+                    ChatCompletionToolMessage(
+                        role="tool",
+                        content=tool_results,
+                        tool_call_id=tool_call.id,
+                    )
                 )
-            )
-            conversation_history.append(
-                ChatCompletionUserMessage(
-                    role="user",
-                    content=tool_results,
-                )
-            )
 
             return await self._process_llm_response(
                 agent_config,
@@ -344,23 +320,19 @@ Required JSON format:
             logger.error(f"Error parsing emotion response: {str(e)}")
             return Emotion.NEUTRAL.value
 
-    async def _handle_tool_calls(
-        self, tool_calls: List[dict], agent_id: str, user_id: str
+    async def _handle_tool_call(
+        self, tool_call: ChatCompletionMessageToolCall, agent_id: str, user_id: str
     ) -> str:
-        results = []
-        for tool_call in tool_calls:
-            if tool_call["function"]["name"] == "search_facts":
-                args = json.loads(tool_call["function"]["arguments"])
-                result = await self.memory_service.search_facts(
-                    agent_id, user_id, args["query"]
+        support_memory_tools = self.memory_service.get_support_tools(agent_id)
+        tool_name = tool_call.function.name
+        if tool_name is None:
+            return ""
+        args = json.loads(tool_call.function.arguments)
+
+        for support_tool in support_memory_tools:
+            if tool_name == support_tool["function"]["name"]:
+                result = await self.memory_service.tool_call(
+                    agent_id, user_id, tool_name, args.get("query")
                 )
-                logger.info(f"search_facts: {result}")
-                results.append(json.dumps(result, ensure_ascii=False))
-            elif tool_call["function"]["name"] == "search_nodes":
-                args = json.loads(tool_call["function"]["arguments"])
-                result = await self.memory_service.search_nodes(
-                    agent_id, user_id, args["query"]
-                )
-                logger.info(f"search_nodes: {result}")
-                results.append(json.dumps(result, ensure_ascii=False))
-        return "\n".join(results)
+                return result
+        return ""

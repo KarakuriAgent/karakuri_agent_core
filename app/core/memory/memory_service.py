@@ -7,6 +7,7 @@ import asyncio
 from typing import List
 
 from app.core.date_util import DateUtil
+from app.schemas.llm import ToolDefinition
 from app.schemas.memory import KarakuriMemory, AllMessageValues
 from app.core.memory.valkey_client import ValkeyClient
 from app.core.agent_manager import get_agent_manager
@@ -65,11 +66,21 @@ class MemoryService:
             await _valkey_client.update_memory(session_id, memory)
             await _valkey_client.update_facts(agent_id, user_id, memory.facts or "")
 
-    async def search_facts(self, agent_id: str, user_id: str, query: str):
+    async def tool_call(
+        self, agent_id: str, user_id: str, method_name: str, query: str
+    ) -> str:
+        if method_name == "search_facts":
+            return "\n".join(await self.search_facts(agent_id, user_id, query))
+        elif method_name == "search_nodes":
+            return "\n".join(await self.search_nodes(agent_id, user_id, query))
+        else:
+            raise ValueError(f"Unsupported tool called: {method_name}")
+
+    async def search_facts(self, agent_id: str, user_id: str, query: str) -> list[str]:
         zep_client = self._create_zep_client(agent_id)
         return await zep_client.search_facts(user_id, query)
 
-    async def search_nodes(self, agent_id: str, user_id: str, query: str):
+    async def search_nodes(self, agent_id: str, user_id: str, query: str) -> list[str]:
         zep_client = self._create_zep_client(agent_id)
         return await zep_client.search_nodes(user_id, query)
 
@@ -99,3 +110,7 @@ class MemoryService:
     async def list_users(self, agent_id: str) -> List[UserResponse]:
         zep_client = self._create_zep_client(agent_id)
         return await zep_client.list_users()
+
+    def get_support_tools(self, agent_id: str) -> List[ToolDefinition]:
+        zep_client = self._create_zep_client(agent_id)
+        return zep_client.get_support_tools()

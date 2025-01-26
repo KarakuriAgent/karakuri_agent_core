@@ -12,11 +12,42 @@ from litellm import (
 )
 import zep_python.client
 import zep_cloud.client
+from app.schemas.llm import ToolDefinition
 from app.schemas.memory import KarakuriMemory
 from app.schemas.user import UserResponse
 
+tool_search_facts: ToolDefinition = {
+    "type": "function",
+    "function": {
+        "name": "search_facts",
+        "description": "Search user's facts",
+        "parameters": {
+            "type": "object",
+            "properties": {"query": {"type": "string", "description": "Search query"}},
+            "required": ["query"],
+        },
+    },
+}
+
+tool_search_nodes: ToolDefinition = {
+    "type": "function",
+    "function": {
+        "name": "search_nodes",
+        "description": "Search user's memory nodes",
+        "parameters": {
+            "type": "object",
+            "properties": {"query": {"type": "string", "description": "Search query"}},
+            "required": ["query"],
+        },
+    },
+}
+
 
 class ZepClient(ABC):
+    @abstractmethod
+    def get_support_tools(self) -> list[ToolDefinition]:
+        pass
+
     @abstractmethod
     async def add_session(self, user_id: str, session_id: str):
         pass
@@ -59,6 +90,9 @@ class ZepClient(ABC):
 class ZepPythonClient(ZepClient):
     def __init__(self, base_url: str, api_key: str):
         self.client = zep_python.client.AsyncZep(base_url=base_url, api_key=api_key)
+
+    def get_support_tools(self) -> list[ToolDefinition]:
+        return [tool_search_facts]
 
     async def add_session(self, user_id: str, session_id: str):
         try:
@@ -137,6 +171,9 @@ class ZepPythonClient(ZepClient):
 class ZepCloudClient(ZepClient):
     def __init__(self, api_key: str):
         self.client = zep_cloud.client.AsyncZep(api_key=api_key)
+
+    def get_support_tools(self) -> list[ToolDefinition]:
+        return [tool_search_facts, tool_search_nodes]
 
     async def add_session(self, user_id: str, session_id: str):
         try:

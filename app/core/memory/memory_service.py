@@ -8,7 +8,7 @@ from typing import List
 
 from app.core.date_util import DateUtil
 from app.schemas.memory import KarakuriMemory, AllMessageValues
-from app.core.memory.redis_client import RedisClient
+from app.core.memory.valkey_client import ValkeyClient
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 from app.core.memory.zep_client import create_zep_client
@@ -16,7 +16,7 @@ from app.schemas.user import UserResponse
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
-_redis_client = RedisClient(settings.redis_url, settings.redis_password)
+_valkey_client = ValkeyClient(settings.valkey_url, settings.valkey_password)
 conversation_history_lock = asyncio.Lock()
 
 
@@ -28,8 +28,8 @@ class MemoryService:
         message_type: str,
     ) -> KarakuriMemory:
         session_key = self._create_session_key(agent_id, user_id, message_type)
-        session_id = await _redis_client.get_session_id(session_key)
-        return await _redis_client.get_memory(session_id, agent_id, user_id)
+        session_id = await _valkey_client.get_session_id(session_key)
+        return await _valkey_client.get_memory(session_id, agent_id, user_id)
 
     async def update_session_memory(
         self,
@@ -55,7 +55,7 @@ class MemoryService:
             ]
 
             session_key = self._create_session_key(agent_id, user_id, message_type)
-            session_id = await _redis_client.get_session_id(session_key)
+            session_id = await _valkey_client.get_session_id(session_key)
             await zep_client.add_memory(
                 session_id=session_id,
                 user_id=user_id,
@@ -65,8 +65,8 @@ class MemoryService:
                 session_id=session_id,
                 lastn=30,
             )
-            await _redis_client.update_memory(session_id, memory)
-            await _redis_client.update_facts(agent_id, user_id, memory.facts or "")
+            await _valkey_client.update_memory(session_id, memory)
+            await _valkey_client.update_facts(agent_id, user_id, memory.facts or "")
 
     def _create_session_key(
         self, agent_id: str, user_id: str, message_type: str

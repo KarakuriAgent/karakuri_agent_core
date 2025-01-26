@@ -6,8 +6,6 @@ from functools import lru_cache
 import os
 from typing import List
 
-from numpy import double
-
 
 class Settings:
     def __init__(self):
@@ -33,11 +31,8 @@ class Settings:
         self.check_support_vision_model = (
             os.getenv("CHECK_SUPPORT_VISION_MODEL", "True").lower() == "true"
         )
-        self.redis_url = str(os.getenv("REDIS_URL", "redis://karakuri-redis"))
-        self.redis_password = str(os.getenv("REDIS_PASSWORD", "Redis_P@ssw0rd123"))
-        self.threshold_tokens_percentage = double(
-            os.getenv("THRESHOLD_TOKENS_PERCENTAGE", 0.8)
-        )
+        self.valkey_url = str(os.getenv("VALKEY_URL", "redis://karakuri-valkey"))
+        self.valkey_password = str(os.getenv("VALKEY_PASSWORD", "Valkey_P@ssw0rd123"))
 
     def get_agent_env(self, agent_id: int, key: str) -> str:
         return os.getenv(f"AGENT_{agent_id}_{key}") or ""

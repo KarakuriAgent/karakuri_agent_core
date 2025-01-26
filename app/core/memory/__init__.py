@@ -1,4 +1,4 @@
-from app.core.memory.redis_client import RedisClient
+from app.core.memory.valkey_client import ValkeyClient
 from app.core.memory.memory_service import MemoryService
 
-__all__ = ["RedisClient", "MemoryService"]
+__all__ = ["ValkeyClient", "MemoryService"]

@@ -26,10 +26,10 @@ Karakuri Agent is an open-source AI agent platform that enables dialogue through
   - User-specific context management
   - Advanced session management
     - UUID-based session identifiers
-    - Redis hash-based session key mapping
+    - Valkey hash-based session key mapping
     - Consistent session tracking across operations
   - Relevant facts extraction and utilization in system prompts
-  - Redis caching for performance optimization
+  - Valkey caching for performance optimization
     - Session memory caching
     - Facts caching for cross-session context preservation
 - User management functionality
@@ -87,9 +87,9 @@ Karakuri Agent is an open-source AI agent platform that enables dialogue through
 - Easy deployment with Docker Compose
   - Karakuri Agent Server
   - Zep Memory Server
-  - Redis Cache
+  - Valkey Cache
 - Separation of development and production environments
-- Redis persistence support
+- Valkey persistence support
 
 ## License
 - Free for non-commercial use (modification and redistribution allowed)

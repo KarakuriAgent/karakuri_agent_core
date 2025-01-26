@@ -118,7 +118,7 @@ class ZepCloudClient(ZepClient):
     async def add_session(self, user_id: str, session_id: str):
         try:
             await self.client.memory.add_session(user_id=user_id, session_id=session_id)
-        except zep_python.BadRequestError as e:
+        except zep_cloud.BadRequestError as e:
             if "session already exists" not in str(e):
                 # logger.error(f"Failed to add session: {e}")
                 raise

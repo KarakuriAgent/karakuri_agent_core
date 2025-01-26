@@ -80,6 +80,9 @@ For unsupported features or services, please check the [Project tab](https://git
   - 📝 Session-based memory organization
   - 🌐 Support for both self-hosted Zep and Zep Cloud
   - 🔍 Relevant facts extraction and context enhancement
+  - ⚡ Valkey caching for optimized performance
+    - Session memory caching
+    - Cross-session context preservation
 
 - **User Management**
   - 👥 User registration and deletion
@@ -162,10 +165,6 @@ CHAT_AUDIO_FILES_DIR=chat_audio_files
 WEB_SOCKET_MAX_AUDIO_FILES=Max number of audio files for web_socket endpoint (e.g., 5)
 WEB_SOCKET_AUDIO_FILES_DIR=web_socket_audio_files
 
-# Memory System Configuration
-ZEP_URL=Zep server URL
-ZEP_API_SECRET=Zep API secret key
-
 # Agent Configuration
 AGENT_1_NAME=Name of the agent
 AGENT_1_MESSAGE_GENERATE_LLM_BASE_URL=Base URL for message generation LLM (LiteLLM style)
@@ -185,6 +184,8 @@ AGENT_1_TTS_SPEAKER_ID=TTS speaker ID
 AGENT_1_LLM_SYSTEM_PROMPT=System prompt for the agent
 AGENT_1_LINE_CHANNEL_SECRET=LINE channel secret (required if LINE integration is used)
 AGENT_1_LINE_CHANNEL_ACCESS_TOKEN=LINE channel access token (required if LINE integration is used)
+AGENT_1_ZEP_URL=Zep server URL for agent 1
+AGENT_1_ZEP_API_SECRET=Zep API secret key for agent 1
 
 # Increase AGENT_2_, AGENT_3_, etc. for multiple agents
 ```

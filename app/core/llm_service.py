@@ -45,7 +45,7 @@ Input text: {text}
 
 Required JSON format:
 {{
-    "emotion": One of these emotions: {', '.join(emotions)}
+    "emotion": One of these emotions: {", ".join(emotions)}
 }}"""
 
     async def generate_response(

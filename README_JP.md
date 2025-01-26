@@ -78,6 +78,9 @@ VoicevoxEngineはローカルで稼働させる必要があります。
   - 📝 セッションベースのメモリ管理
   - 🌐 セルフホストZepとZep Cloudの両対応
   - 🔍 関連情報の抽出とコンテキスト強化
+  - ⚡ Valkeyキャッシュによるパフォーマンス最適化
+    - セッションメモリのキャッシング
+    - セッション間のコンテキスト保持
 
 - **ユーザー管理機能**
   - 👥 ユーザーの登録・削除
@@ -163,10 +166,6 @@ CHAT_AUDIO_FILES_DIR=chat_audio_files
 WEB_SOCKET_MAX_AUDIO_FILES=WebSocketエンドポイントで利用する音声ファイルの最大保存件数 (例:5)
 WEB_SOCKET_AUDIO_FILES_DIR=websocket_audio_files
 
-# メモリシステム設定
-ZEP_URL=ZepサーバーのURL
-ZEP_API_SECRET=Zep APIシークレットキー
-
 AGENT_1_NAME=エージェントの名前
 AGENT_1_MESSAGE_GENERATE_LLM_BASE_URL=メッセージ生成用LLMのURL(LiteLLM形式)
 AGENT_1_MESSAGE_GENERATE_LLM_API_KEY=メッセージ生成用LLMのAPIキー
@@ -185,6 +184,8 @@ AGENT_1_TTS_SPEAKER_ID=TTSのスピーカーID
 AGENT_1_LLM_SYSTEM_PROMPT=エージェントに設定するシステムプロンプト
 AGENT_1_LINE_CHANNEL_SECRET=LINEチャンネルシークレット(LINE統合を利用する場合は必要)
 AGENT_1_LINE_CHANNEL_ACCESS_TOKEN=LINEチャンネルアクセストークン(LINE統合を利用する場合は必要)
+AGENT_1_ZEP_URL=エージェント1用のZepサーバーURL
+AGENT_1_ZEP_API_SECRET=エージェント1用のZep APIシークレットキー
 
 # AGENT_2_... と接頭辞を増やすことで、複数エージェントが定義可能
 ```

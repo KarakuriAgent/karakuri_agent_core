@@ -2,34 +2,22 @@
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
 
-import uuid
-import redis.asyncio as redis  # type: ignore
-import json
+import logging
 import asyncio
 from typing import List
-import logging
-from app.core.agent_manager import get_agent_manager
+
 from app.core.date_util import DateUtil
-
-from litellm import (
-    AllMessageValues,
-)
-
+from app.schemas.memory import KarakuriMemory, AllMessageValues
+from app.core.memory.redis_client import RedisClient
+from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 from app.core.memory.zep_client import create_zep_client
-from app.schemas.memory import KarakuriMemory
 from app.schemas.user import UserResponse
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
-redis_client = redis.from_url(
-    settings.redis_url, password=settings.redis_password, decode_responses=True
-)
+_redis_client = RedisClient(settings.redis_url, settings.redis_password)
 conversation_history_lock = asyncio.Lock()
-
-REDIS_KEYS = {
-    "FACTS": "facts",
-}
 
 
 class MemoryService:
@@ -40,13 +28,8 @@ class MemoryService:
         message_type: str,
     ) -> KarakuriMemory:
         session_key = self._create_session_key(agent_id, user_id, message_type)
-        session_id = await self._get_session_id(session_key)
-        memory_json = await redis_client.get(session_id)
-        if memory_json:
-            return KarakuriMemory.model_validate(json.loads(memory_json))
-        else:
-            facts_json = await redis_client.get(REDIS_KEYS["FACTS"]) or ""
-            return KarakuriMemory(messages=[], facts=facts_json, context=facts_json)
+        session_id = await _redis_client.get_session_id(session_key)
+        return await _redis_client.get_memory(session_id, agent_id, user_id)
 
     async def update_session_memory(
         self,
@@ -72,7 +55,7 @@ class MemoryService:
             ]
 
             session_key = self._create_session_key(agent_id, user_id, message_type)
-            session_id = await self._get_session_id(session_key)
+            session_id = await _redis_client.get_session_id(session_key)
             await zep_client.add_memory(
                 session_id=session_id,
                 user_id=user_id,
@@ -82,22 +65,13 @@ class MemoryService:
                 session_id=session_id,
                 lastn=30,
             )
-            await redis_client.set(session_id, memory.model_dump_json())
-            await redis_client.set(REDIS_KEYS["FACTS"], memory.facts or "")
+            await _redis_client.update_memory(session_id, memory)
+            await _redis_client.update_facts(agent_id, user_id, memory.facts or "")
 
     def _create_session_key(
         self, agent_id: str, user_id: str, message_type: str
     ) -> str:
         return f"karakuri_agent_{str(DateUtil.today())}_{agent_id}_{user_id}_{message_type}"
-
-    async def _get_session_id(self, session_key: str) -> str:
-        session_id = await redis_client.hget("session_id", session_key)  # type: ignore
-        if not session_id:
-            session_id = uuid.uuid4().hex
-            await redis_client.hset("session_id", session_key, session_id)  # type: ignore
-            return session_id
-        else:
-            return str(session_id)
 
     async def add_user(self, agent_id: str, user_id: str):
         agent_config = get_agent_manager().get_agent(agent_id)

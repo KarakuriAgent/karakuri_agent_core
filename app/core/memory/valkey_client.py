@@ -28,11 +28,11 @@ class ValkeyClient:
         )  # type: ignore
         if not session_id:
             session_id = uuid.uuid4().hex
-            await self._valkey_client.hset(
-                self.VALKEY_KEYS["SESSION_ID"], session_key, session_id
+            await self._valkey_client.set(
+                f"{self.VALKEY_KEYS['SESSION_ID']}:{session_key}", session_id
             )  # type: ignore
-            await self._valkey_client.hexpire(
-                self.VALKEY_KEYS["SESSION_ID"], self._default_ttl, session_key
+            await self._valkey_client.expire(
+                f"{self.VALKEY_KEYS['SESSION_ID']}:{session_key}", self._default_ttl
             )
             return session_id
         else:
@@ -52,18 +52,18 @@ class ValkeyClient:
         )
 
     async def update_memory(self, session_id: str, memory: KarakuriMemory):
-        await self._valkey_client.hset(
-            self.VALKEY_KEYS["MEMORY"], session_id, memory.model_dump_json()
+        await self._valkey_client.set(
+            f"{self.VALKEY_KEYS['MEMORY']}:{session_id}", memory.model_dump_json()
         )  # type: ignore
-        await self._valkey_client.hexpire(
-            self.VALKEY_KEYS["MEMORY"], self._default_ttl, session_id
+        await self._valkey_client.expire(
+            f"{self.VALKEY_KEYS['MEMORY']}:{session_id}", self._default_ttl
         )
 
     async def get_memory(
         self, session_id: str, agent_id: str, user_id: str
     ) -> KarakuriMemory:
-        memory_json = await self._valkey_client.hget(
-            self.VALKEY_KEYS["MEMORY"], session_id
+        memory_json = await self._valkey_client.get(
+            f"{self.VALKEY_KEYS['MEMORY']}:{session_id}"
         )  # type: ignore
         if memory_json:
             return KarakuriMemory.model_validate(json.loads(memory_json))

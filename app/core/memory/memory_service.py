@@ -7,6 +7,7 @@ import json
 import asyncio
 from typing import List
 import logging
+from app.core.agent_manager import get_agent_manager
 from app.core.date_util import DateUtil
 
 from litellm import (
@@ -20,9 +21,6 @@ from app.schemas.user import UserResponse
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
-zep_client = create_zep_client(
-    base_url=settings.zep_url, api_key=settings.zep_api_secret
-)
 redis_client = redis.from_url(
     settings.redis_url, password=settings.redis_password, decode_responses=True
 )
@@ -57,6 +55,10 @@ class MemoryService:
         conversation_history: List[AllMessageValues],
     ):
         async with conversation_history_lock:
+            agent_config = get_agent_manager().get_agent(agent_id)
+            zep_client = create_zep_client(
+                base_url=agent_config.zep_url, api_key=agent_config.zep_api_secret
+            )
             messages = conversation_history[
                 next(
                     (
@@ -84,14 +86,30 @@ class MemoryService:
     def _create_session_id(self, agent_id: str, user_id: str, message_type: str) -> str:
         return f"{str(DateUtil.today())}_{agent_id}_{user_id}_{message_type}"
 
-    async def add_user(self, user_id: str):
+    async def add_user(self, agent_id: str, user_id: str):
+        agent_config = get_agent_manager().get_agent(agent_id)
+        zep_client = create_zep_client(
+            base_url=agent_config.zep_url, api_key=agent_config.zep_api_secret
+        )
         await zep_client.add_user(user_id=user_id)
 
-    async def delete_user(self, user_id: str):
+    async def delete_user(self, agent_id: str, user_id: str):
+        agent_config = get_agent_manager().get_agent(agent_id)
+        zep_client = create_zep_client(
+            base_url=agent_config.zep_url, api_key=agent_config.zep_api_secret
+        )
         await zep_client.delete_user(user_id=user_id)
 
-    async def get_user(self, user_id: str) -> UserResponse:
+    async def get_user(self, agent_id: str, user_id: str) -> UserResponse:
+        agent_config = get_agent_manager().get_agent(agent_id)
+        zep_client = create_zep_client(
+            base_url=agent_config.zep_url, api_key=agent_config.zep_api_secret
+        )
         return await zep_client.get_user(user_id=user_id)
 
-    async def list_users(self) -> List[UserResponse]:
+    async def list_users(self, agent_id: str) -> List[UserResponse]:
+        agent_config = get_agent_manager().get_agent(agent_id)
+        zep_client = create_zep_client(
+            base_url=agent_config.zep_url, api_key=agent_config.zep_api_secret
+        )
         return await zep_client.list_users()

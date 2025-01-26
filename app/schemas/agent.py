@@ -24,6 +24,8 @@ class AgentConfig(BaseModel):
     tts_speaker_id: str
     line_channel_secret: str
     line_channel_access_token: str
+    zep_url: str
+    zep_api_secret: str
 
 
 class AgentResponse(BaseModel):

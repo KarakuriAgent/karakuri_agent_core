@@ -29,12 +29,14 @@ class AgentManager:
             emotion_generate_llm_model = self.settings.get_agent_env(
                 i, "EMOTION_GENERATE_LLM_MODEL"
             )
+            zep_api_secret = self.settings.get_agent_env(i, "ZEP_API_SECRET")
             required_values = [
                 name,
                 message_generate_llm_api_key,
                 message_generate_llm_model,
                 emotion_generate_llm_api_key,
                 emotion_generate_llm_model,
+                zep_api_secret,
             ]
 
             if not all(required_values):
@@ -83,7 +85,11 @@ class AgentManager:
                     i, "LINE_CHANNEL_ACCESS_TOKEN"
                 )
                 or "",
+                zep_url=self.settings.get_agent_env(i, "ZEP_URL")
+                or "https://api.getzep.com",
+                zep_api_secret=zep_api_secret,
             )
+
             i += 1
         return agents
 

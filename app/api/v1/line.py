@@ -155,7 +155,7 @@ async def handle_line_callback(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    if await memory_service.get_user(user_id) is None:
+    if await memory_service.get_user(agent_id, user_id) is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )

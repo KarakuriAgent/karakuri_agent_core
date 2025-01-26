@@ -14,13 +14,14 @@ logger = logging.getLogger(__name__)
 
 @router.post("", response_model=UserResponse)
 async def add_user(
+    agent_id: str,
     user_id: str,
     memory_service: MemoryService = Depends(get_memory_service),
     _: None = Depends(verify_token),
 ):
     """Add a new user."""
     try:
-        await memory_service.add_user(user_id)
+        await memory_service.add_user(agent_id, user_id)
         return {"user_id": user_id}
     except Exception as e:
         logger.error(f"Failed to add user: {e}")
@@ -29,13 +30,14 @@ async def add_user(
 
 @router.delete("/{user_id}", response_model=UserResponse)
 async def delete_user(
+    agent_id: str,
     user_id: str,
     memory_service: MemoryService = Depends(get_memory_service),
     _: None = Depends(verify_token),
 ):
     """Delete a user."""
     try:
-        await memory_service.delete_user(user_id)
+        await memory_service.delete_user(agent_id, user_id)
         return {"user_id": user_id}
     except Exception as e:
         logger.error(f"Failed to delete user: {e}")
@@ -44,13 +46,14 @@ async def delete_user(
 
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user(
+    agent_id: str,
     user_id: str,
     memory_service: MemoryService = Depends(get_memory_service),
     _: None = Depends(verify_token),
 ):
     """Get user information."""
     try:
-        return await memory_service.get_user(user_id)
+        return await memory_service.get_user(agent_id, user_id)
     except Exception as e:
         logger.error(f"Failed to get user: {e}")
         raise HTTPException(status_code=404, detail="User not found")
@@ -58,12 +61,13 @@ async def get_user(
 
 @router.get("", response_model=list[UserResponse])
 async def list_users(
+    agent_id: str,
     memory_service: MemoryService = Depends(get_memory_service),
     _: None = Depends(verify_token),
 ):
     """List all users."""
     try:
-        return await memory_service.list_users()
+        return await memory_service.list_users(agent_id)
     except Exception as e:
         logger.error(f"Failed to list users: {e}")
         raise HTTPException(status_code=500, detail="Failed to list users")

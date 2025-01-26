@@ -26,7 +26,7 @@ Karakuri Agent is an open-source AI agent platform that enables dialogue through
   - User-specific context management
   - Advanced session management
     - UUID-based session identifiers
-    - Valkey hash-based session key mapping
+    - Valkey string-based key-value storage with hierarchical naming
     - Consistent session tracking across operations
   - Relevant facts extraction and utilization in system prompts
   - Valkey caching for performance optimization

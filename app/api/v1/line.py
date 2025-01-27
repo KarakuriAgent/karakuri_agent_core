@@ -93,7 +93,7 @@ async def process_line_events_background(
                 llm_response = cast(
                     LLMResponse,
                     await llm_service.generate_response(
-                        "line",
+                        "talk",
                         text_message,
                         agent_config,
                         user_id,

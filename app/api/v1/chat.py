@@ -63,7 +63,7 @@ async def chat_text_to_text(
         llm_response = cast(
             LLMResponse,
             await llm_service.generate_response(
-                message_type="text_to_text",
+                message_type="talk",
                 message=message,
                 agent_config=agent_config,
                 user_id=user_id,
@@ -115,7 +115,7 @@ async def chat_text_to_voice(
         llm_response = cast(
             LLMResponse,
             await llm_service.generate_response(
-                message_type="text_to_voice",
+                message_type="talk",
                 message=message,
                 agent_config=agent_config,
                 user_id=user_id,
@@ -186,7 +186,7 @@ async def chat_voice_to_text(
         llm_response = cast(
             LLMResponse,
             await llm_service.generate_response(
-                message_type="voice_to_text",
+                message_type="talk",
                 message=text_message,
                 agent_config=agent_config,
                 user_id=user_id,
@@ -244,7 +244,7 @@ async def chat_voice_to_voice(
         llm_response = cast(
             LLMResponse,
             await llm_service.generate_response(
-                message_type="voice_to_voice",
+                message_type="talk",
                 message=text_message,
                 agent_config=agent_config,
                 user_id=user_id,

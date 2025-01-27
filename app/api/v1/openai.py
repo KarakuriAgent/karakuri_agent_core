@@ -53,7 +53,7 @@ async def openai_chat_completions(
         )
 
         llm_response = await llm_service.generate_response(
-            message_type="text_to_text",
+            message_type="talk",
             message=message,
             agent_config=agent_config,
             user_id=user_id,

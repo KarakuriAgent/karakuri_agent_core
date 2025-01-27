@@ -140,7 +140,7 @@ async def websocket_endpoint(
             llm_response = cast(
                 LLMResponse,
                 await llm_service.generate_response(
-                    "websocket",
+                    "talk",
                     text_message,
                     agent_config,
                     user_id,

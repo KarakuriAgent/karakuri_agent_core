@@ -7,7 +7,9 @@ import uuid
 import json
 import valkey.asyncio as valkey
 
+from app.core.date_util import DateUtil
 from app.schemas.memory import KarakuriMemory
+from app.schemas.status import AgentStatus, RestingStatusData
 
 
 logger = logging.getLogger(__name__)
@@ -18,6 +20,7 @@ class ValkeyClient:
         "SESSION_ID": "karakuri_agent_session_id",
         "MEMORY": "karakuri_agent_memory",
         "FACTS": "karakuri_agent_facts",
+        "STATUS": "karakuri_agent_status",
     }
 
     def __init__(self, url: str, password: str):
@@ -74,3 +77,19 @@ class ValkeyClient:
         else:
             facts = await self.get_facts(agent_id, user_id)
             return KarakuriMemory(messages=[], facts=facts, context=facts)
+
+    async def update_current_status(self, agent_id: str, status: AgentStatus):
+        await self._valkey_client.set(
+            f"{self.VALKEY_KEYS['STATUS']}:{agent_id}", status.model_dump_json()
+        )
+
+    async def get_current_status(self, agent_id: str) -> AgentStatus:
+        status_json = await self._valkey_client.get(
+            f"{self.VALKEY_KEYS['STATUS']}:{agent_id}"
+        )
+        if status_json:
+            return AgentStatus.model_validate(json.loads(status_json))
+        else:
+            return RestingStatusData(
+                description="", started_at=DateUtil.now(), end_at=None, location=""
+            )

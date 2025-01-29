@@ -3,6 +3,7 @@
 # Please see the LICENSE file in the project root.
 from app.core.llm_service import LLMService
 from app.core.memory.memory_service import MemoryService
+from app.core.status_service import StatusService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
 from functools import lru_cache
@@ -27,3 +28,8 @@ def get_stt_service() -> STTService:
 @lru_cache()
 def get_memory_service() -> MemoryService:
     return MemoryService()
+
+
+@lru_cache()
+def get_status_service() -> StatusService:
+    return StatusService()

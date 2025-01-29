@@ -9,7 +9,7 @@ from typing import List
 from app.core.date_util import DateUtil
 from app.schemas.llm import ToolDefinition
 from app.schemas.memory import KarakuriMemory, AllMessageValues
-from app.core.memory.valkey_client import ValkeyClient
+from app.core.valkey_client import ValkeyClient
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 from app.core.memory.zep_client import ZepClient, create_zep_client

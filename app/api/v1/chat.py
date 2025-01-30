@@ -49,7 +49,8 @@ async def chat_text_to_text(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    if await memory_service.get_user(agent_id, user_id) is None:
+    user_config = await memory_service.get_user(agent_id, user_id)
+    if user_config is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )
@@ -66,7 +67,7 @@ async def chat_text_to_text(
                 message_type="talk",
                 message=message,
                 agent_config=agent_config,
-                user_id=user_id,
+                user_config=user_config,
                 image=image_content,
             ),
         )
@@ -101,7 +102,8 @@ async def chat_text_to_voice(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    if await memory_service.get_user(agent_id, user_id) is None:
+    user_config = await memory_service.get_user(agent_id, user_id)
+    if user_config is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )
@@ -118,7 +120,7 @@ async def chat_text_to_voice(
                 message_type="talk",
                 message=message,
                 agent_config=agent_config,
-                user_id=user_id,
+                user_config=user_config,
                 image=image_content,
             ),
         )
@@ -168,7 +170,8 @@ async def chat_voice_to_text(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    if await memory_service.get_user(agent_id, user_id) is None:
+    user_config = await memory_service.get_user(agent_id, user_id)
+    if user_config is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )
@@ -189,7 +192,7 @@ async def chat_voice_to_text(
                 message_type="talk",
                 message=text_message,
                 agent_config=agent_config,
-                user_id=user_id,
+                user_config=user_config,
                 image=image_content,
             ),
         )
@@ -226,7 +229,8 @@ async def chat_voice_to_voice(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    if await memory_service.get_user(agent_id, user_id) is None:
+    user_config = await memory_service.get_user(agent_id, user_id)
+    if user_config is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )
@@ -247,7 +251,7 @@ async def chat_voice_to_voice(
                 message_type="talk",
                 message=text_message,
                 agent_config=agent_config,
-                user_id=user_id,
+                user_config=user_config,
                 image=image_content,
             ),
         )

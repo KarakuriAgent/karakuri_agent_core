@@ -9,7 +9,14 @@ import valkey.asyncio as valkey
 
 from app.core.date_util import DateUtil
 from app.schemas.memory import KarakuriMemory
-from app.schemas.status import AgentStatus, RestingStatusData
+from app.schemas.status import (
+    ActiveStatusData,
+    RestingStatusData,
+    SleepingStatusData,
+    Status,
+    StatusType,
+    TalkingStatusData,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -78,17 +85,29 @@ class ValkeyClient:
             facts = await self.get_facts(agent_id, user_id)
             return KarakuriMemory(messages=[], facts=facts, context=facts)
 
-    async def update_current_status(self, agent_id: str, status: AgentStatus):
+    async def update_current_status(self, agent_id: str, status: Status):
         await self._valkey_client.set(
             f"{self.VALKEY_KEYS['STATUS']}:{agent_id}", status.model_dump_json()
         )
 
-    async def get_current_status(self, agent_id: str) -> AgentStatus:
+    async def get_current_status(self, agent_id: str) -> Status:
         status_json = await self._valkey_client.get(
             f"{self.VALKEY_KEYS['STATUS']}:{agent_id}"
         )
         if status_json:
-            return AgentStatus.model_validate(json.loads(status_json))
+            data = json.loads(status_json)
+            data["type"] = StatusType(data["type"])
+            status_type = data["type"]
+            if status_type == StatusType.ACTIVE:
+                return ActiveStatusData.model_validate(data)
+            elif status_type == StatusType.TALKING:
+                return TalkingStatusData.model_validate(data)
+            elif status_type == StatusType.RESTING:
+                return RestingStatusData.model_validate(data)
+            elif status_type == StatusType.SLEEPING:
+                return SleepingStatusData.model_validate(data)
+            else:
+                raise ValueError(f"Unknown status type: {status_type}")
         else:
             return RestingStatusData(
                 description="", started_at=DateUtil.now(), end_at=None, location=""

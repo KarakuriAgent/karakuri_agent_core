@@ -12,7 +12,8 @@ from functools import lru_cache
 @lru_cache()
 def get_llm_service() -> LLMService:
     memory_service = get_memory_service()
-    return LLMService(memory_service=memory_service)
+    status_service = get_status_service()
+    return LLMService(memory_service=memory_service, status_service=status_service)
 
 
 @lru_cache()

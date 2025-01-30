@@ -29,6 +29,8 @@ from app.schemas.emotion import Emotion
 from app.schemas.llm import LLMResponse
 from app.core.config import get_settings
 from app.core.memory.memory_service import MemoryService, conversation_history_lock
+from app.core.status_service import StatusService
+from app.schemas.user import UserConfig
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -36,8 +38,9 @@ CHECK_SUPPORT_VISION_MODEL = settings.check_support_vision_model
 
 
 class LLMService:
-    def __init__(self, memory_service: MemoryService):
+    def __init__(self, memory_service: MemoryService, status_service: StatusService):
         self.memory_service = memory_service
+        self.status_service = status_service
 
     def create_emotion_analysis_prompt(self, text: str) -> str:
         emotions = Emotion.to_request_values()
@@ -110,13 +113,13 @@ Required JSON format:
         message_type: str,
         message: str,
         agent_config: AgentConfig,
-        user_id: str,
+        user_config: UserConfig,
         image: Optional[bytes] = None,
         openai_request: bool = False,
     ) -> Union[Union[ModelResponse, CustomStreamWrapper], LLMResponse]:
         async with conversation_history_lock:
             session_memory = await self.memory_service.get_session_memory(
-                agent_config.id, user_id, message_type
+                agent_config.id, user_config.id, message_type
             )
             conversation_history = session_memory.messages
             systemMessage = ChatCompletionSystemMessage(
@@ -124,6 +127,7 @@ Required JSON format:
                 content="\n\n".join(
                     [
                         agent_config.llm_system_prompt,
+                        f"User name: {user_config.first_name} {user_config.last_name}",
                         f"current date time: {DateUtil.now()}",
                         session_memory.context,
                         """
@@ -149,6 +153,13 @@ Required JSON format:
                     ]
                 ),
             )
+            await self.status_service.start_conversation(
+                agent_config.id,
+                user_config.id,
+                user_config.last_name,
+                user_config.first_name,
+            )
+
             if image:
                 image_data_b64 = base64.b64encode(image).decode("utf-8")
                 data_url = f"data:image/jpeg;base64,{image_data_b64}"
@@ -190,7 +201,7 @@ Required JSON format:
 
             response = await self._process_llm_response(
                 agent_config,
-                user_id,
+                user_config.id,
                 systemMessage,
                 conversation_history,
             )
@@ -202,6 +213,8 @@ Required JSON format:
                     content=agent_message,
                 )
             )
+
+            await self.status_service.update_conversation_time(agent_config.id)
 
             emotion = await self.generate_emotion_response(
                 user_message=message,
@@ -216,7 +229,7 @@ Required JSON format:
             asyncio.create_task(
                 self.memory_service.update_session_memory(
                     agent_config.id,
-                    user_id,
+                    user_config.id,
                     message_type,
                     conversation_history,
                 )

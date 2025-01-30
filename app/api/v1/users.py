@@ -16,12 +16,14 @@ logger = logging.getLogger(__name__)
 async def add_user(
     agent_id: str,
     user_id: str,
+    last_name: str,
+    first_name: str,
     memory_service: MemoryService = Depends(get_memory_service),
     _: None = Depends(verify_token),
 ):
     """Add a new user."""
     try:
-        await memory_service.add_user(agent_id, user_id)
+        await memory_service.add_user(agent_id, user_id, last_name, first_name)
         return {"user_id": user_id}
     except Exception as e:
         logger.error(f"Failed to add user: {e}")
@@ -53,7 +55,12 @@ async def get_user(
 ):
     """Get user information."""
     try:
-        return await memory_service.get_user(agent_id, user_id)
+        user_config = await memory_service.get_user(agent_id, user_id)
+        return UserResponse(
+            user_id=user_config.id,
+            last_name=user_config.last_name,
+            first_name=user_config.first_name,
+        )
     except Exception as e:
         logger.error(f"Failed to get user: {e}")
         raise HTTPException(status_code=404, detail="User not found")
@@ -67,7 +74,15 @@ async def list_users(
 ):
     """List all users."""
     try:
-        return await memory_service.list_users(agent_id)
+        user_configs = await memory_service.list_users(agent_id)
+        return [
+            UserResponse(
+                user_id=user.id,
+                last_name=user.last_name,
+                first_name=user.first_name,
+            )
+            for user in user_configs
+        ]
     except Exception as e:
         logger.error(f"Failed to list users: {e}")
         raise HTTPException(status_code=500, detail="Failed to list users")

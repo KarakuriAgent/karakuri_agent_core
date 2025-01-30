@@ -16,6 +16,7 @@ from app.dependencies import (
     get_tts_service,
 )
 from app.schemas.llm import LLMResponse
+from app.schemas.user import UserConfig
 from app.utils.audio import calculate_audio_duration, upload_to_storage
 from pathlib import Path
 from typing import Dict, cast, List
@@ -56,7 +57,7 @@ async def process_line_events_background(
     body: str,
     signature: str,
     agent_config: AgentConfig,
-    user_id: str,
+    user_config: UserConfig,
     request: Request,
     llm_service: LLMService,
     tts_service: TTSService,
@@ -96,7 +97,7 @@ async def process_line_events_background(
                         "talk",
                         text_message,
                         agent_config,
-                        user_id,
+                        user_config,
                         image=cached_image_bytes,
                     ),
                 )
@@ -155,7 +156,8 @@ async def handle_line_callback(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    if await memory_service.get_user(agent_id, user_id) is None:
+    user_config = await memory_service.get_user(agent_id, user_id)
+    if user_config is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )
@@ -168,7 +170,7 @@ async def handle_line_callback(
         body,
         signature,
         agent_config,
-        user_id,
+        user_config,
         request,
         llm_service,
         tts_service,

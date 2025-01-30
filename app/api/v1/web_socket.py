@@ -104,7 +104,8 @@ async def websocket_endpoint(
                 continue
 
             user_id = request_obj.user_id
-            if await memory_service.get_user(request_obj.agent_id, user_id) is None:
+            user_config = await memory_service.get_user(request_obj.agent_id, user_id)
+            if user_config is None:
                 raise HTTPException(
                     status_code=404, detail=f"User with user_id '{user_id}' not found."
                 )
@@ -143,7 +144,7 @@ async def websocket_endpoint(
                     "talk",
                     text_message,
                     agent_config,
-                    user_id,
+                    user_config,
                     image=image_content,
                 ),
             )

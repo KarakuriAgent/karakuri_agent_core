@@ -4,5 +4,13 @@
 from pydantic import BaseModel
 
 
+class UserConfig(BaseModel):
+    id: str
+    last_name: str
+    first_name: str
+
+
 class UserResponse(BaseModel):
     user_id: str
+    last_name: str
+    first_name: str

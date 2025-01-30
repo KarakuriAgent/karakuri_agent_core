@@ -13,7 +13,7 @@ from app.core.valkey_client import ValkeyClient
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
 from app.core.memory.zep_client import ZepClient, create_zep_client
-from app.schemas.user import UserResponse
+from app.schemas.user import UserConfig
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -95,19 +95,23 @@ class MemoryService:
     ) -> str:
         return f"karakuri_agent_{str(DateUtil.today())}_{agent_id}_{user_id}_{message_type}"
 
-    async def add_user(self, agent_id: str, user_id: str):
+    async def add_user(
+        self, agent_id: str, user_id: str, last_name: str, first_name: str
+    ):
         zep_client = self._create_zep_client(agent_id)
-        await zep_client.add_user(user_id=user_id)
+        await zep_client.add_user(
+            user_id=user_id, last_name=last_name, first_name=first_name
+        )
 
     async def delete_user(self, agent_id: str, user_id: str):
         zep_client = self._create_zep_client(agent_id)
         await zep_client.delete_user(user_id=user_id)
 
-    async def get_user(self, agent_id: str, user_id: str) -> UserResponse:
+    async def get_user(self, agent_id: str, user_id: str) -> UserConfig:
         zep_client = self._create_zep_client(agent_id)
         return await zep_client.get_user(user_id=user_id)
 
-    async def list_users(self, agent_id: str) -> List[UserResponse]:
+    async def list_users(self, agent_id: str) -> List[UserConfig]:
         zep_client = self._create_zep_client(agent_id)
         return await zep_client.list_users()
 

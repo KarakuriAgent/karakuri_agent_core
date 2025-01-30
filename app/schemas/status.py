@@ -28,9 +28,9 @@ class ActiveStatusData(AgentStatus):
 
 class TalkingStatusData(AgentStatus):
     user_id: str
-    user_name: str
     type: Literal[StatusType.TALKING] = StatusType.TALKING
     is_chat_available: bool = False
+    last_conversation_time: Optional[datetime] = None
 
 
 class RestingStatusData(AgentStatus):

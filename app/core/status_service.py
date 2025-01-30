@@ -3,10 +3,11 @@
 # Please see the LICENSE file in the project root.
 import logging
 from app.core.config import get_settings
+from app.core.date_util import DateUtil
 from app.core.valkey_client import ValkeyClient
 from app.schemas.status import (
+    Status,
     ActiveStatusData,
-    AgentStatus,
     RestingStatusData,
     SleepingStatusData,
     TalkingStatusData,
@@ -19,11 +20,41 @@ _valkey_client = ValkeyClient(settings.valkey_url, settings.valkey_password)
 
 
 class StatusService:
-    async def update_current_status(self, agent_id: str, status: AgentStatus):
+    async def update_current_status(self, agent_id: str, status: Status):
         await _valkey_client.update_current_status(agent_id, status)
 
-    async def get_current_status(self, agent_id: str) -> AgentStatus:
+    async def get_current_status(self, agent_id: str) -> Status:
         return await _valkey_client.get_current_status(agent_id)
+
+    async def start_conversation(
+        self, agent_id: str, user_id: str, user_last_name: str, user_first_name: str
+    ):
+        status = create_talking_status(user_id, user_last_name, user_first_name)
+        status.last_conversation_time = DateUtil.now()
+        await self.update_current_status(agent_id, status)
+
+    async def update_conversation_time(self, agent_id: str):
+        current_status = await self.get_current_status(agent_id)
+        if isinstance(current_status, TalkingStatusData):
+            current_status.last_conversation_time = DateUtil.now()
+            await self.update_current_status(agent_id, current_status)
+
+    async def check_conversation_timeout(self, agent_id: str):
+        current_status = await self.get_current_status(agent_id)
+        if not isinstance(current_status, TalkingStatusData):
+            return
+        if not current_status.last_conversation_time:
+            return
+
+        if DateUtil.now() - current_status.last_conversation_time > timedelta(
+            minutes=5
+        ):
+            status = create_resting_status(
+                description="Taking a break after conversation",
+                location="My room",
+                duration_minutes=30,
+            )
+            await self.update_current_status(agent_id, status)
 
 
 def create_active_status(
@@ -43,14 +74,15 @@ def create_active_status(
 
 def create_talking_status(
     user_id: str,
-    user_name: str,
+    user_last_name: str,
+    user_first_name: str,
 ) -> TalkingStatusData:
     return TalkingStatusData(
-        description=f"Talking with {user_name}",
+        description=f"Talking with {user_last_name} {user_first_name}",
         started_at=datetime.now(),
         end_at=None,
         user_id=user_id,
-        user_name=user_name,
+        is_chat_available=False,
     )
 
 

@@ -2,7 +2,6 @@
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
 
-from typing import Union
 import aiohttp
 from fastapi import HTTPException
 from typing import cast
@@ -26,9 +25,12 @@ from linebot.v3.webhooks import (  # type: ignore
     TextMessageContent,
     ImageMessageContent,
     Configuration,
+    Source,
 )
 from app.core.chat.chat_client import ChatClient
 from app.schemas.agent import AgentConfig
+from app.schemas.chat_message import ChatMessage, MessageContent, MessageType
+from app.core.date_util import DateUtil
 
 
 class LineChatClient(ChatClient):
@@ -62,36 +64,47 @@ class LineChatClient(ChatClient):
             raise HTTPException(status_code=400, detail="Invalid signature")
         return events
 
-    async def process_message(
-        self, events: list[Event]
-    ) -> list[tuple[str, Union[bytes, str]]]:
-        result: list[tuple[str, Union[bytes, str]]] = []
+    async def process_message(self, events: list[Event]) -> list[ChatMessage]:
+        result: list[ChatMessage] = []
         for event in events:
             if not isinstance(event, MessageEvent):
                 continue
-            # if isinstance(event.source, Source):
-            #     id: str = ""
-            #     if event.source.type == "user":
-            #         id = event.source.to_dict().get("userId") or ""
-            #     elif event.source.type == "group":
-            #         id = event.source.to_dict().get("groupId") or ""
-            #     elif event.source.type == "room":
-            #         id = event.source.to_dict().get("roomId") or ""
-            #     else:
-            #         continue
-            # else:
-            #     continue
-            # if id == "":
-            # continue
+            if isinstance(event.source, Source):
+                id: str = ""
+                if event.source.type == "user":
+                    id = event.source.to_dict().get("userId") or ""
+                elif event.source.type == "group":
+                    id = event.source.to_dict().get("groupId") or ""
+                elif event.source.type == "room":
+                    id = event.source.to_dict().get("roomId") or ""
+                else:
+                    continue
+            else:
+                continue
+            if id == "":
+                continue
             token = event.reply_token
             if not isinstance(token, str):
                 continue
             if isinstance(event.message, ImageMessageContent):
-                result.append((token, await self._process_image_message(event)))
+                image = await self._process_image_message(event)
+                content = MessageContent(
+                    type=MessageType.IMAGE,
+                    image=image,
+                )
             elif isinstance(event.message, TextMessageContent):
-                result.append((token, event.message.text))  # type: ignore
+                content = MessageContent(type=MessageType.TEXT, text=event.message.text)
             else:
                 continue
+
+            message = ChatMessage(
+                reply_token=token,
+                content=content,
+                id=id,
+                timestamp=DateUtil.now(),
+            )
+            result.append(message)
+
         return result
 
     async def _process_image_message(self, event: MessageEvent) -> bytes:

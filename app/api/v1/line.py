@@ -24,6 +24,7 @@ from typing import Dict, cast
 from app.schemas.agent import AgentConfig
 from app.core.agent_manager import get_agent_manager
 from app.core.config import get_settings
+from app.schemas.chat_message import MessageType
 import logging
 
 
@@ -53,15 +54,19 @@ async def process_line_events_background(
         messages = await line_chat_client.process_message(events)
         try:
             for message in messages:
-                token = message[0]
-                if isinstance(message[1], bytes):
-                    user_image_cache[user_config.id] = (message[1],)  # type: ignore
+                token = message.reply_token
+                content = message.content
+
+                if content.type == MessageType.IMAGE:
+                    if content.image:
+                        user_image_cache[user_config.id] = content.image
                     continue
-                elif isinstance(message[1], str):
-                    text_message = message[1]
+                elif content.type == MessageType.TEXT and content.text:
+                    text_message = content.text
                 else:
                     continue
-                cached_image_bytes = user_image_cache.pop(user_config.id, None)  # type: ignore
+
+                cached_image_bytes = user_image_cache.pop(user_config.id, None)
                 llm_response = cast(
                     LLMResponse,
                     await llm_service.generate_response(

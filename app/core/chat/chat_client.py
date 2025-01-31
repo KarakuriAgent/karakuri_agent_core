@@ -3,9 +3,10 @@
 # Please see the LICENSE file in the project root.
 
 from abc import ABC, abstractmethod
-from typing import Any, Union
+from typing import Any
 
 from app.schemas.agent import AgentConfig
+from app.schemas.chat_message import ChatMessage
 
 
 class ChatClient(ABC):
@@ -18,9 +19,7 @@ class ChatClient(ABC):
         pass
 
     @abstractmethod
-    async def process_message(
-        self, events: list[Any]
-    ) -> list[tuple[str, Union[bytes, str]]]:
+    async def process_message(self, events: list[Any]) -> list[ChatMessage]:
         pass
 
     @abstractmethod

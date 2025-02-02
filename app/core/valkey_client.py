@@ -9,6 +9,7 @@ import valkey.asyncio as valkey
 
 from app.core.date_util import DateUtil
 from app.schemas.memory import KarakuriMemory
+from app.schemas.pending_message import PendingMessageContext
 from app.schemas.status import (
     ActiveStatusData,
     RestingStatusData,
@@ -17,6 +18,8 @@ from app.schemas.status import (
     StatusType,
     TalkingStatusData,
 )
+from app.schemas.chat_message import ChatMessage
+from typing import List
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +29,7 @@ class ValkeyClient:
     VALKEY_KEYS = {
         "SESSION_ID": "karakuri_agent_session_id",
         "MEMORY": "karakuri_agent_memory",
+        "CHAT_MESSAGES": "karakuri_agent_chat_messages",
         "FACTS": "karakuri_agent_facts",
         "STATUS": "karakuri_agent_status",
     }
@@ -112,3 +116,37 @@ class ValkeyClient:
             return RestingStatusData(
                 description="", started_at=DateUtil.now(), end_at=None, location=""
             )
+
+    async def update_pending_messages(
+        self, session_id: str, base_url: str, messages: List[ChatMessage]
+    ):
+        pending_messages = await self.get_pending_messages(session_id)
+        cash_messages = pending_messages.chat_messages if pending_messages else []
+        cash_messages.extend(messages)
+        pending_messages = PendingMessageContext(
+            base_url=base_url,
+            chat_messages=cash_messages,
+        )
+        await self._valkey_client.set(
+            f"{self.VALKEY_KEYS['CHAT_MESSAGES']}:{session_id}",
+            pending_messages.model_dump_json(),
+        )  # type: ignore
+        await self._valkey_client.expire(
+            f"{self.VALKEY_KEYS['CHAT_MESSAGES']}:{session_id}", self._default_ttl
+        )
+
+    async def get_pending_messages(
+        self, session_id: str
+    ) -> PendingMessageContext | None:
+        messages_json = await self._valkey_client.get(
+            f"{self.VALKEY_KEYS['CHAT_MESSAGES']}:{session_id}"
+        )  # type: ignore
+        if messages_json:
+            messages_data = json.loads(messages_json)
+            return PendingMessageContext.model_validate(messages_data)
+        return None
+
+    async def delete_pending_messages(self, session_id: str) -> None:
+        await self._valkey_client.delete(
+            f"{self.VALKEY_KEYS['CHAT_MESSAGES']}:{session_id}"
+        )  # type: ignore

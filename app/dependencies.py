@@ -2,6 +2,7 @@
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
 from app.core.chat.line_chat_client import LineChatClient
+from app.core.chat.chat_service import ChatService
 from app.core.llm_service import LLMService
 from app.core.memory.memory_service import MemoryService
 from app.core.status_service import StatusService
@@ -40,3 +41,8 @@ def get_status_service() -> StatusService:
 @lru_cache()
 def get_line_chat_client() -> LineChatClient:
     return LineChatClient()
+
+
+@lru_cache()
+def get_chat_service() -> ChatService:
+    return ChatService()

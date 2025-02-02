@@ -40,10 +40,9 @@ class RestingStatusData(AgentStatus):
 
 
 class SleepingStatusData(AgentStatus):
-    location: str = "bead room"
+    location: str = "bed room"
     type: Literal[StatusType.SLEEPING] = StatusType.SLEEPING
     is_chat_available: bool = False
-    pass
 
 
 Status = Union[

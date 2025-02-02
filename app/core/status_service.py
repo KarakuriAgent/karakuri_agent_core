@@ -105,7 +105,7 @@ def create_sleeping_status(
 ) -> SleepingStatusData:
     return SleepingStatusData(
         description=description,
-        location="bead room",
+        location="bed room",
         started_at=datetime.now(),
         end_at=datetime.now() + timedelta(minutes=duration_minutes),
     )

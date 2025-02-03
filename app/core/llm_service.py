@@ -153,12 +153,13 @@ Required JSON format:
                     ]
                 ),
             )
-            await self.status_service.start_conversation(
-                agent_config.id,
-                user_config.id,
-                user_config.last_name,
-                user_config.first_name,
-            )
+            if message_type == "talk":
+                await self.status_service.start_conversation(
+                    agent_config.id,
+                    user_config.id,
+                    user_config.last_name,
+                    user_config.first_name,
+                )
 
             if image:
                 image_data_b64 = base64.b64encode(image).decode("utf-8")

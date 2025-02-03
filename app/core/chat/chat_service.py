@@ -16,11 +16,18 @@ _valkey_client = ValkeyClient(settings.valkey_url, settings.valkey_password)
 
 class ChatService:
     async def update_pending_messages(
-        self, agent_id: str, user_id: str, base_url: str, messages: List[ChatMessage]
+        self,
+        agent_id: str,
+        message_type: str,
+        user_id: str,
+        base_url: str,
+        messages: List[ChatMessage],
     ):
         session_key = f"chat:{agent_id}:{user_id}"
         session_id = await _valkey_client.get_session_id(session_key)
-        await _valkey_client.update_pending_messages(session_id, base_url, messages)
+        await _valkey_client.update_pending_messages(
+            session_id, message_type, base_url, messages
+        )
         logger.info(
             f"Saved {len(messages)} messages to Valkey for agent {agent_id}, user {user_id}"
         )
@@ -31,6 +38,11 @@ class ChatService:
         session_key = f"chat:{agent_id}:{user_id}"
         session_id = await _valkey_client.get_session_id(session_key)
         return await _valkey_client.get_pending_messages(session_id)
+
+    async def delete_pending_messages(self, agent_id: str, user_id: str):
+        session_key = f"chat:{agent_id}:{user_id}"
+        session_id = await _valkey_client.get_session_id(session_key)
+        await _valkey_client.delete_pending_messages(session_id)
 
     async def is_chat_available(self, agent_id: str) -> bool:
         status = await _valkey_client.get_current_status(agent_id)

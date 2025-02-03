@@ -5,6 +5,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+from app.schemas.user import UserConfig
 from app.schemas.agent import AgentConfig
 from app.schemas.chat_message import ChatMessage, MessageType
 
@@ -34,29 +35,23 @@ class ChatClient(ABC):
 
     async def process_and_send_messages(
         self,
+        message_type: str,
         messages: list[ChatMessage],
         agent_config: AgentConfig,
+        user_config: UserConfig,
         llm_service: Any,
         tts_service: Any,
-        memory_service: Any,
         base_url: str,
-        use_reply: bool = True,
+        use_reply: bool,
     ):
         from typing import cast
         from app.schemas.llm import LLMResponse
         from app.utils.audio import calculate_audio_duration, upload_to_storage
         from app.core.config import get_settings
-        import logging
 
-        logger = logging.getLogger(__name__)
         settings = get_settings()
 
         for message in messages:
-            user_config = await memory_service.get_user(agent_config.id, message.id)
-            if user_config is None:
-                logger.error(f"User not found: {message.id}")
-                continue
-
             text_message = None
             cached_image_bytes = None
 
@@ -72,7 +67,7 @@ class ChatClient(ABC):
             llm_response = cast(
                 LLMResponse,
                 await llm_service.generate_response(
-                    "talk",
+                    message_type,
                     text_message,
                     agent_config,
                     user_config,

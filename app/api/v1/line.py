@@ -57,6 +57,7 @@ async def process_line_events_background(
         server_host = request.headers.get("X-Forwarded-Host", request.base_url.hostname)
         base_url = f"{scheme}://{server_host}"
         await line_chat_client.process_and_send_messages(
+            "chat-line",
             messages,
             agent_config,
             user_config,
@@ -120,7 +121,11 @@ async def handle_line_callback(
             messages = await line_chat_client.process_message(events)
             if messages:
                 await chat_service.update_pending_messages(
-                    agent_id, user_id, f"{scheme}://{server_host}", messages
+                    agent_id,
+                    "chat-line",
+                    user_id,
+                    f"{scheme}://{server_host}",
+                    messages,
                 )
                 logger.info(
                     f"Saved {len(messages)} messages to chat service for agent {agent_id}, user {user_id}"

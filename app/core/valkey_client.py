@@ -118,13 +118,18 @@ class ValkeyClient:
             )
 
     async def update_pending_messages(
-        self, session_id: str, base_url: str, messages: List[ChatMessage]
+        self,
+        session_id: str,
+        message_type: str,
+        base_url: str,
+        messages: List[ChatMessage],
     ):
         pending_messages = await self.get_pending_messages(session_id)
         cash_messages = pending_messages.chat_messages if pending_messages else []
         cash_messages.extend(messages)
         pending_messages = PendingMessageContext(
             base_url=base_url,
+            message_type=message_type,
             chat_messages=cash_messages,
         )
         await self._valkey_client.set(

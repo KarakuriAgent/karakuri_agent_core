@@ -57,7 +57,7 @@ async def get_user(
     try:
         user_config = await memory_service.get_user(agent_id, user_id)
         return UserResponse(
-            user_id=user_config.id,
+            id=user_config.id,
             last_name=user_config.last_name,
             first_name=user_config.first_name,
         )
@@ -77,7 +77,7 @@ async def list_users(
         user_configs = await memory_service.list_users(agent_id)
         return [
             UserResponse(
-                user_id=user.id,
+                id=user.id,
                 last_name=user.last_name,
                 first_name=user.first_name,
             )

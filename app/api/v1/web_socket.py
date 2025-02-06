@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.websockets import WebSocket
 from jsonschema import ValidationError
 from litellm import cast
-from app.core.agent_manager import get_agent_manager
+from app.core.agent_manager import AgentManager, get_agent_manager
 from app.core.config import get_settings
 from app.core.memory.memory_service import MemoryService
 from app.dependencies import (
@@ -67,6 +67,7 @@ async def websocket_endpoint(
     stt_service: STTService = Depends(get_stt_service),
     tts_service: TTSService = Depends(get_tts_service),
     memory_service: MemoryService = Depends(get_memory_service),
+    agent_manager: AgentManager = Depends(get_agent_manager),
 ):
     clean_expired_tokens()
     if not token or token not in ws_tokens:
@@ -82,7 +83,6 @@ async def websocket_endpoint(
     await websocket.send_text(
         f"Hello! Connected with token associated to API key: {api_key}"
     )
-    agent_manager = get_agent_manager()
     while True:
         try:
             message = await websocket.receive_text()
@@ -104,7 +104,8 @@ async def websocket_endpoint(
                 continue
 
             user_id = request_obj.user_id
-            if await memory_service.get_user(request_obj.agent_id, user_id) is None:
+            user_config = await memory_service.get_user(request_obj.agent_id, user_id)
+            if user_config is None:
                 raise HTTPException(
                     status_code=404, detail=f"User with user_id '{user_id}' not found."
                 )
@@ -143,7 +144,7 @@ async def websocket_endpoint(
                     "talk",
                     text_message,
                     agent_config,
-                    user_id,
+                    user_config,
                     image=image_content,
                 ),
             )

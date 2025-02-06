@@ -6,6 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import chat, line, agents, users, web_socket, openai
 from app.auth.api_key import verify_token
 from app.core.config import get_settings
+from app.core.tasks.status_check import check_conversation_timeouts
+from app.core.tasks.message_sender import send_pending_messages
+from contextlib import asynccontextmanager
+import asyncio
 import logging
 
 logging.basicConfig(
@@ -13,8 +17,27 @@ logging.basicConfig(
 )
 
 settings = get_settings()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    status_check_task = asyncio.create_task(check_conversation_timeouts())
+    message_sender_task = asyncio.create_task(send_pending_messages())
+    yield
+    status_check_task.cancel()
+    message_sender_task.cancel()
+    try:
+        await status_check_task
+        await message_sender_task
+    except asyncio.CancelledError:
+        logging.info("Background tasks were cancelled")
+
+
 app = FastAPI(
-    title="Karakuri_agentAPI", description="Karakuri_agentAPI", version="0.3.0+13"
+    title="Karakuri_agentAPI",
+    description="Karakuri_agentAPI",
+    version="0.3.0+13",
+    lifespan=lifespan,
 )
 
 app.add_middleware(

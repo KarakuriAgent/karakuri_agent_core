@@ -14,7 +14,7 @@ import zep_python.client
 import zep_cloud.client
 from app.schemas.llm import ToolDefinition
 from app.schemas.memory import KarakuriMemory
-from app.schemas.user import UserResponse
+from app.schemas.user import UserConfig
 
 tool_search_facts: ToolDefinition = {
     "type": "function",
@@ -63,7 +63,7 @@ class ZepClient(ABC):
         pass
 
     @abstractmethod
-    async def add_user(self, user_id: str):
+    async def add_user(self, user_id: str, last_name: str, first_name: str):
         pass
 
     @abstractmethod
@@ -71,11 +71,11 @@ class ZepClient(ABC):
         pass
 
     @abstractmethod
-    async def get_user(self, user_id: str) -> UserResponse:
+    async def get_user(self, user_id: str) -> UserConfig:
         pass
 
     @abstractmethod
-    async def list_users(self) -> list[UserResponse]:
+    async def list_users(self) -> list[UserConfig]:
         pass
 
     @abstractmethod
@@ -128,26 +128,36 @@ class ZepPythonClient(ZepClient):
             messages=zep_messages,  # type: ignore
         )
 
-    async def add_user(self, user_id: str):
-        await self.client.user.add(user_id=user_id)
+    async def add_user(self, user_id: str, last_name: str, first_name: str):
+        await self.client.user.add(
+            user_id=user_id, first_name=first_name, last_name=last_name
+        )
 
     async def delete_user(self, user_id: str):
         await self.client.user.delete(user_id=user_id)
 
-    async def get_user(self, user_id: str) -> UserResponse:
+    async def get_user(self, user_id: str) -> UserConfig:
         user = await self.client.user.get(user_id=user_id)
         if not user.user_id:
             raise HTTPException(
                 status_code=404, detail="User ID is required and cannot be empty"
             )
-        return UserResponse(user_id=user.user_id)
+        return UserConfig(
+            id=user.user_id,
+            last_name=user.last_name or "user",
+            first_name=user.first_name or "user",
+        )
 
-    async def list_users(self) -> list[UserResponse]:
+    async def list_users(self) -> list[UserConfig]:
         response = await self.client.user.list_ordered()
         if not response or not response.users:
             return []
         return [
-            UserResponse(user_id=user.user_id)
+            UserConfig(
+                id=user.user_id,
+                last_name=user.last_name or "user",
+                first_name=user.first_name or "user",
+            )
             for user in response.users
             if user.user_id is not None
         ]
@@ -206,26 +216,36 @@ class ZepCloudClient(ZepClient):
             messages=zep_messages,  # type: ignore
         )
 
-    async def add_user(self, user_id: str):
-        await self.client.user.add(user_id=user_id)
+    async def add_user(self, user_id: str, last_name: str, first_name: str):
+        await self.client.user.add(
+            user_id=user_id, first_name=first_name, last_name=last_name
+        )
 
     async def delete_user(self, user_id: str):
         await self.client.user.delete(user_id=user_id)
 
-    async def get_user(self, user_id: str) -> UserResponse:
+    async def get_user(self, user_id: str) -> UserConfig:
         user = await self.client.user.get(user_id=user_id)
         if not user.user_id:
             raise HTTPException(
                 status_code=404, detail="User ID is required and cannot be empty"
             )
-        return UserResponse(user_id=user.user_id)
+        return UserConfig(
+            id=user.user_id,
+            last_name=user.last_name or "user",
+            first_name=user.first_name or "user",
+        )
 
-    async def list_users(self) -> list[UserResponse]:
+    async def list_users(self) -> list[UserConfig]:
         response = await self.client.user.list_ordered()
         if not response or not response.users:
             return []
         return [
-            UserResponse(user_id=user.user_id)
+            UserConfig(
+                id=user.user_id,
+                last_name=user.last_name or "user",
+                first_name=user.first_name or "user",
+            )
             for user in response.users
             if user.user_id is not None
         ]

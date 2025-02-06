@@ -1,48 +1,31 @@
 # Copyright (c) 0235 Inc.
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
-import aiohttp
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from starlette.requests import ClientDisconnect
 from starlette.responses import FileResponse
+from app.core.chat.chat_service import ChatService
+from app.core.chat.line_chat_client import LineChatClient
 from app.core.llm_service import LLMService
 from app.core.memory.memory_service import MemoryService
 from app.core.tts_service import TTSService
 from app.core.stt_service import STTService
 from app.dependencies import (
+    get_line_chat_client,
     get_llm_service,
     get_memory_service,
     get_stt_service,
     get_tts_service,
+    get_chat_service,
 )
-from app.schemas.llm import LLMResponse
-from app.utils.audio import calculate_audio_duration, upload_to_storage
+from app.schemas.user import UserConfig
 from pathlib import Path
-from typing import Dict, cast, List
+from typing import Dict
 from app.schemas.agent import AgentConfig
-from app.core.agent_manager import get_agent_manager
+from app.core.agent_manager import AgentManager, get_agent_manager
 from app.core.config import get_settings
 import logging
-from linebot import AsyncLineBotApi  # type: ignore
-from linebot.aiohttp_async_http_client import AiohttpAsyncHttpClient  # type: ignore
-from linebot.v3.messaging.async_api_client import AsyncApiClient  # type: ignore
-from linebot.v3.messaging import AsyncMessagingApi  # type: ignore
-from linebot.v3.webhook import WebhookParser  # type: ignore
-from linebot.v3.webhooks.models import Event  # type: ignore
-from linebot.v3.messaging.models import (  # type: ignore
-    ReplyMessageRequest,
-    TextMessage,
-    AudioMessage,
-)
-from linebot.v3.exceptions import (  # type: ignore
-    InvalidSignatureError,
-)
-from linebot.v3.webhooks import (  # type: ignore
-    MessageEvent,
-    TextMessageContent,
-    ImageMessageContent,
-    Configuration,
-)
+
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -56,83 +39,39 @@ async def process_line_events_background(
     body: str,
     signature: str,
     agent_config: AgentConfig,
-    user_id: str,
+    user_config: UserConfig,
     request: Request,
     llm_service: LLMService,
     tts_service: TTSService,
+    #  TODO use chat_service?
+    line_chat_client: LineChatClient,
 ):
-    aio_session = aiohttp.ClientSession()
-    async_client: AsyncApiClient | None = None
     try:
-        configuration = Configuration(
-            access_token=agent_config.line_channel_access_token
+        line_chat_client.create(agent_config)
+        events = line_chat_client.parse_line_events(
+            body, signature, agent_config.line_channel_secret
         )
-        async_client = AsyncApiClient(configuration)
-        line_messaging_api = AsyncMessagingApi(async_client)
+        messages = await line_chat_client.process_message(events)
 
-        aio_client = AiohttpAsyncHttpClient(aio_session)
-        line_bot_api = AsyncLineBotApi(
-            channel_access_token=agent_config.line_channel_access_token,
-            async_http_client=aio_client,
+        scheme = request.headers.get("X-Forwarded-Proto", "http")
+        server_host = request.headers.get("X-Forwarded-Host", request.base_url.hostname)
+        base_url = f"{scheme}://{server_host}"
+        await line_chat_client.process_and_send_messages(
+            "chat-line",
+            messages,
+            agent_config,
+            user_config,
+            llm_service,
+            tts_service,
+            base_url,
+            True,
         )
-
-        events = parse_line_events(body, signature, agent_config.line_channel_secret)
-        try:
-            for event in events:
-                if not isinstance(event, MessageEvent):
-                    continue
-
-                if isinstance(event.message, ImageMessageContent):
-                    await process_image_message(line_bot_api, event)
-                    continue
-                elif isinstance(event.message, TextMessageContent):
-                    text_message = event.message.text
-                else:
-                    continue
-                cached_image_bytes = user_image_cache.pop(event.source.user_id, None)  # type: ignore
-                llm_response = cast(
-                    LLMResponse,
-                    await llm_service.generate_response(
-                        "talk",
-                        text_message,
-                        agent_config,
-                        user_id,
-                        image=cached_image_bytes,
-                    ),
-                )
-                audio_data = await tts_service.generate_speech(
-                    llm_response.agent_message, agent_config
-                )
-                scheme = request.headers.get("X-Forwarded-Proto", "http")
-                server_host = request.headers.get(
-                    "X-Forwarded-Host", request.base_url.hostname
-                )
-                base_url = f"{scheme}://{server_host}"
-                audio_url = await upload_to_storage(
-                    base_url, audio_data, "line", UPLOAD_DIR, MAX_FILES
-                )
-                duration = calculate_audio_duration(audio_data)
-
-                await line_messaging_api.reply_message(  # type: ignore
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,  # type: ignore
-                        messages=[
-                            TextMessage(text=llm_response.agent_message),  # type: ignore
-                            AudioMessage(
-                                original_content_url=audio_url,  # type: ignore
-                                duration=duration,
-                            ),
-                        ],
-                    )
-                )
-        except Exception as e:
-            logger.exception(
-                f"Error in process_line_events_background: {str(e)}", exc_info=True
-            )
+    except Exception as e:
+        logger.exception(
+            f"Error in process_line_events_background: {str(e)}", exc_info=True
+        )
     finally:
-        await aio_session.close()
-        if async_client is not None:
-            await async_client.close()
+        await line_chat_client.close()
 
 
 @router.post("/callback/{agent_id}/{user_id}")
@@ -145,9 +84,11 @@ async def handle_line_callback(
     tts_service: TTSService = Depends(get_tts_service),
     stt_service: STTService = Depends(get_stt_service),
     memory_service: MemoryService = Depends(get_memory_service),
+    line_chat_client: LineChatClient = Depends(get_line_chat_client),
+    chat_service: ChatService = Depends(get_chat_service),
+    agent_manager: AgentManager = Depends(get_agent_manager),
 ):
     signature, body = await extract_line_request_data(request)
-    agent_manager = get_agent_manager()
     try:
         agent_config = agent_manager.get_agent(agent_id)
     except KeyError:
@@ -155,23 +96,56 @@ async def handle_line_callback(
             status_code=404, detail=f"Agent with ID '{agent_id}' not found."
         )
 
-    if await memory_service.get_user(agent_id, user_id) is None:
+    user_config = await memory_service.get_user(agent_id, user_id)
+    if user_config is None:
         raise HTTPException(
             status_code=404, detail=f"User with user_id '{user_id}' not found."
         )
 
     # Verify signature before returning OK
-    parse_line_events(body, signature, agent_config.line_channel_secret)
+    line_chat_client.parse_line_events(
+        body, signature, agent_config.line_channel_secret
+    )
+
+    is_chat_available = await chat_service.is_chat_available(agent_id)
+    if not is_chat_available:
+        try:
+            scheme = request.headers.get("X-Forwarded-Proto", "http")
+            server_host = request.headers.get(
+                "X-Forwarded-Host", request.base_url.hostname
+            )
+            line_chat_client.create(agent_config)
+            events = line_chat_client.parse_line_events(
+                body, signature, agent_config.line_channel_secret
+            )
+            messages = await line_chat_client.process_message(events)
+            if messages:
+                await chat_service.update_pending_messages(
+                    agent_id,
+                    "chat-line",
+                    user_id,
+                    f"{scheme}://{server_host}",
+                    messages,
+                )
+                logger.info(
+                    f"Saved {len(messages)} messages to chat service for agent {agent_id}, user {user_id}"
+                )
+        except Exception as e:
+            logger.error(f"Error saving message to chat service: {e}")
+        finally:
+            await line_chat_client.close()
+        return "OK"
 
     background_tasks.add_task(
         process_line_events_background,
         body,
         signature,
         agent_config,
-        user_id,
+        user_config,
         request,
         llm_service,
         tts_service,
+        line_chat_client,
     )
     return "OK"
 
@@ -192,27 +166,6 @@ async def extract_line_request_data(request: Request):
     except Exception as e:
         logger.error(f"Error extracting LINE request data: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid request")
-
-
-def parse_line_events(
-    body: str, signature: str, line_channel_secret: str
-) -> List[Event]:
-    line_parser = WebhookParser(line_channel_secret)
-
-    try:
-        events: List[Event] = cast(List[Event], line_parser.parse(body, signature))  # type: ignore
-    except InvalidSignatureError:
-        raise HTTPException(status_code=400, detail="Invalid signature")
-    return events
-
-
-async def process_image_message(line_bot_api: AsyncLineBotApi, event: MessageEvent):
-    message_content = await line_bot_api.get_message_content(event.message.id)  # type: ignore
-    image_bytes: bytes = b""
-    async for chunk in message_content.iter_content():  # type: ignore
-        assert isinstance(chunk, bytes)
-        image_bytes += chunk
-    user_image_cache[event.source.user_id] = image_bytes  # type: ignore
 
 
 @router.get(f"/{UPLOAD_DIR}/{{file_name}}")

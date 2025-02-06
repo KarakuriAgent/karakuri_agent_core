@@ -14,6 +14,10 @@ settings = get_settings()
 _valkey_client = ValkeyClient(settings.valkey_url, settings.valkey_password)
 
 
+class ChatServiceError(Exception):
+    pass
+
+
 class ChatService:
     async def update_pending_messages(
         self,
@@ -24,28 +28,50 @@ class ChatService:
         messages: List[ChatMessage],
     ):
         session_key = f"chat:{agent_id}:{user_id}"
-        session_id = await _valkey_client.get_session_id(session_key)
-        await _valkey_client.update_pending_messages(
-            session_id, message_type, base_url, messages
-        )
-        logger.info(
-            f"Saved {len(messages)} messages to Valkey for agent {agent_id}, user {user_id}"
-        )
+        try:
+            session_id = await _valkey_client.get_session_id(session_key)
+            await _valkey_client.update_pending_messages(
+                session_id, message_type, base_url, messages
+            )
+            logger.info(
+                f"Saved {len(messages)} messages to Valkey for agent {agent_id}, user {user_id}"
+            )
+        except Exception as e:
+            error_msg = f"Failed to update pending messages for agent {agent_id}, user {user_id}"
+            logger.error(f"{error_msg}: {str(e)}")
+            raise ChatServiceError(error_msg) from e
 
     async def get_pending_messages(
         self, agent_id: str, user_id: str
     ) -> PendingMessageContext | None:
         session_key = f"chat:{agent_id}:{user_id}"
-        session_id = await _valkey_client.get_session_id(session_key)
-        return await _valkey_client.get_pending_messages(session_id)
+        try:
+            session_id = await _valkey_client.get_session_id(session_key)
+            return await _valkey_client.get_pending_messages(session_id)
+        except Exception as e:
+            error_msg = (
+                f"Failed to get pending messages for agent {agent_id}, user {user_id}"
+            )
+            logger.error(f"{error_msg}: {str(e)}")
+            raise ChatServiceError(error_msg) from e
 
     async def delete_pending_messages(self, agent_id: str, user_id: str):
         session_key = f"chat:{agent_id}:{user_id}"
-        session_id = await _valkey_client.get_session_id(session_key)
-        await _valkey_client.delete_pending_messages(session_id)
+        try:
+            session_id = await _valkey_client.get_session_id(session_key)
+            await _valkey_client.delete_pending_messages(session_id)
+        except Exception as e:
+            error_msg = f"Failed to delete pending messages for agent {agent_id}, user {user_id}"
+            logger.error(f"{error_msg}: {str(e)}")
+            raise ChatServiceError(error_msg) from e
 
     async def is_chat_available(self, agent_id: str) -> bool:
-        status = await _valkey_client.get_current_status(agent_id)
-        if status:
-            return status.is_chat_available
-        return False
+        try:
+            status = await _valkey_client.get_current_status(agent_id)
+            if status:
+                return status.is_chat_available
+            return False
+        except Exception as e:
+            error_msg = f"Failed to check chat availability for agent {agent_id}"
+            logger.error(f"{error_msg}: {str(e)}")
+            raise ChatServiceError(error_msg) from e

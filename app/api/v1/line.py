@@ -22,7 +22,7 @@ from app.schemas.user import UserConfig
 from pathlib import Path
 from typing import Dict
 from app.schemas.agent import AgentConfig
-from app.core.agent_manager import get_agent_manager
+from app.core.agent_manager import AgentManager, get_agent_manager
 from app.core.config import get_settings
 import logging
 
@@ -86,9 +86,9 @@ async def handle_line_callback(
     memory_service: MemoryService = Depends(get_memory_service),
     line_chat_client: LineChatClient = Depends(get_line_chat_client),
     chat_service: ChatService = Depends(get_chat_service),
+    agent_manager: AgentManager = Depends(get_agent_manager),
 ):
     signature, body = await extract_line_request_data(request)
-    agent_manager = get_agent_manager()
     try:
         agent_config = agent_manager.get_agent(agent_id)
     except KeyError:

@@ -22,10 +22,10 @@ async def send_pending_messages():
     memory_service = get_memory_service()
     chat_service = get_chat_service()
     line_chat_client = get_line_chat_client()
+    agent_manager = get_agent_manager()
 
     while True:
         try:
-            agent_manager = get_agent_manager()
             for agent_id, _ in agent_manager.get_all_agents():
                 users = await memory_service.list_users(agent_id)
                 for user in users:

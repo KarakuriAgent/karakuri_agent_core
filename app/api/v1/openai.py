@@ -16,7 +16,7 @@ from litellm import (
 from app.core.memory.memory_service import MemoryService
 from app.dependencies import get_llm_service, get_memory_service
 from app.core.llm_service import LLMService
-from app.core.agent_manager import get_agent_manager
+from app.core.agent_manager import AgentManager, get_agent_manager
 import logging
 import json
 
@@ -33,9 +33,9 @@ async def openai_chat_completions(
     token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     llm_service: LLMService = Depends(get_llm_service),
     memory_service: MemoryService = Depends(get_memory_service),
+    agent_manager: AgentManager = Depends(get_agent_manager),
 ):
     agent_id, user_id = request["model"].split("/")
-    agent_manager = get_agent_manager()
     try:
         agent_config = agent_manager.get_agent(agent_id)
     except KeyError:

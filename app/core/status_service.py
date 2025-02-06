@@ -12,7 +12,7 @@ from app.schemas.status import (
     SleepingStatusData,
     TalkingStatusData,
 )
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -59,8 +59,8 @@ def create_active_status(
 ) -> ActiveStatusData:
     return ActiveStatusData(
         description=description,
-        started_at=datetime.now(),
-        end_at=datetime.now() + timedelta(minutes=duration_minutes),
+        started_at=DateUtil.now(),
+        end_at=DateUtil.now() + timedelta(minutes=duration_minutes),
         is_chat_available=is_chat_available,
         location=location,
     )
@@ -73,7 +73,7 @@ def create_talking_status(
 ) -> TalkingStatusData:
     return TalkingStatusData(
         description=f"Talking with {user_last_name} {user_first_name}",
-        started_at=datetime.now(),
+        started_at=DateUtil.now(),
         end_at=None,
         user_id=user_id,
         is_chat_available=False,
@@ -87,8 +87,8 @@ def create_resting_status(
 ) -> RestingStatusData:
     return RestingStatusData(
         description=description,
-        started_at=datetime.now(),
-        end_at=datetime.now() + timedelta(minutes=duration_minutes),
+        started_at=DateUtil.now(),
+        end_at=DateUtil.now() + timedelta(minutes=duration_minutes),
         location=location,
     )
 
@@ -100,6 +100,6 @@ def create_sleeping_status(
     return SleepingStatusData(
         description=description,
         location="bed room",
-        started_at=datetime.now(),
-        end_at=datetime.now() + timedelta(minutes=duration_minutes),
+        started_at=DateUtil.now(),
+        end_at=DateUtil.now() + timedelta(minutes=duration_minutes),
     )

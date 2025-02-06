@@ -215,8 +215,6 @@ Required JSON format:
                 )
             )
 
-            await self.status_service.update_conversation_time(agent_config.id)
-
             emotion = await self.generate_emotion_response(
                 user_message=message,
                 agent_message=agent_message,

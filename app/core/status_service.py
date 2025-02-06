@@ -33,12 +33,6 @@ class StatusService:
         status.last_conversation_time = DateUtil.now()
         await self.update_current_status(agent_id, status)
 
-    async def update_conversation_time(self, agent_id: str):
-        current_status = await self.get_current_status(agent_id)
-        if isinstance(current_status, TalkingStatusData):
-            current_status.last_conversation_time = DateUtil.now()
-            await self.update_current_status(agent_id, current_status)
-
     async def check_conversation_timeout(self, agent_id: str):
         current_status = await self.get_current_status(agent_id)
         if not isinstance(current_status, TalkingStatusData):

@@ -58,7 +58,7 @@ Karakuri Agent is an open-source AI agent platform that enables dialogue through
 
 ### Interfaces
 1. RESTful API
-   - Text/voice chat endpoints
+   - Text/voice Talk endpoints
    - Agent management
    - User management
    - Health check

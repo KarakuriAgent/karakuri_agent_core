@@ -164,8 +164,8 @@ You can configure the application via `.env` or environment variables. Example:
 API_KEYS=Specify server access API keys separated by commas
 LINE_MAX_AUDIO_FILES=Max number of audio files for LINE integration (e.g., 5)
 LINE_AUDIO_FILES_DIR=line_audio_files
-CHAT_MAX_AUDIO_FILES=Max number of audio files for Chat endpoint (e.g., 5)
-CHAT_AUDIO_FILES_DIR=chat_audio_files
+TALK_MAX_AUDIO_FILES=Max number of audio files for Talk endpoint (e.g., 5)
+TALK_AUDIO_FILES_DIR=talk_audio_files
 WEB_SOCKET_MAX_AUDIO_FILES=Max number of audio files for web_socket endpoint (e.g., 5)
 WEB_SOCKET_AUDIO_FILES_DIR=web_socket_audio_files
 

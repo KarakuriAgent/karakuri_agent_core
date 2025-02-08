@@ -165,8 +165,8 @@ docker compose up
 API_KEYS=サーバーアクセス用のAPIキーをカンマ区切りで指定
 LINE_MAX_AUDIO_FILES=LINE統合で利用する音声ファイルの最大保存件数 (例:5)
 LINE_AUDIO_FILES_DIR=line_audio_files
-CHAT_MAX_AUDIO_FILES=Chatエンドポイントで利用する音声ファイルの最大保存件数 (例:5)
-CHAT_AUDIO_FILES_DIR=chat_audio_files
+TALK_MAX_AUDIO_FILES=Talkエンドポイントで利用する音声ファイルの最大保存件数 (例:5)
+TALK_AUDIO_FILES_DIR=talk_audio_files
 WEB_SOCKET_MAX_AUDIO_FILES=WebSocketエンドポイントで利用する音声ファイルの最大保存件数 (例:5)
 WEB_SOCKET_AUDIO_FILES_DIR=websocket_audio_files
 

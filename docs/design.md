@@ -48,7 +48,24 @@ Karakuri Agent is an open-source AI agent platform that enables dialogue through
 - LiteLLM (LLM Integration)
 - LINE Messaging API (LINE Bot Integration)
 
+### Error Handling System
+- Custom exception classes for specific error types
+  - UserError: User-related errors
+  - AgentError: Agent-related errors
+  - LLMError: Language model errors
+  - TTSError: Text-to-speech errors
+  - STTError: Speech-to-text errors
+- Centralized error handling middleware
+- Error handling decorator with logging capabilities
+- Structured error responses for better debugging
+
 ## Core Features
+
+### Talk Facade
+- High-level API for managing text and voice interactions
+- Unified interface for processing messages
+- Efficient error handling and resource management
+- Streamlined service integration
 
 ### Agent Configuration
 - Custom system prompts

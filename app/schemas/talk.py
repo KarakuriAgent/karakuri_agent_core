@@ -4,13 +4,13 @@
 from pydantic import BaseModel
 
 
-class TextChatResponse(BaseModel):
+class TextTalkResponse(BaseModel):
     user_message: str
     agent_message: str
     emotion: str
 
 
-class VoiceChatResponse(BaseModel):
+class VoiceTalkResponse(BaseModel):
     user_message: str
     agent_message: str
     emotion: str

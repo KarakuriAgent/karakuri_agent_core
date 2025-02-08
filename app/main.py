@@ -3,7 +3,7 @@
 # Please see the LICENSE file in the project root.
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import chat, line, agents, users, web_socket, openai
+from app.api.v1 import talk, line, agents, users, web_socket, openai
 from app.auth.api_key import verify_token
 from app.core.config import get_settings
 from app.core.tasks.status_check import check_conversation_timeouts
@@ -48,7 +48,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(chat.router, prefix="/v1/chat", tags=["chat"])
+app.include_router(talk.router, prefix="/v1/talk", tags=["talk"])
 
 app.include_router(openai.router, prefix="/v1", tags=["openai"])
 

@@ -22,17 +22,17 @@ from starlette.responses import FileResponse
 from pathlib import Path
 from typing import Optional
 from app.core.config import get_settings
-from app.schemas.chat import TextChatResponse, VoiceChatResponse
+from app.schemas.talk import TextTalkResponse, VoiceTalkResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 settings = get_settings()
-UPLOAD_DIR = settings.chat_audio_files_dir
-MAX_FILES = settings.chat_max_audio_files
+UPLOAD_DIR = settings.talk_audio_files_dir
+MAX_FILES = settings.talk_max_audio_files
 
 
 @router.post("/text/text")
-async def chat_text_to_text(
+async def talk_text_to_text(
     agent_id: str = Form(...),
     user_id: str = Form(...),
     message: str = Form(...),
@@ -71,7 +71,7 @@ async def chat_text_to_text(
                 image=image_content,
             ),
         )
-        return TextChatResponse(
+        return TextTalkResponse(
             user_message=llm_response.user_message,
             agent_message=llm_response.agent_message,
             emotion=llm_response.emotion,
@@ -83,7 +83,7 @@ async def chat_text_to_text(
 
 
 @router.post("/text/voice")
-async def chat_text_to_voice(
+async def talk_text_to_voice(
     request: Request,
     agent_id: str = Form(...),
     user_id: str = Form(...),
@@ -134,11 +134,11 @@ async def chat_text_to_voice(
         base_url = f"{scheme}://{server_host}"
 
         audio_url = await upload_to_storage(
-            base_url, audio_data, "chat", UPLOAD_DIR, MAX_FILES
+            base_url, audio_data, "talk", UPLOAD_DIR, MAX_FILES
         )
 
         duration = calculate_audio_duration(audio_data)
-        return VoiceChatResponse(
+        return VoiceTalkResponse(
             user_message=message,
             agent_message=llm_response.agent_message,
             emotion=llm_response.emotion,
@@ -152,7 +152,7 @@ async def chat_text_to_voice(
 
 
 @router.post("/voice/text")
-async def chat_voice_to_text(
+async def talk_voice_to_text(
     agent_id: str = Form(...),
     user_id: str = Form(...),
     image_file: Optional[UploadFile] = None,
@@ -197,7 +197,7 @@ async def chat_voice_to_text(
             ),
         )
 
-        return TextChatResponse(
+        return TextTalkResponse(
             user_message=llm_response.user_message,
             agent_message=llm_response.agent_message,
             emotion=llm_response.emotion,
@@ -209,7 +209,7 @@ async def chat_voice_to_text(
 
 
 @router.post("/voice/voice")
-async def chat_voice_to_voice(
+async def talk_voice_to_voice(
     request: Request,
     agent_id: str = Form(...),
     user_id: str = Form(...),
@@ -265,11 +265,11 @@ async def chat_voice_to_voice(
         base_url = f"{scheme}://{server_host}"
 
         audio_url = await upload_to_storage(
-            base_url, audio_data, "chat", UPLOAD_DIR, MAX_FILES
+            base_url, audio_data, "talk", UPLOAD_DIR, MAX_FILES
         )
         duration = calculate_audio_duration(audio_data)
 
-        return VoiceChatResponse(
+        return VoiceTalkResponse(
             user_message=text_message,
             agent_message=llm_response.agent_message,
             emotion=llm_response.emotion,

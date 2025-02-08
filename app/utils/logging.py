@@ -6,6 +6,7 @@
 Logging utility module.
 Provides decorators and utilities for error handling and logging.
 """
+
 import functools
 import logging
 from typing import Callable, TypeVar, Awaitable, Any, cast, ParamSpec, Dict
@@ -19,14 +20,14 @@ logger = logging.getLogger(__name__)
 def _sanitize_context(context: Dict) -> Dict:
     """
     Sanitize sensitive data in error context.
-    
+
     Args:
         context: Dictionary containing error context
-        
+
     Returns:
         Dictionary with sensitive data sanitized
     """
-    sensitive_keys = ['user_id', 'agent_id', 'api_key']
+    sensitive_keys = ["user_id", "agent_id", "api_key"]
     sanitized = context.copy()
     for key in sensitive_keys:
         if key in sanitized and sanitized[key]:
@@ -56,7 +57,7 @@ def error_handler(func: T) -> T:
                 "agent_id": kwargs.get("agent_id"),
                 "user_id": kwargs.get("user_id"),
                 "error_type": e.__class__.__name__,
-                "function": func.__name__
+                "function": func.__name__,
             }
             # Add context to error
             e.context.update(context)
@@ -70,13 +71,12 @@ def error_handler(func: T) -> T:
                 "agent_id": kwargs.get("agent_id"),
                 "user_id": kwargs.get("user_id"),
                 "original_error": str(e),
-                "function": func.__name__
+                "function": func.__name__,
             }
             sanitized_context = _sanitize_context(context)
             logger.error(f"Unexpected error: {str(e)} | Context: {sanitized_context}")
             raise KarakuriError(
-                message=f"An unexpected error occurred: {str(e)}",
-                context=context
+                message=f"An unexpected error occurred: {str(e)}", context=context
             ) from e
 
     return cast(T, wrapper)

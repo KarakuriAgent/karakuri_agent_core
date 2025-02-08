@@ -72,14 +72,14 @@ class ChatError(KarakuriError):
     """
 
     def __init__(self, message: str, context: Optional[dict] = None):
-        super().__init__(message, status_code=500, context=context)
+        super().__init__(message, context=context)
 
 
-class MemoryError(KarakuriError):
+class KarakuriMemoryError(KarakuriError):
     """
     Exception raised for errors related to memory operations.
     Examples include memory storage failures, retrieval issues, or memory context problems.
     """
 
     def __init__(self, message: str, context: Optional[dict] = None):
-        super().__init__(message, status_code=500, context=context)
+        super().__init__(message, context=context)

@@ -1,7 +1,7 @@
 # Copyright (c) 0235 Inc.
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import talk, line, agents, users, web_socket, openai
 from app.auth.api_key import verify_token
@@ -11,6 +11,10 @@ from app.core.tasks.message_sender import send_pending_messages
 from contextlib import asynccontextmanager
 import asyncio
 import logging
+from app.core.exceptions import KarakuriError
+from app.middleware.error_handler import karakuri_exception_handler
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,6 +43,27 @@ app = FastAPI(
     version="0.3.0+13",
     lifespan=lifespan,
 )
+
+
+# Register error handlers
+@app.exception_handler(KarakuriError)
+async def handle_karakuri_error(request: Request, exc: KarakuriError) -> JSONResponse:
+    return await karakuri_exception_handler(request, exc)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=400,
+        content={
+            "error": "ValidationError",
+            "detail": str(exc),
+            "context": {"path": request.url.path, "method": request.method},
+        },
+    )
+
 
 app.add_middleware(
     CORSMiddleware,

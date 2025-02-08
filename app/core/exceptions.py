@@ -1,3 +1,7 @@
+# Copyright (c) 0235 Inc.
+# This file is licensed under the karakuri_agent Personal Use & No Warranty License.
+# Please see the LICENSE file in the project root.
+
 """
 Custom exception classes for the Karakuri Agent application.
 This module defines a hierarchy of exceptions for different types of errors that can occur.

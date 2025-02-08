@@ -5,12 +5,15 @@ from faster_whisper import WhisperModel
 from app.schemas.agent import AgentConfig
 import soundfile as sf
 import io
+from app.core.exceptions import AudioProcessingError
+from app.utils.logging import error_handler
 
 
 class STTService:
     def __init__(self):
         self.model = WhisperModel("tiny", device="cpu", compute_type="int8")
 
+    @error_handler
     async def transcribe_audio(
         self, audio_content: bytes, agent_config: AgentConfig
     ) -> str:
@@ -29,4 +32,10 @@ class STTService:
             return text.strip()
 
         except Exception as e:
-            raise Exception(f"Failed to transcribe audio: {str(e)}")
+            raise AudioProcessingError(
+                message=f"Failed to transcribe audio: {str(e)}",
+                context={
+                    "audio_content_size": len(audio_content),
+                    "error_type": type(e).__name__,
+                },
+            ) from e

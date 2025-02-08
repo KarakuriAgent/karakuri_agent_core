@@ -5,6 +5,8 @@ from abc import ABC, abstractmethod
 import aiohttp
 from app.schemas.agent import AgentConfig
 import logging
+from app.core.exceptions import AudioProcessingError
+from app.utils.logging import error_handler
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +71,7 @@ class TTSService:
             "other_service": OtherServiceProvider(),
         }
 
+    @error_handler
     async def generate_speech(
         self,
         text: str,
@@ -76,9 +79,15 @@ class TTSService:
     ) -> bytes:
         provider = self.providers.get(agent_config.tts_type)
         if not provider:
-            raise ValueError(f"Unsupported TTS provider: {agent_config.tts_type}")
+            raise AudioProcessingError(
+                message=f"Unsupported TTS provider: {agent_config.tts_type}",
+                context={"tts_type": agent_config.tts_type},
+            )
 
         try:
             return await provider.generate_speech(text, agent_config)
         except Exception as e:
-            raise Exception(f"Failed to generate speech: {str(e)}")
+            raise AudioProcessingError(
+                message=f"Failed to generate speech: {str(e)}",
+                context={"tts_type": agent_config.tts_type, "text_length": len(text)},
+            ) from e

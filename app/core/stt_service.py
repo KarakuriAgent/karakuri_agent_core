@@ -2,7 +2,6 @@
 # This file is licensed under the karakuri_agent Personal Use & No Warranty License.
 # Please see the LICENSE file in the project root.
 from faster_whisper import WhisperModel
-from app.schemas.agent import AgentConfig
 import soundfile as sf
 import io
 from app.core.exceptions import AudioProcessingError
@@ -14,9 +13,7 @@ class STTService:
         self.model = WhisperModel("tiny", device="cpu", compute_type="int8")
 
     @error_handler
-    async def transcribe_audio(
-        self, audio_content: bytes, agent_config: AgentConfig
-    ) -> str:
+    async def transcribe_audio(self, audio_content: bytes) -> str:
         try:
             audio_data, sample_rate = sf.read(io.BytesIO(audio_content))
 

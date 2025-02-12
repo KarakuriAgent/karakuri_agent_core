@@ -1,4 +1,8 @@
+# Copyright (c) 0235 Inc.
+# This file is licensed under the karakuri_agent Personal Use & No Warranty License.
+# Please see the LICENSE file in the project root.
 import os
+from fastapi import Request
 from pydub import AudioSegment  # type: ignore
 import io
 from typing import List
@@ -7,6 +11,20 @@ from pathlib import Path
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def get_base_url(request: Request) -> str:
+    """Get base URL from request.
+
+    Args:
+        request: FastAPI request object
+
+    Returns:
+        Base URL for audio files
+    """
+    scheme = request.headers.get("X-Forwarded-Proto", "http")
+    server_host = request.headers.get("X-Forwarded-Host", request.base_url.hostname)
+    return f"{scheme}://{server_host}"
 
 
 async def upload_to_storage(

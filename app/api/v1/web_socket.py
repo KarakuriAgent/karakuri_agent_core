@@ -118,16 +118,12 @@ async def websocket_endpoint(
                 audio_bytes = base64.b64decode(request_obj.audio)
                 audio_file = io.BytesIO(audio_bytes)
                 audio_content = audio_file.read()
-                text_message = await stt_service.transcribe_audio(
-                    audio_content, agent_config
-                )
+                text_message = await stt_service.transcribe_audio(audio_content)
             elif isinstance(request_obj, ImageAudioRequest):
                 audio_bytes = base64.b64decode(request_obj.audio)
                 audio_file = io.BytesIO(audio_bytes)
                 audio_content = audio_file.read()
-                text_message = await stt_service.transcribe_audio(
-                    audio_content, agent_config
-                )
+                text_message = await stt_service.transcribe_audio(audio_content)
                 image_bytes = base64.b64decode(request_obj.image)
                 image_file = io.BytesIO(image_bytes)
                 image_content = image_file.read()

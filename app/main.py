@@ -4,6 +4,7 @@
 from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import talk, line, agents, users, web_socket, openai
+from app.api.v1.utils import audio
 from app.auth.api_key import verify_token
 from app.core.config import get_settings
 from app.core.tasks.status_check import check_conversation_timeouts
@@ -84,6 +85,8 @@ app.include_router(agents.router, prefix="/v1", tags=["agents"])
 app.include_router(web_socket.router, prefix="/v1/ws", tags=["websocket"])
 
 app.include_router(users.router, prefix="/v1", tags=["users"])
+
+app.include_router(audio.router, prefix="/v1/utils/audio", tags=["utils/audio"])
 
 
 @app.get("/health")

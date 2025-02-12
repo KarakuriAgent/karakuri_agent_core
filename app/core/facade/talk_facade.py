@@ -14,7 +14,7 @@ from app.core.agent_manager import AgentConfig, AgentManager
 from app.schemas.user import UserConfig
 from app.schemas.llm import LLMResponse
 from app.schemas.talk import TextTalkResponse, VoiceTalkResponse
-from app.utils.audio import calculate_audio_duration, upload_to_storage
+from app.utils.audio import calculate_audio_duration, get_base_url, upload_to_storage
 
 
 class TalkFacade:
@@ -64,19 +64,6 @@ class TalkFacade:
         self._agent_manager = agent_manager
         self._upload_dir = settings.talk_audio_files_dir
         self._max_files = settings.talk_max_audio_files
-
-    def _get_base_url(self, request: Request) -> str:
-        """Get base URL from request.
-
-        Args:
-            request: FastAPI request object
-
-        Returns:
-            Base URL for audio files
-        """
-        scheme = request.headers.get("X-Forwarded-Proto", "http")
-        server_host = request.headers.get("X-Forwarded-Host", request.base_url.hostname)
-        return f"{scheme}://{server_host}"
 
     async def _get_configs(
         self, agent_id: str, user_id: str
@@ -188,9 +175,7 @@ class TalkFacade:
         Returns:
             TextTalkResponse: Agent's text response
         """
-        text_message = await self._stt_service.transcribe_audio(
-            audio_content, agent_config
-        )
+        text_message = await self._stt_service.transcribe_audio(audio_content)
 
         llm_response = cast(
             LLMResponse,
@@ -304,7 +289,7 @@ class TalkFacade:
 
             # Generate voice response if requested
             if generate_voice:
-                base_url = self._get_base_url(request)
+                base_url = get_base_url(request)
                 return await self.generate_voice_response(
                     text_response, agent_config, base_url
                 )
